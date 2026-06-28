@@ -1,0 +1,8 @@
+{
+  "name": "prayercare-website",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/generate-config.js",
+    "dev": "npx serve ."
+  }
+}

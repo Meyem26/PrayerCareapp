@@ -1,0 +1,17 @@
+project_id = "prayercare"
+
+[api]
+enabled = true
+
+[db]
+major_version = 15
+
+[auth]
+enabled = true
+site_url = "http://localhost:8081"
+additional_redirect_urls = ["prayercare://reset-password"]
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
