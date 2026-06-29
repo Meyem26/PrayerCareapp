@@ -3,11 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#4F8EF7" />
+
+    <title>PrayerCare | Remember Every Prayer. Celebrate Every Answer.</title>
     <meta
       name="description"
-      content="PrayerCare helps Christians organize prayers, care for people intentionally, and celebrate answered prayers—all in one beautiful place."
+      content="PrayerCare helps Christians, prayer groups, ministries, and churches organize prayers, remember to pray, care intentionally, and celebrate God's faithfulness."
     />
-    <title>PrayerCare — Never forget a prayer</title>
+    <meta name="author" content="PrayerCare" />
+    <link rel="canonical" href="__SITE_URL__/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PrayerCare" />
+    <meta property="og:title" content="PrayerCare | Remember Every Prayer. Celebrate Every Answer." />
+    <meta
+      property="og:description"
+      content="PrayerCare helps Christians, prayer groups, ministries, and churches organize prayers, remember to pray, care intentionally, and celebrate God's faithfulness."
+    />
+    <meta property="og:url" content="__SITE_URL__/" />
+    <meta property="og:image" content="__SITE_URL__/assets/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PrayerCare | Remember Every Prayer. Celebrate Every Answer." />
+    <meta
+      name="twitter:description"
+      content="PrayerCare helps Christians, prayer groups, ministries, and churches organize prayers, remember to pray, care intentionally, and celebrate God's faithfulness."
+    />
+    <meta name="twitter:image" content="__SITE_URL__/assets/og-image.svg" />
+
+    <!-- Icons -->
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.svg" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -15,7 +47,6 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/styles.css" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23DCEBFF'/><path d='M50 22c-8 12-20 18-20 32 0 11 9 20 20 20s20-9 20-20c0-14-12-20-20-32z' fill='%234F8EF7' opacity='.9'/></svg>" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -35,9 +66,28 @@
           <a href="#story">Our Story</a>
           <a href="#journey">The Journey</a>
           <a href="#features">Features</a>
+          <a href="#join-beta">Join Beta</a>
         </nav>
+        <button
+          type="button"
+          class="menu-toggle"
+          id="menu-toggle"
+          aria-expanded="false"
+          aria-controls="mobile-nav"
+          aria-label="Open menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
         <a class="btn btn-primary btn-sm header-cta" href="#join-beta">Join the Beta</a>
       </div>
+      <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile" hidden>
+        <a href="#story">Our Story</a>
+        <a href="#journey">The Journey</a>
+        <a href="#features">Features</a>
+        <a href="#demo">Watch Demo</a>
+        <a href="#join-beta">Join the Beta</a>
+      </nav>
     </header>
 
     <main id="main">
@@ -332,7 +382,15 @@
           <span class="logo-mark" aria-hidden="true"></span>
           <span>PrayerCare</span>
         </div>
-        <p class="footer-tagline">Where burdens become prayers, care becomes love, and faithfulness is remembered.</p>
+        <p class="footer-promise">
+          Helping you remember every prayer, every act of care, and every reason to praise God.
+        </p>
+        <nav class="footer-nav" aria-label="Footer">
+          <a href="#story">Our Story</a>
+          <a href="#journey">The Journey</a>
+          <a href="#features">Features</a>
+          <a href="#join-beta">Join Beta</a>
+        </nav>
         <p class="footer-copy">&copy; <span id="year"></span> PrayerCare. Made with peace and purpose.</p>
       </div>
     </footer>

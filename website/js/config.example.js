@@ -7,4 +7,6 @@
 window.PRAYERCARE_CONFIG = {
   supabaseUrl: 'https://YOUR_PROJECT.supabase.co',
   supabaseAnonKey: 'YOUR_ANON_KEY',
+  siteUrl: 'http://localhost:3000',
+  plausibleDomain: '',
 };

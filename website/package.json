@@ -2,7 +2,7 @@
   "name": "prayercare-website",
   "private": true,
   "scripts": {
-    "build": "node scripts/generate-config.js",
+    "build": "node scripts/build-production.js",
     "dev": "npx serve ."
   }
 }

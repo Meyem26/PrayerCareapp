@@ -170,6 +170,71 @@ a:hover {
 
 .header-cta {
   margin-left: auto;
+  display: none;
+}
+
+.menu-toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.menu-toggle span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: var(--text-dark);
+  border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.menu-toggle[aria-expanded='true'] span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.menu-toggle[aria-expanded='true'] span:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle[aria-expanded='true'] span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background-color: var(--white-soft);
+  border-top: 1px solid var(--gray-light);
+  padding: var(--header-pad) 0;
+}
+
+.mobile-nav[hidden] {
+  display: none;
+}
+
+.mobile-nav a {
+  padding: 0.875rem 1.25rem;
+  color: var(--text-dark);
+  font-weight: 500;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.mobile-nav a:last-child {
+  border-bottom: none;
+}
+
+body.menu-open {
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
@@ -178,7 +243,16 @@ a:hover {
   }
 
   .header-cta {
+    display: inline-flex;
     margin-left: 0;
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
+  .mobile-nav {
+    display: none !important;
   }
 }
 
@@ -692,6 +766,41 @@ a:hover {
   font-size: 0.9375rem;
   max-width: 28rem;
   line-height: 1.6;
+}
+
+.footer-promise {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  max-width: 32rem;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.25rem 2rem;
+  margin-top: 0.5rem;
+}
+
+.footer-nav a {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.footer-nav a:hover {
+  color: var(--blue-primary);
+}
+
+.btn:focus-visible,
+.menu-toggle:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--blue-primary);
+  outline-offset: 3px;
 }
 
 .footer-copy {
