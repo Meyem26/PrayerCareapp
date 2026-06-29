@@ -6,19 +6,26 @@
     yearEl.textContent = String(new Date().getFullYear());
   }
 
-  // Analytics (Plausible — privacy-friendly)
+  // Google Analytics 4
   var config = window.PRAYERCARE_CONFIG || {};
-  if (config.plausibleDomain) {
-    var script = document.createElement('script');
-    script.defer = true;
-    script.dataset.domain = config.plausibleDomain;
-    script.src = 'https://plausible.io/js/script.js';
-    document.head.appendChild(script);
+  if (config.gaMeasurementId) {
+    var gaScript = document.createElement('script');
+    gaScript.async = true;
+    gaScript.src =
+      'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(config.gaMeasurementId);
+    document.head.appendChild(gaScript);
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () {
+      window.dataLayer.push(arguments);
+    };
+    window.gtag('js', new Date());
+    window.gtag('config', config.gaMeasurementId);
   }
 
-  function trackEvent(name) {
-    if (typeof window.plausible === 'function') {
-      window.plausible(name);
+  function trackEvent(eventName, params) {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', eventName, params || {});
     }
   }
 
@@ -110,7 +117,7 @@
         note.textContent = "You're already on the list — we'll be in touch soon.";
         note.classList.add('success');
         form.reset();
-        trackEvent('Beta Signup Duplicate');
+        trackEvent('beta_signup_duplicate');
         return;
       }
 
@@ -125,7 +132,7 @@
         "Thank you! You're on the beta list. Check your inbox for a confirmation email.";
       note.classList.add('success');
       form.reset();
-      trackEvent('Beta Signup');
+      trackEvent('beta_signup', { method: 'website' });
       notifyBetaSignup(email);
     });
   }
@@ -181,7 +188,7 @@
             note.textContent = "You're already on the list — we'll be in touch soon.";
             note.classList.add('success');
             form.reset();
-            trackEvent('Beta Signup Duplicate');
+            trackEvent('beta_signup_duplicate');
             return;
           }
           note.textContent = 'Something went wrong. Please try again in a moment.';

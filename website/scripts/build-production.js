@@ -19,8 +19,8 @@ const supabaseAnonKey =
   process.env.SUPABASE_ANON_KEY ||
   process.env.PRAYERCARE_SUPABASE_ANON_KEY;
 
-const plausibleDomain =
-  process.env.PLAUSIBLE_DOMAIN || process.env.PRAYERCARE_PLAUSIBLE_DOMAIN || '';
+const gaMeasurementId =
+  process.env.GA_MEASUREMENT_ID || process.env.PRAYERCARE_GA_MEASUREMENT_ID || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error(
@@ -37,7 +37,7 @@ window.PRAYERCARE_CONFIG = {
   supabaseUrl: ${JSON.stringify(supabaseUrl)},
   supabaseAnonKey: ${JSON.stringify(supabaseAnonKey)},
   siteUrl: ${JSON.stringify(siteUrl)},
-  plausibleDomain: ${JSON.stringify(plausibleDomain)},
+  gaMeasurementId: ${JSON.stringify(gaMeasurementId)},
 };
 `,
   'utf8',
