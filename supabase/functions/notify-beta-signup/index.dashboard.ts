@@ -144,11 +144,23 @@ Deno.serve(async (req) => {
       resendKey,
       fromEmail,
       email,
-      "You're on the PrayerCare beta list",
-      `<p>Thank you for joining the PrayerCare beta.</p>
-       <p><strong>Next step:</strong> open the app and create your account with this same email:</p>
-       <p><a href="${appUrl}">${appUrl}</a></p>
-       <p>We'll be in touch as the beta grows.</p>`,
+      "You're in — welcome to the PrayerCare beta",
+      `<div style="font-family: Georgia, 'Times New Roman', serif; color: #1F2937; line-height: 1.65; max-width: 560px;">
+        <p Thank you for joining the PrayerCare beta. We're so glad you're here.
+
+Open the app and sign up with the same email you used for beta:
+https://app.prayercare.online
+
+On your phone: open that link in Safari or Chrome, then Add to Home 
+Screen for the best experience.
+
+We're building a peaceful place to remember every prayer, every act 
+of care, and every reason to praise God — and your feedback helps us 
+get there.
+
+With gratitude,
+The PrayerCare team
+      </div>`,
     );
     if (userErr) errors.push(userErr);
 
