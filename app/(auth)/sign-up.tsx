@@ -6,6 +6,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
+import { LANDING_URL } from '@/constants/beta';
 import { useAuth } from '@/contexts/AuthContext';
 import { theme } from '@/constants/theme';
 import { isSupabaseConfigured } from '@/lib/supabase';
@@ -67,6 +68,10 @@ export default function SignUpScreen() {
             <AppText muted>
               Create a peaceful space to pray, care, and celebrate answered prayers.
             </AppText>
+            <AppText variant="bodySmall" muted style={styles.betaNote}>
+              Private beta: use the same email address you used to join the waitlist at{' '}
+              {LANDING_URL.replace(/^https?:\/\//, '')}.
+            </AppText>
           </View>
 
           <View style={styles.form}>
@@ -123,6 +128,10 @@ const styles = StyleSheet.create({
   },
   hero: {
     gap: theme.spacing.sm,
+  },
+  betaNote: {
+    marginTop: theme.spacing.sm,
+    lineHeight: 20,
   },
   greeting: {
     marginTop: theme.spacing.xs,

@@ -8,7 +8,10 @@ import {
   type PropsWithChildren,
 } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 
+import { BETA_MODE } from '@/constants/beta';
+import { canCreateBetaAccount } from '@/lib/api/beta-access';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import type { Profile } from '@/types/database';
 
@@ -129,11 +132,24 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, displayName: string) => {
+    if (BETA_MODE) {
+      const access = await canCreateBetaAccount(email);
+      if (!access.allowed) {
+        return { error: access.error };
+      }
+    }
+
+    const emailRedirectTo =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? `${window.location.origin}/`
+        : undefined;
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { display_name: displayName.trim() },
+        emailRedirectTo,
       },
     });
     return { error: error?.message ?? null };
@@ -145,8 +161,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {
+    const redirectTo =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? `${window.location.origin}/reset-password`
+        : 'prayercare://reset-password';
+
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: 'prayercare://reset-password',
+      redirectTo,
     });
     return { error: error?.message ?? null };
   }, []);

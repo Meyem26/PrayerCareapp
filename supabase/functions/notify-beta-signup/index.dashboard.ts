@@ -5,7 +5,7 @@
  * Secrets:
  *   RESEND_API_KEY=...
  *   BETA_ADMIN_EMAIL=you@yourdomain.com
- *   BETA_FROM_EMAIL=PrayerCare <hello@yourdomain.com>
+ *   BETA_FROM_EMAIL=PrayerCare <onboarding@resend.dev>  (use resend.dev until your domain is verified)
  *   SITE_URL=https://yourdomain.com
  *   BETA_WEBHOOK_SECRET=optional (only if using Database Webhooks)
  *
@@ -39,8 +39,10 @@ async function sendWithResend(apiKey, from, to, subject, html) {
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`Resend failed: ${response.status} ${detail}`);
+    console.error(`Resend failed (${to}):`, response.status, detail);
+    return `Resend ${response.status}: ${detail}`;
   }
+  return null;
 }
 
 async function verifyRecentWaitlistSignup(email) {
@@ -49,16 +51,24 @@ async function verifyRecentWaitlistSignup(email) {
   if (!supabaseUrl || !serviceRoleKey) return false;
 
   const admin = createClient(supabaseUrl, serviceRoleKey);
-  const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-  const { data } = await admin
+  const { data: recent } = await admin
     .from('beta_waitlist')
     .select('id')
     .eq('email', email)
     .gte('created_at', since)
     .maybeSingle();
 
-  return Boolean(data?.id);
+  if (recent?.id) return true;
+
+  const { data: existing } = await admin
+    .from('beta_waitlist')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle();
+
+  return Boolean(existing?.id);
 }
 
 Deno.serve(async (req) => {
@@ -96,13 +106,16 @@ Deno.serve(async (req) => {
     const adminEmail = Deno.env.get('BETA_ADMIN_EMAIL');
     const fromEmail = Deno.env.get('BETA_FROM_EMAIL') ?? 'PrayerCare <onboarding@resend.dev>';
     const siteUrl = Deno.env.get('SITE_URL') ?? 'https://prayercare.app';
+    const appUrl = Deno.env.get('APP_URL') ?? siteUrl.replace('://', '://app.');
 
     if (!resendKey || !adminEmail) {
       console.warn('RESEND_API_KEY or BETA_ADMIN_EMAIL not set — skipping email.');
       return jsonResponse({ ok: true, emailed: false });
     }
 
-    await sendWithResend(
+    const errors = [];
+
+    const adminErr = await sendWithResend(
       resendKey,
       fromEmail,
       adminEmail,
@@ -112,16 +125,23 @@ Deno.serve(async (req) => {
        <strong>Source:</strong> ${source}</p>
        <p>View signups in Supabase → beta_waitlist.</p>`,
     );
+    if (adminErr) errors.push(adminErr);
 
-    await sendWithResend(
+    const userErr = await sendWithResend(
       resendKey,
       fromEmail,
       email,
       "You're on the PrayerCare beta list",
       `<p>Thank you for joining the PrayerCare beta.</p>
-       <p>We'll email you when the app is ready to install.</p>
-       <p><a href="${siteUrl}">${siteUrl}</a></p>`,
+       <p><strong>Next step:</strong> open the app and create your account with this same email:</p>
+       <p><a href="${appUrl}">${appUrl}</a></p>
+       <p>We'll be in touch as the beta grows.</p>`,
     );
+    if (userErr) errors.push(userErr);
+
+    if (errors.length) {
+      return jsonResponse({ ok: true, emailed: false, errors });
+    }
 
     return jsonResponse({ ok: true, emailed: true });
   } catch (error) {

@@ -9,10 +9,19 @@ const siteUrl = (
   'https://prayercare.app'
 ).replace(/\/$/, '');
 
-const supabaseUrl =
+function normalizeSupabaseUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  return url
+    .trim()
+    .replace(/\/+$/, '')
+    .replace(/\/rest\/v1\/?$/i, '');
+}
+
+const supabaseUrl = normalizeSupabaseUrl(
   process.env.EXPO_PUBLIC_SUPABASE_URL ||
-  process.env.SUPABASE_URL ||
-  process.env.PRAYERCARE_SUPABASE_URL;
+    process.env.SUPABASE_URL ||
+    process.env.PRAYERCARE_SUPABASE_URL,
+);
 
 const supabaseAnonKey =
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
@@ -21,6 +30,12 @@ const supabaseAnonKey =
 
 const gaMeasurementId =
   process.env.GA_MEASUREMENT_ID || process.env.PRAYERCARE_GA_MEASUREMENT_ID || '';
+
+const appUrl = (
+  process.env.APP_URL ||
+  process.env.PRAYERCARE_APP_URL ||
+  'https://app.prayercare.app'
+).replace(/\/$/, '');
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error(
@@ -38,6 +53,7 @@ window.PRAYERCARE_CONFIG = {
   supabaseAnonKey: ${JSON.stringify(supabaseAnonKey)},
   siteUrl: ${JSON.stringify(siteUrl)},
   gaMeasurementId: ${JSON.stringify(gaMeasurementId)},
+  appUrl: ${JSON.stringify(appUrl)},
 };
 `,
   'utf8',
@@ -77,6 +93,7 @@ const indexPath = path.join(root, 'index.html');
 let indexHtml = fs.readFileSync(indexPath, 'utf8');
 
 indexHtml = indexHtml.replace(/__SITE_URL__/g, siteUrl);
+indexHtml = indexHtml.replace(/__APP_URL__/g, appUrl);
 indexHtml = indexHtml.replace(
   /(<link rel="canonical" href=")[^"]*(")/,
   `$1${siteUrl}/$2`,

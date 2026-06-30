@@ -8,6 +8,19 @@
 
   // Google Analytics 4
   var config = window.PRAYERCARE_CONFIG || {};
+
+  var headerOpenApp = document.getElementById('header-open-app');
+  var betaOpenApp = document.getElementById('beta-open-app');
+  if (config.appUrl) {
+    if (headerOpenApp) {
+      headerOpenApp.href = config.appUrl + '/';
+      headerOpenApp.hidden = false;
+    }
+    if (betaOpenApp) {
+      betaOpenApp.href = config.appUrl + '/';
+    }
+  }
+
   if (config.gaMeasurementId) {
     var gaScript = document.createElement('script');
     gaScript.async = true;
@@ -94,16 +107,75 @@
     return window.PRAYERCARE_CONFIG || null;
   }
 
+  /** Base project URL only — strips accidental /rest/v1 suffix from env vars. */
+  function normalizeSupabaseUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    return url
+      .trim()
+      .replace(/\/+$/, '')
+      .replace(/\/rest\/v1\/?$/i, '');
+  }
+
+  function parseSupabaseError(body) {
+    if (!body) return '';
+    try {
+      var parsed = JSON.parse(body);
+      if (parsed.message) return String(parsed.message);
+      if (parsed.error) return String(parsed.error);
+    } catch (e) {
+      /* plain text */
+    }
+    return String(body);
+  }
+
+  function friendlySignupError(status, body) {
+    var detail = parseSupabaseError(body);
+    var lower = detail.toLowerCase();
+
+    if (status === 404 || lower.indexOf('beta_waitlist') !== -1) {
+      return 'Beta signup is not set up yet. Run migration 016 in Supabase, then redeploy.';
+    }
+    if (status === 401 || status === 403 || lower.indexOf('row-level security') !== -1) {
+      return 'Signup was blocked by database security. Check beta_waitlist RLS in Supabase.';
+    }
+    if (
+      status === 409 ||
+      lower.indexOf('duplicate') !== -1 ||
+      lower.indexOf('23505') !== -1 ||
+      lower.indexOf('unique') !== -1
+    ) {
+      return 'DUPLICATE';
+    }
+    if (lower.indexOf('failed to fetch') !== -1 || lower.indexOf('network') !== -1) {
+      return 'Could not reach the server. Check your connection and try again.';
+    }
+    if (detail && detail.length < 160) {
+      return detail;
+    }
+    return 'Something went wrong. Please try again in a moment.';
+  }
+
+  function showBetaAppNextStep() {
+    var next = document.getElementById('beta-success-next');
+    if (next) {
+      next.hidden = false;
+    }
+  }
+
   function submitToSupabase(email, note, form) {
     var cfg = getConfig();
     if (!cfg || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
       return Promise.reject(new Error('CONFIG_MISSING'));
     }
-    if (cfg.supabaseUrl.includes('YOUR_PROJECT') || cfg.supabaseAnonKey.includes('YOUR_ANON')) {
+    var supabaseUrl = normalizeSupabaseUrl(cfg.supabaseUrl);
+    if (!supabaseUrl) {
+      return Promise.reject(new Error('CONFIG_MISSING'));
+    }
+    if (supabaseUrl.includes('YOUR_PROJECT') || cfg.supabaseAnonKey.includes('YOUR_ANON')) {
       return Promise.reject(new Error('CONFIG_PLACEHOLDER'));
     }
 
-    return fetch(cfg.supabaseUrl + '/rest/v1/beta_waitlist', {
+    return fetch(supabaseUrl + '/rest/v1/beta_waitlist', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -114,16 +186,20 @@
       body: JSON.stringify({ email: email, source: 'website' }),
     }).then(function (response) {
       if (response.status === 409) {
-        note.textContent = "You're already on the list — we'll be in touch soon.";
+        note.textContent = "You're already on the list — open the app to sign in.";
         note.classList.add('success');
         form.reset();
         trackEvent('beta_signup_duplicate');
+        showBetaAppNextStep();
+        notifyBetaSignup(email);
         return;
       }
 
       if (!response.ok) {
         return response.text().then(function (body) {
-          throw new Error(body || 'Request failed');
+          var err = new Error(body || 'Request failed');
+          err.status = response.status;
+          throw err;
         });
       }
 
@@ -133,6 +209,7 @@
       note.classList.add('success');
       form.reset();
       trackEvent('beta_signup', { method: 'website' });
+      showBetaAppNextStep();
       notifyBetaSignup(email);
     });
   }
@@ -140,7 +217,9 @@
   function notifyBetaSignup(email) {
     var cfg = getConfig();
     if (!cfg) return;
-    fetch(cfg.supabaseUrl + '/functions/v1/notify-beta-signup', {
+    var supabaseUrl = normalizeSupabaseUrl(cfg.supabaseUrl);
+    if (!supabaseUrl) return;
+    fetch(supabaseUrl + '/functions/v1/notify-beta-signup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -179,19 +258,24 @@
 
       submitToSupabase(email, note, form)
         .catch(function (err) {
+          console.error('Beta signup failed:', err);
           if (err.message === 'CONFIG_MISSING' || err.message === 'CONFIG_PLACEHOLDER') {
-            note.textContent = 'Signup is not configured yet. Please try again soon.';
+            note.textContent =
+              'Signup is not configured yet. Set Supabase env vars on Vercel and redeploy.';
             note.classList.add('error');
             return;
           }
-          if (String(err.message).includes('duplicate') || String(err.message).includes('23505')) {
-            note.textContent = "You're already on the list — we'll be in touch soon.";
+          var friendly = friendlySignupError(err.status || 0, err.message || '');
+          if (friendly === 'DUPLICATE') {
+            note.textContent = "You're already on the list — open the app to sign in.";
             note.classList.add('success');
             form.reset();
             trackEvent('beta_signup_duplicate');
+            showBetaAppNextStep();
+            notifyBetaSignup(email);
             return;
           }
-          note.textContent = 'Something went wrong. Please try again in a moment.';
+          note.textContent = friendly;
           note.classList.add('error');
         })
         .finally(function () {
