@@ -31,11 +31,21 @@ const supabaseAnonKey =
 const gaMeasurementId =
   process.env.GA_MEASUREMENT_ID || process.env.PRAYERCARE_GA_MEASUREMENT_ID || '';
 
-const appUrl = (
-  process.env.APP_URL ||
-  process.env.PRAYERCARE_APP_URL ||
-  'https://app.prayercare.app'
-).replace(/\/$/, '');
+function deriveAppUrl(site, explicit) {
+  if (explicit) return explicit.replace(/\/+$/, '');
+  try {
+    const parsed = new URL(site.startsWith('http') ? site : `https://${site}`);
+    const host = parsed.hostname.replace(/^www\./i, '');
+    return `https://app.${host}`;
+  } catch {
+    return 'https://app.prayercare.app';
+  }
+}
+
+const appUrl = deriveAppUrl(
+  siteUrl,
+  process.env.APP_URL || process.env.PRAYERCARE_APP_URL,
+);
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error(
