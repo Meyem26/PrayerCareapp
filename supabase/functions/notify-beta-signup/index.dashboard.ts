@@ -6,8 +6,8 @@
  *   RESEND_API_KEY=...
  *   BETA_ADMIN_EMAIL=you@yourdomain.com
  *   BETA_FROM_EMAIL=PrayerCare <onboarding@resend.dev>  (use resend.dev until your domain is verified)
- *   SITE_URL=https://yourdomain.com
- *   BETA_WEBHOOK_SECRET=optional (only if using Database Webhooks)
+ *   SITE_URL=https://www.yourdomain.com
+ *   APP_URL=https://app.yourdomain.com  (required if SITE_URL uses www.)
  *
  * Webhook optional: the website calls this function after signup if webhooks fail.
  */
@@ -43,6 +43,19 @@ async function sendWithResend(apiKey, from, to, subject, html) {
     return `Resend ${response.status}: ${detail}`;
   }
   return null;
+}
+
+function deriveAppUrl(siteUrl) {
+  const explicit = Deno.env.get('APP_URL');
+  if (explicit) return explicit.replace(/\/+$/, '');
+
+  try {
+    const parsed = new URL(siteUrl);
+    const host = parsed.hostname.replace(/^www\./i, '');
+    return `https://app.${host}`;
+  } catch {
+    return 'https://app.prayercare.app';
+  }
 }
 
 async function verifyRecentWaitlistSignup(email) {
@@ -105,8 +118,8 @@ Deno.serve(async (req) => {
     const resendKey = Deno.env.get('RESEND_API_KEY');
     const adminEmail = Deno.env.get('BETA_ADMIN_EMAIL');
     const fromEmail = Deno.env.get('BETA_FROM_EMAIL') ?? 'PrayerCare <onboarding@resend.dev>';
-    const siteUrl = Deno.env.get('SITE_URL') ?? 'https://prayercare.app';
-    const appUrl = Deno.env.get('APP_URL') ?? siteUrl.replace('://', '://app.');
+    const siteUrl = (Deno.env.get('SITE_URL') ?? 'https://prayercare.app').replace(/\/+$/, '');
+    const appUrl = deriveAppUrl(siteUrl);
 
     if (!resendKey || !adminEmail) {
       console.warn('RESEND_API_KEY or BETA_ADMIN_EMAIL not set — skipping email.');

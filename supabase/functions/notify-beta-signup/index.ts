@@ -37,6 +37,19 @@ async function sendWithResend(
   return null;
 }
 
+function deriveAppUrl(siteUrl: string): string {
+  const explicit = Deno.env.get('APP_URL');
+  if (explicit) return explicit.replace(/\/+$/, '');
+
+  try {
+    const parsed = new URL(siteUrl);
+    const host = parsed.hostname.replace(/^www\./i, '');
+    return `https://app.${host}`;
+  } catch {
+    return 'https://app.prayercare.app';
+  }
+}
+
 /** Website calls: confirm this email was just saved to beta_waitlist. */
 async function verifyRecentWaitlistSignup(email: string): Promise<boolean> {
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -98,8 +111,8 @@ Deno.serve(async (req) => {
     const resendKey = Deno.env.get('RESEND_API_KEY');
     const adminEmail = Deno.env.get('BETA_ADMIN_EMAIL');
     const fromEmail = Deno.env.get('BETA_FROM_EMAIL') ?? 'PrayerCare <onboarding@resend.dev>';
-    const siteUrl = Deno.env.get('SITE_URL') ?? 'https://prayercare.app';
-    const appUrl = Deno.env.get('APP_URL') ?? 'https://app.prayercare.app';
+    const siteUrl = (Deno.env.get('SITE_URL') ?? 'https://prayercare.app').replace(/\/+$/, '');
+    const appUrl = deriveAppUrl(siteUrl);
 
     if (!resendKey || !adminEmail) {
       console.warn('RESEND_API_KEY or BETA_ADMIN_EMAIL not set — skipping email.');
