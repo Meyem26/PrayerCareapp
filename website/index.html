@@ -116,40 +116,51 @@
           </div>
 
           <div class="hero-visual reveal reveal-delay" aria-hidden="true">
-            <div class="hero-illustration">
-              <div class="hero-glow"></div>
-              <svg class="hero-svg" viewBox="0 0 480 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#EEF4FF" />
-                    <stop offset="100%" stop-color="#FAFBFD" />
-                  </linearGradient>
-                  <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#FFF8E8" />
-                    <stop offset="100%" stop-color="#DCEBFF" />
-                  </linearGradient>
-                  <linearGradient id="robe" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#6BA3F8" />
-                    <stop offset="100%" stop-color="#4F8EF7" />
-                  </linearGradient>
-                </defs>
-                <rect width="480" height="520" rx="32" fill="url(#sky)" />
-                <circle cx="360" cy="88" r="56" fill="url(#sun)" opacity="0.85" />
-                <ellipse cx="240" cy="480" rx="200" ry="24" fill="#DCEBFF" opacity="0.5" />
-                <!-- kneeling figure -->
-                <path d="M200 420 L200 320 Q200 280 240 260 Q280 240 280 200 L280 180 Q280 160 260 150 Q240 140 220 155 Q200 170 200 195 L200 220 Q180 230 170 250 Q160 270 165 295 Q170 320 190 330 L190 420 Z" fill="url(#robe)" opacity="0.92" />
-                <circle cx="235" cy="148" r="28" fill="#F5D0A8" />
-                <path d="M210 175 Q235 165 260 175" stroke="#E8B896" stroke-width="2" fill="none" />
-                <path d="M248 200 Q270 230 285 260 Q295 280 290 300" stroke="#4F8EF7" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.6" />
-                <path d="M192 200 Q170 230 155 260 Q145 280 150 300" stroke="#4F8EF7" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.6" />
-                <!-- light rays -->
-                <path d="M360 88 L300 180 M360 88 L380 200 M360 88 L420 160" stroke="#D6A64D" stroke-width="1.5" stroke-linecap="round" opacity="0.35" />
-                <!-- subtle cross -->
-                <g transform="translate(340, 360)" opacity="0.2">
-                  <rect x="-2" y="-20" width="4" height="40" rx="2" fill="#4F8EF7" />
-                  <rect x="-14" y="-8" width="28" height="4" rx="2" fill="#4F8EF7" />
-                </g>
-              </svg>
+            <div class="hero-mockup-wrap">
+              <div class="mockup-badge mockup-badge--top">Today's prayers</div>
+              <div class="mockup-badge mockup-badge--left">Scripture rooted</div>
+              <div class="mockup-badge mockup-badge--right">Care &amp; praise</div>
+              <div class="iphone-mockup iphone-mockup--hero">
+                <div class="iphone-frame">
+                  <div class="iphone-notch" aria-hidden="true"></div>
+                  <div class="iphone-screen app-screen" data-screen="today">
+                    <div class="app-status-bar">
+                      <span>9:41</span>
+                      <span class="app-status-icons" aria-hidden="true">●●●</span>
+                    </div>
+                    <div class="app-content app-content--today">
+                      <p class="app-greeting">Good morning, Sarah.</p>
+                      <p class="app-subline">You have 3 prayer commitments today.</p>
+                      <div class="app-prayer-card">
+                        <span class="app-card-tag">Daily</span>
+                        <h4 class="app-card-title">Healing for Mom's surgery</h4>
+                        <p class="app-card-meta">Philippians 4:6–7</p>
+                        <div class="app-card-actions">
+                          <span class="app-chip app-chip--done">Prayed</span>
+                          <span class="app-chip">Care visit Fri</span>
+                        </div>
+                      </div>
+                      <div class="app-prayer-card">
+                        <span class="app-card-tag app-card-tag--gold">Group</span>
+                        <h4 class="app-card-title">Job search — David</h4>
+                        <p class="app-card-meta">Prayer Circle · 4 members praying</p>
+                      </div>
+                      <div class="app-prayer-card app-prayer-card--muted">
+                        <span class="app-card-tag">Weekly</span>
+                        <h4 class="app-card-title">Church planting in Nairobi</h4>
+                        <p class="app-card-meta">Every Sunday</p>
+                      </div>
+                    </div>
+                    <nav class="app-tab-bar" aria-hidden="true">
+                      <span class="app-tab app-tab--active">Today</span>
+                      <span class="app-tab">Pray</span>
+                      <span class="app-tab">Groups</span>
+                      <span class="app-tab">Journey</span>
+                    </nav>
+                  </div>
+                  <div class="iphone-home-indicator" aria-hidden="true"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -333,17 +344,176 @@
         </div>
       </section>
 
-      <!-- Demo placeholder -->
-      <section class="demo section" id="demo" aria-labelledby="demo-heading">
-        <div class="container narrow reveal">
-          <h2 id="demo-heading" class="section-title centered">See PrayerCare in action</h2>
-          <p class="section-lead centered">
-            A calm, intuitive experience designed for real prayer life—not another cluttered app.
-          </p>
-          <div class="demo-frame">
-            <div class="demo-placeholder">
-              <span class="demo-play" aria-hidden="true">▶</span>
-              <p>Demo video coming soon</p>
+      <!-- App showcase -->
+      <section class="showcase section" id="demo" aria-labelledby="demo-heading">
+        <div class="container">
+          <div class="section-intro reveal">
+            <h2 id="demo-heading" class="section-title centered">See PrayerCare in action</h2>
+            <p class="section-lead centered">
+              A calm, real prayer life in your pocket—not another cluttered app.
+            </p>
+          </div>
+
+          <div class="showcase-layout reveal">
+            <div class="showcase-tabs" role="tablist" aria-label="App screens">
+              <button
+                type="button"
+                class="showcase-tab is-active"
+                role="tab"
+                aria-selected="true"
+                data-showcase="today">
+                Today
+              </button>
+              <button
+                type="button"
+                class="showcase-tab"
+                role="tab"
+                aria-selected="false"
+                data-showcase="pray">
+                Pray &amp; Scripture
+              </button>
+              <button
+                type="button"
+                class="showcase-tab"
+                role="tab"
+                aria-selected="false"
+                data-showcase="groups">
+                Groups &amp; Care
+              </button>
+            </div>
+
+            <div class="showcase-stage">
+              <div class="iphone-mockup iphone-mockup--showcase">
+                <div class="iphone-frame">
+                  <div class="iphone-notch" aria-hidden="true"></div>
+
+                  <!-- Today -->
+                  <div class="iphone-screen app-screen showcase-screen is-active" data-showcase-panel="today">
+                    <div class="app-status-bar"><span>9:41</span><span aria-hidden="true">●●●</span></div>
+                    <div class="app-content app-content--today">
+                      <p class="app-greeting">Good morning, Sarah.</p>
+                      <p class="app-subline">You have 3 prayer commitments today.</p>
+                      <div class="app-prayer-card">
+                        <span class="app-card-tag">Daily</span>
+                        <h4 class="app-card-title">Healing for Mom's surgery</h4>
+                        <p class="app-card-verse">"Do not be anxious about anything…"</p>
+                        <p class="app-card-meta">Philippians 4:6–7</p>
+                      </div>
+                      <div class="app-prayer-card">
+                        <span class="app-card-tag app-card-tag--gold">Answered</span>
+                        <h4 class="app-card-title">New job for David</h4>
+                        <p class="app-card-meta">Praise report · shared with group</p>
+                      </div>
+                    </div>
+                    <nav class="app-tab-bar" aria-hidden="true">
+                      <span class="app-tab app-tab--active">Today</span>
+                      <span class="app-tab">Pray</span>
+                      <span class="app-tab">Groups</span>
+                      <span class="app-tab">Journey</span>
+                    </nav>
+                  </div>
+
+                  <!-- Pray -->
+                  <div class="iphone-screen app-screen showcase-screen" data-showcase-panel="pray" hidden>
+                    <div class="app-status-bar"><span>9:41</span><span aria-hidden="true">●●●</span></div>
+                    <div class="app-content app-content--pray">
+                      <p class="app-screen-title">Create a prayer</p>
+                      <div class="app-field">
+                        <span class="app-field-label">What's on your heart?</span>
+                        <p class="app-field-value">My friend is waiting on test results…</p>
+                      </div>
+                      <div class="app-ai-card">
+                        <span class="app-ai-badge">✨ AI Prayer Assistant</span>
+                        <p class="app-ai-text">
+                          Lord, we lift up our friend to You. Grant peace that surpasses understanding…
+                        </p>
+                        <p class="app-card-meta">Isaiah 41:10 · WEB</p>
+                      </div>
+                      <div class="app-schedule-row">
+                        <span class="app-chip app-chip--accent">Daily</span>
+                        <span class="app-chip">Until answered</span>
+                      </div>
+                    </div>
+                    <nav class="app-tab-bar" aria-hidden="true">
+                      <span class="app-tab">Today</span>
+                      <span class="app-tab app-tab--active">Pray</span>
+                      <span class="app-tab">Groups</span>
+                      <span class="app-tab">Journey</span>
+                    </nav>
+                  </div>
+
+                  <!-- Groups -->
+                  <div class="iphone-screen app-screen showcase-screen" data-showcase-panel="groups" hidden>
+                    <div class="app-status-bar"><span>9:41</span><span aria-hidden="true">●●●</span></div>
+                    <div class="app-content app-content--groups">
+                      <p class="app-screen-title">Prayer Circle</p>
+                      <p class="app-subline">4 members · 2 prayers today</p>
+                      <div class="app-member-row" aria-hidden="true">
+                        <span class="app-avatar">S</span>
+                        <span class="app-avatar">M</span>
+                        <span class="app-avatar">J</span>
+                        <span class="app-avatar">+1</span>
+                      </div>
+                      <div class="app-prayer-card">
+                        <h4 class="app-card-title">Meal for the Johnsons</h4>
+                        <p class="app-card-meta">Care action · due tomorrow</p>
+                        <span class="app-chip app-chip--care">🍽 Bring dinner</span>
+                      </div>
+                      <div class="app-prayer-card">
+                        <h4 class="app-card-title">Mission trip to Kenya</h4>
+                        <p class="app-card-meta">6 people praying · updated 2h ago</p>
+                      </div>
+                    </div>
+                    <nav class="app-tab-bar" aria-hidden="true">
+                      <span class="app-tab">Today</span>
+                      <span class="app-tab">Pray</span>
+                      <span class="app-tab app-tab--active">Groups</span>
+                      <span class="app-tab">Journey</span>
+                    </nav>
+                  </div>
+
+                  <div class="iphone-home-indicator" aria-hidden="true"></div>
+                </div>
+              </div>
+
+              <div class="showcase-copy">
+                <div class="showcase-panel is-active" data-showcase-copy="today">
+                  <h3>Start every day with clarity</h3>
+                  <p>
+                    See exactly who and what you're praying for today—personal prayers, group
+                    requests, and schedules that remember when you forget.
+                  </p>
+                  <ul class="showcase-list">
+                    <li>Daily, weekly &amp; until-answered schedules</li>
+                    <li>Prayer cards with Scripture attached</li>
+                    <li>Celebrate answered prayers in one tap</li>
+                  </ul>
+                </div>
+                <div class="showcase-panel" data-showcase-copy="pray" hidden>
+                  <h3>Prayers rooted in Scripture</h3>
+                  <p>
+                    Write what's on your heart—or let the AI assistant help you shape a Christ-centered
+                    prayer. Every word stays editable. Every prayer can carry a verse.
+                  </p>
+                  <ul class="showcase-list">
+                    <li>AI prayer assistant (optional)</li>
+                    <li>Bible verses built in</li>
+                    <li>Schedule once, pray with peace</li>
+                  </ul>
+                </div>
+                <div class="showcase-panel" data-showcase-copy="groups" hidden>
+                  <h3>No one prays alone</h3>
+                  <p>
+                    Families, small groups, and ministries stay united around the same prayer
+                    journey—with practical care actions when love needs hands and feet.
+                  </p>
+                  <ul class="showcase-list">
+                    <li>Shared prayer lists</li>
+                    <li>Care actions: meals, visits, calls</li>
+                    <li>Praise reports the whole group sees</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>

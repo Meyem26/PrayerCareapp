@@ -287,6 +287,35 @@
     });
   }
 
+  // App showcase tabs
+  var showcaseTabs = document.querySelectorAll('.showcase-tab');
+  if (showcaseTabs.length) {
+    showcaseTabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var id = tab.getAttribute('data-showcase');
+        if (!id) return;
+
+        showcaseTabs.forEach(function (t) {
+          var active = t === tab;
+          t.classList.toggle('is-active', active);
+          t.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+
+        document.querySelectorAll('.showcase-screen').forEach(function (screen) {
+          var match = screen.getAttribute('data-showcase-panel') === id;
+          screen.classList.toggle('is-active', match);
+          screen.hidden = !match;
+        });
+
+        document.querySelectorAll('.showcase-panel').forEach(function (panel) {
+          var match = panel.getAttribute('data-showcase-copy') === id;
+          panel.classList.toggle('is-active', match);
+          panel.hidden = !match;
+        });
+      });
+    });
+  }
+
   // Smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
     anchor.addEventListener('click', function (event) {
