@@ -12,3 +12,10 @@ export const LANDING_URL =
 
 export const WEB_APP_URL =
   process.env.EXPO_PUBLIC_WEB_APP_URL ?? 'https://app.prayercare.app';
+
+/** Expo Router path — use with WEB_APP_URL for beta invite links. */
+export const APP_SIGN_UP_PATH = '/sign-up';
+
+export function getAppSignUpUrl(): string {
+  return `${WEB_APP_URL.replace(/\/$/, '')}${APP_SIGN_UP_PATH}`;
+}

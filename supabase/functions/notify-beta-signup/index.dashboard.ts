@@ -147,11 +147,12 @@ Deno.serve(async (req) => {
       "You're in — welcome to the PrayerCare beta",
       `<div style="font-family: Georgia, 'Times New Roman', serif; color: #1F2937; line-height: 1.65; max-width: 560px;">
         <p style="margin: 0 0 1rem;">Thank you for joining the PrayerCare beta. We're so glad you're here.</p>
-        <p style="margin: 0 0 1rem;">Open the app and sign up with the same email you used for beta:</p>
+        <p style="margin: 0 0 0.75rem;"><strong>Important:</strong> joining the beta does <strong>not</strong> create your app login. You must create an account once.</p>
+        <p style="margin: 0 0 1rem;">Tap below to <strong>Create Account</strong> (not Sign In) with the same email you used for beta:</p>
         <p style="margin: 0 0 1.5rem;">
-          <a href="${appUrl}" style="display: inline-block; background: #4F8EF7; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 999px; font-family: Inter, Arial, sans-serif; font-weight: 600; font-size: 16px;">Open PrayerCare</a>
+          <a href="${appUrl}/sign-up" style="display: inline-block; background: #4F8EF7; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 999px; font-family: Inter, Arial, sans-serif; font-weight: 600; font-size: 16px;">Create Account</a>
         </p>
-        <p style="margin: 0 0 1rem; font-size: 14px; color: #6B7280;"><a href="${appUrl}" style="color: #4F8EF7;">${appUrl}</a></p>
+        <p style="margin: 0 0 1rem; font-size: 14px; color: #6B7280;"><a href="${appUrl}/sign-up" style="color: #4F8EF7;">${appUrl}/sign-up</a></p>
         <p style="margin: 0 0 1rem;">On your phone: open that link in Safari or Chrome, then Add to Home Screen for the best experience.</p>
         <p style="margin: 0 0 1rem;">We're building a peaceful place to remember every prayer, every act of care, and every reason to praise God — and your feedback helps us get there.</p>
         <p style="margin: 0;">With gratitude,<br/>The PrayerCare team</p>

@@ -35,7 +35,18 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (result.error) {
-      setError(result.error);
+      const lower = result.error.toLowerCase();
+      if (lower.includes('invalid login credentials')) {
+        setError(
+          'Email or password did not match. If you joined the beta but have not created an account yet, tap Create an account below — joining the beta is not the same as signing up in the app.',
+        );
+      } else if (lower.includes('email not confirmed')) {
+        setError(
+          'Please confirm your email first. Check your inbox and spam for a message from PrayerCare, or ask us to resend the verification link.',
+        );
+      } else {
+        setError(result.error);
+      }
       return;
     }
 
@@ -60,6 +71,10 @@ export default function LoginScreen() {
             </AppText>
             <AppText muted>
               Sign in to continue your prayer journey.
+            </AppText>
+            <AppText variant="bodySmall" muted style={styles.betaNote}>
+              First time here? Join the beta on our website, then tap Create an account below
+              using the same email.
             </AppText>
           </View>
 
@@ -120,6 +135,10 @@ const styles = StyleSheet.create({
   },
   greeting: {
     marginTop: theme.spacing.xs,
+  },
+  betaNote: {
+    marginTop: theme.spacing.sm,
+    lineHeight: 20,
   },
   form: {
     gap: theme.spacing.md,

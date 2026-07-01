@@ -12,12 +12,15 @@
   var headerOpenApp = document.getElementById('header-open-app');
   var betaOpenApp = document.getElementById('beta-open-app');
   if (config.appUrl) {
+    var signUpUrl = config.appUrl.replace(/\/$/, '') + '/sign-up';
     if (headerOpenApp) {
-      headerOpenApp.href = config.appUrl + '/';
+      headerOpenApp.href = signUpUrl;
       headerOpenApp.hidden = false;
+      headerOpenApp.textContent = 'Create Account';
     }
     if (betaOpenApp) {
-      betaOpenApp.href = config.appUrl + '/';
+      betaOpenApp.href = signUpUrl;
+      betaOpenApp.textContent = 'Create Account';
     }
   }
 

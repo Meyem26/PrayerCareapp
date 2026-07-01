@@ -73,6 +73,9 @@ export default function VerifyEmailScreen() {
           We sent a confirmation link to{' '}
           <AppText accent>{user?.email ?? 'your email'}</AppText>.
           {'\n\n'}
+          Check your inbox and spam folder. If nothing arrives in a few minutes, tap Resend
+          Email below or contact the PrayerCare team for help.
+          {'\n\n'}
           Once verified, you can begin your prayer journey.
         </AppText>
 

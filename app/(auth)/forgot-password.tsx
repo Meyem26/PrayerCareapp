@@ -40,7 +40,9 @@ export default function ForgotPasswordScreen() {
       return;
     }
 
-    setMessage('If an account exists for that email, a reset link is on its way.');
+    setMessage(
+      'If an account exists for that email, a reset link is on its way. Check spam and promotions. If you never created an account, use Create an account on the sign-in screen instead.',
+    );
   }
 
   return (

@@ -6,7 +6,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
-import { LANDING_URL } from '@/constants/beta';
+import { BETA_MODE, LANDING_URL } from '@/constants/beta';
 import { useAuth } from '@/contexts/AuthContext';
 import { theme } from '@/constants/theme';
 import { isSupabaseConfigured } from '@/lib/supabase';
@@ -46,6 +46,11 @@ export default function SignUpScreen() {
       return;
     }
 
+    if (result.session) {
+      router.replace('/');
+      return;
+    }
+
     router.replace('/(auth)/verify-email');
   }
 
@@ -69,9 +74,26 @@ export default function SignUpScreen() {
               Create a peaceful space to pray, care, and celebrate answered prayers.
             </AppText>
             <AppText variant="bodySmall" muted style={styles.betaNote}>
-              Private beta: use the same email address you used to join the waitlist at{' '}
-              {LANDING_URL.replace(/^https?:\/\//, '')}.
+              Step 2 of 2: Create your app account with the same email you used to join the beta
+              at {LANDING_URL.replace(/^https?:\/\//, '')}. Joining the beta alone does not create
+              a login.
             </AppText>
+            {BETA_MODE ? (
+              <View style={styles.betaSteps}>
+                <AppText variant="label" accent style={styles.betaStepsTitle}>
+                  Beta quick start
+                </AppText>
+                <AppText variant="bodySmall" style={styles.betaStep}>
+                  1. Join beta on the website (you did this)
+                </AppText>
+                <AppText variant="bodySmall" style={styles.betaStep}>
+                  2. Create your account here with the same email
+                </AppText>
+                <AppText variant="bodySmall" style={styles.betaStep}>
+                  3. Sign in anytime after that
+                </AppText>
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.form}>
@@ -132,6 +154,20 @@ const styles = StyleSheet.create({
   betaNote: {
     marginTop: theme.spacing.sm,
     lineHeight: 20,
+  },
+  betaSteps: {
+    marginTop: theme.spacing.md,
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.accentLight,
+    borderRadius: theme.radius.md,
+    gap: theme.spacing.xs,
+  },
+  betaStepsTitle: {
+    marginBottom: theme.spacing.xs,
+  },
+  betaStep: {
+    lineHeight: 20,
+    color: theme.colors.textSecondary,
   },
   greeting: {
     marginTop: theme.spacing.xs,

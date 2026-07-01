@@ -1,6 +1,7 @@
 import { Redirect } from 'expo-router';
 
 import { LoadingScreen } from '@/components/ui/Screen';
+import { BETA_MODE } from '@/constants/beta';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Index() {
@@ -11,7 +12,7 @@ export default function Index() {
   }
 
   if (!session) {
-    return <Redirect href="/(auth)/login" />;
+    return <Redirect href={BETA_MODE ? '/(auth)/sign-up' : '/(auth)/login'} />;
   }
 
   if (!isEmailVerified) {
