@@ -10,6 +10,7 @@ import { BETA_MODE, LANDING_URL } from '@/constants/beta';
 import { useAuth } from '@/contexts/AuthContext';
 import { theme } from '@/constants/theme';
 import { isSupabaseConfigured } from '@/lib/supabase';
+import { friendlyAuthError } from '@/lib/auth-errors';
 
 export default function SignUpScreen() {
   const { signUp } = useAuth();
@@ -42,7 +43,7 @@ export default function SignUpScreen() {
     setLoading(false);
 
     if (result.error) {
-      setError(result.error);
+      setError(friendlyAuthError(result.error));
       return;
     }
 

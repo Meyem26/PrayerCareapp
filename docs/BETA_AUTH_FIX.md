@@ -18,6 +18,18 @@ Password reset emails also fail if no Auth user exists yet.
 
 ## Fix for you (admin) — do these once
 
+### 0. Email provider must be ON
+
+If testers see **email is disabled** or account creation unavailable:
+
+**Supabase → Authentication → Providers → Email**
+
+- **Enable Email provider** → ON
+- **Confirm email** → OFF (recommended for beta)
+- Save
+
+Also check **Authentication → Settings** — do **not** turn off sign-ups globally unless you mean to block all new accounts.
+
 ### 1. Turn off email confirmation (recommended for beta)
 
 So testers can use the app immediately without waiting for verification email.
