@@ -1,4 +1,5 @@
 -- Beta access: only waitlist emails can create new accounts during private beta
+-- Run in Supabase SQL Editor if sign-up shows beta access errors.
 
 CREATE OR REPLACE FUNCTION public.is_on_beta_waitlist(check_email TEXT)
 RETURNS BOOLEAN

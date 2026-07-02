@@ -52,7 +52,17 @@ Verification and password reset use **Supabase Auth**, not the beta welcome emai
 | Site URL | `https://app.prayercare.online` |
 | Redirect URLs | `https://app.prayercare.online/**` |
 
-### 4. Redeploy
+### 4. Run migration 017 (required for Create Account)
+
+If testers saw a beta access error, this function is missing.
+
+**Supabase → SQL Editor → New query** — paste and run:
+
+`supabase/migrations/20250628000017_beta_waitlist_signup_gate.sql`
+
+Success message: `Success. No rows returned`
+
+### 5. Redeploy
 
 - **Web app** on Vercel (opens sign-up first in beta)
 - **Website** on Vercel (Create Account buttons → `/sign-up`)

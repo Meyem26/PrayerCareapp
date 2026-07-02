@@ -1,5 +1,11 @@
-import { BETA_MODE } from '@/constants/beta';
+import { BETA_MODE, LANDING_URL } from '@/constants/beta';
 import { supabase } from '@/lib/supabase';
+
+const WAITLIST_HELP =
+  'This email is not on the beta waitlist yet. Join on our website first, then create your account with the same email.';
+
+const ACCESS_CHECK_UNAVAILABLE =
+  "We couldn't verify your beta access right now. Please try again in a few minutes, or join the beta on our website if you haven't yet.";
 
 export async function canCreateBetaAccount(email: string): Promise<{
   allowed: boolean;
@@ -19,20 +25,15 @@ export async function canCreateBetaAccount(email: string): Promise<{
   });
 
   if (error) {
-    if (error.message.includes('is_on_beta_waitlist')) {
-      return {
-        allowed: false,
-        error: 'Beta access check is not set up yet. Run migration 017 in Supabase.',
-      };
-    }
-    return { allowed: false, error: error.message };
+    console.warn('Beta waitlist check failed:', error.message);
+    return { allowed: false, error: ACCESS_CHECK_UNAVAILABLE };
   }
 
   if (!data) {
+    const siteHost = LANDING_URL.replace(/^https?:\/\//, '').replace(/\/$/, '');
     return {
       allowed: false,
-      error:
-        'This email is not on the beta waitlist yet. Join at our website first, then create your account with the same email.',
+      error: `${WAITLIST_HELP} (${siteHost})`,
     };
   }
 
