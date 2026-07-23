@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { OptionCard } from '@/components/ui/OptionCard';
 import { TextArea } from '@/components/ui/TextArea';
+import { useToast } from '@/components/ui/Toast';
 import { CARE_ACTION_TYPES, CARE_STATUS_LABELS, getCareActionLabel } from '@/constants/care';
 import { theme } from '@/constants/theme';
 import { createCareAction, fetchCareActions, updateCareActionStatus } from '@/lib/api/care';
@@ -24,6 +25,7 @@ export function CareActionsSection({
   showForm: showFormProp,
   onShowFormChange,
 }: CareActionsSectionProps) {
+  const { showToast } = useToast();
   const [internalShowForm, setInternalShowForm] = useState(false);
   const showForm = showFormProp ?? internalShowForm;
 
@@ -82,14 +84,18 @@ export function CareActionsSection({
     setCustomLabel('');
     setAssigneeName('');
     setNotes('');
+    showToast({ message: 'Care action added. Love becomes practical.', tone: 'success' });
     await loadActions();
   }
 
   async function handleStatusChange(action: CareAction, status: 'completed' | 'cancelled') {
     const result = await updateCareActionStatus(action.id, status);
     if (result.error) {
-      Alert.alert('Something went wrong', result.error);
+      showToast({ message: result.error, tone: 'info' });
       return;
+    }
+    if (status === 'completed') {
+      showToast({ message: 'Care completed. Well done.', tone: 'success' });
     }
     await loadActions();
   }

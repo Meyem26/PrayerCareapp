@@ -1,3 +1,4 @@
+import type { SubscriptionTier } from '@/lib/subscriptions/plans';
 import type {
   Prayer,
   PrayerCategory,
@@ -14,6 +15,8 @@ export type Profile = {
   locale: string;
   bible_translation_id: string;
   praise_visibility_days: number;
+  /** Present after migration 018. Missing → treated as full access in beta. */
+  subscription_tier?: SubscriptionTier;
   onboarding_completed_at: string | null;
   created_at: string;
   updated_at: string;

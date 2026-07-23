@@ -13,6 +13,12 @@ import { Platform } from 'react-native';
 import { BETA_MODE } from '@/constants/beta';
 import { canCreateBetaAccount } from '@/lib/api/beta-access';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import {
+  canAccessFeature,
+  getEffectiveTier,
+  type FeatureKey,
+  type SubscriptionTier,
+} from '@/lib/subscriptions';
 import type { Profile } from '@/types/database';
 
 export type ProfileUpdate = Partial<
@@ -47,6 +53,9 @@ type AuthContextValue = {
   refreshSession: () => Promise<{ error: string | null }>;
   updateProfile: (updates: ProfileUpdate) => Promise<{ error: string | null }>;
   refreshProfile: () => Promise<void>;
+  /** Effective plan after beta unlock rules. Prefer useEntitlements() in UI. */
+  subscriptionTier: SubscriptionTier;
+  canAccess: (feature: FeatureKey) => boolean;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -221,6 +230,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const isEmailVerified = Boolean(session?.user?.email_confirmed_at);
   const needsOnboarding = Boolean(session && isEmailVerified && !profile?.onboarding_completed_at);
+  const subscriptionTier = getEffectiveTier(profile?.subscription_tier);
+  const canAccess = useCallback(
+    (feature: FeatureKey) => canAccessFeature(feature, profile?.subscription_tier),
+    [profile?.subscription_tier],
+  );
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -239,6 +253,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
       refreshSession,
       updateProfile,
       refreshProfile,
+      subscriptionTier,
+      canAccess,
     }),
     [
       session,
@@ -255,6 +271,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
       refreshSession,
       updateProfile,
       refreshProfile,
+      subscriptionTier,
+      canAccess,
     ],
   );
 

@@ -9,5 +9,7 @@ window.PRAYERCARE_CONFIG = {
   supabaseAnonKey: 'YOUR_ANON_KEY',
   siteUrl: 'http://localhost:3000',
   appUrl: 'https://app.yourdomain.com',
+  /** true = Join Beta CTA; false = Create Free Account → /sign-up */
+  betaMode: true,
   gaMeasurementId: '',
 };

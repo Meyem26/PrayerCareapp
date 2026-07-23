@@ -58,16 +58,31 @@
             <span class="logo-mark" aria-hidden="true"></span>
             <span class="logo-text">PrayerCare</span>
           </a>
-          <p class="logo-promise">
-            Helping you remember every prayer, every act of care, and every reason to praise God.
-          </p>
         </div>
         <nav class="nav" aria-label="Primary">
           <a href="#story">Our Story</a>
           <a href="#journey">The Journey</a>
           <a href="#features">Features</a>
-          <a href="#join-beta">Join Beta</a>
+          <a href="#demo">See the App</a>
         </nav>
+        <div class="header-actions">
+          <a
+            class="header-signin"
+            id="header-sign-in"
+            href="__APP_URL__/login">
+            Sign In
+          </a>
+          <a
+            class="btn btn-primary btn-sm header-cta js-primary-cta"
+            id="header-primary-cta"
+            href="#join-beta"
+            data-beta-href="#join-beta"
+            data-beta-label="Join the Beta"
+            data-launch-href="__APP_URL__/sign-up"
+            data-launch-label="Create Free Account">
+            Join the Beta
+          </a>
+        </div>
         <button
           type="button"
           class="menu-toggle"
@@ -79,17 +94,13 @@
           <span></span>
           <span></span>
         </button>
-        <a class="btn btn-secondary btn-sm header-app-link" id="header-open-app" href="__APP_URL__/sign-up" hidden>
-          Create Account
-        </a>
-        <a class="btn btn-primary btn-sm header-cta" href="#join-beta">Join the Beta</a>
       </div>
       <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile" hidden>
         <a href="#story">Our Story</a>
         <a href="#journey">The Journey</a>
         <a href="#features">Features</a>
-        <a href="#demo">Watch Demo</a>
-        <a href="#join-beta">Join the Beta</a>
+        <a href="#demo">See the App</a>
+        <a id="mobile-sign-in" href="__APP_URL__/login">Sign In</a>
       </nav>
     </header>
 
@@ -110,8 +121,16 @@
               prayers—all in one beautiful place.
             </p>
             <div class="hero-actions">
-              <a class="btn btn-primary" href="#join-beta">Join the Beta</a>
-              <a class="btn btn-secondary" href="#demo">Watch Demo</a>
+              <a
+                class="btn btn-primary js-primary-cta"
+                href="#join-beta"
+                data-beta-href="#join-beta"
+                data-beta-label="Join the Beta"
+                data-launch-href="__APP_URL__/sign-up"
+                data-launch-label="Create Free Account">
+                Join the Beta
+              </a>
+              <a class="btn btn-secondary" href="#demo">See the App</a>
             </div>
           </div>
 
@@ -558,7 +577,7 @@
                 required
                 autocomplete="email"
               />
-              <button type="submit" class="btn btn-primary btn-lg">Join the PrayerCare Beta</button>
+              <button type="submit" class="btn btn-primary btn-lg">Join the Beta</button>
             </form>
             <p class="form-note" id="form-note" role="status" aria-live="polite"></p>
             <div class="beta-success-next" id="beta-success-next" hidden>
@@ -583,14 +602,11 @@
           <span class="logo-mark" aria-hidden="true"></span>
           <span>PrayerCare</span>
         </div>
-        <p class="footer-promise">
-          Helping you remember every prayer, every act of care, and every reason to praise God.
-        </p>
         <nav class="footer-nav" aria-label="Footer">
           <a href="#story">Our Story</a>
           <a href="#journey">The Journey</a>
           <a href="#features">Features</a>
-          <a href="#join-beta">Join Beta</a>
+          <a href="#demo">See the App</a>
         </nav>
         <p class="footer-copy">&copy; <span id="year"></span> PrayerCare. Made with peace and purpose.</p>
       </div>

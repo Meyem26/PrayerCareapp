@@ -1,21 +1,36 @@
 import { Link, router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Screen } from '@/components/ui/Screen';
+import { LoadingScreen, Screen } from '@/components/ui/Screen';
 import { useAuth } from '@/contexts/AuthContext';
 import { theme } from '@/constants/theme';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
 export default function LoginScreen() {
-  const { signIn } = useAuth();
+  const { signIn, session, isLoading, isEmailVerified, needsOnboarding } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (!session) return;
+
+    if (!isEmailVerified) {
+      router.replace('/(auth)/verify-email');
+      return;
+    }
+    if (needsOnboarding) {
+      router.replace('/(onboarding)');
+      return;
+    }
+    router.replace('/(tabs)');
+  }, [isLoading, session, isEmailVerified, needsOnboarding]);
 
   async function handleLogin() {
     setError(null);
@@ -51,6 +66,10 @@ export default function LoginScreen() {
     }
 
     router.replace('/');
+  }
+
+  if (isLoading || session) {
+    return <LoadingScreen />;
   }
 
   return (

@@ -6,7 +6,9 @@ export function friendlyAuthError(message: string): string {
   if (
     lower.includes('email_provider_disabled') ||
     lower.includes('email is disabled') ||
-    lower.includes('signup is disabled')
+    lower.includes('signup is disabled') ||
+    lower.includes('signup_disabled') ||
+    lower.includes('signups are disabled')
   ) {
     return 'Account creation is temporarily unavailable. Please try again later or contact the PrayerCare team.';
   }

@@ -20,15 +20,28 @@ Password reset emails also fail if no Auth user exists yet.
 
 ### 0. Email provider must be ON
 
-If testers see **email is disabled** or account creation unavailable:
+If testers see **email is disabled** or account creation unavailable, check **all three** toggles below (not just Email → Enabled).
 
-**Supabase → Authentication → Providers → Email**
+**A) Supabase → Authentication → Providers → Email**
 
-- **Enable Email provider** → ON
-- **Confirm email** → OFF (recommended for beta)
-- Save
+| Setting | Beta value |
+|---------|------------|
+| **Email provider enabled** | ON |
+| **Confirm email** | OFF (recommended for beta) |
 
-Also check **Authentication → Settings** — do **not** turn off sign-ups globally unless you mean to block all new accounts.
+**B) Same page — top of Providers / General**
+
+| Setting | Beta value |
+|---------|------------|
+| **Allow new users to sign up** | **ON** ← often missed |
+
+If **Allow new users to sign up** is OFF, `signUp()` fails even when Email is enabled. Existing users can still sign in; new beta testers cannot.
+
+**C) Authentication → Logs**
+
+After a failed signup, open **Logs** and note the exact error (`signup_disabled`, `email_provider_disabled`, etc.).
+
+Save after any change.
 
 ### 1. Turn off email confirmation (recommended for beta)
 

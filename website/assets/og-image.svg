@@ -11,7 +11,7 @@
   <text x="100" y="200" font-family="Georgia, serif" font-size="72" font-weight="600" fill="#1F2937">PrayerCare</text>
   <text x="100" y="280" font-family="Georgia, serif" font-size="36" fill="#4F8EF7">Remember every prayer.</text>
   <text x="100" y="330" font-family="Georgia, serif" font-size="36" fill="#4F8EF7">Celebrate every answer.</text>
-  <text x="100" y="420" font-family="Arial, sans-serif" font-size="26" fill="#6B7280">Prayer · Care · Praise  in one peaceful place.</text>
+  <text x="100" y="420" font-family="Arial, sans-serif" font-size="26" fill="#6B7280">Prayer ï¿½ Care ï¿½ Praise  in one peaceful place.</text>
   <rect x="100" y="480" width="48" height="48" rx="12" fill="#DCEBFF"/>
   <path d="M124 498c-3 4.5-7.5 7-7.5 12.5 0 4.5 3.5 8 7.5 8s7.5-3.5 7.5-8c0-5.5-4.5-8-7.5-12.5z" fill="#4F8EF7"/>
 </svg>

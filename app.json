@@ -11,14 +11,17 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.prayercare.app",
+      "buildNumber": "1",
       "infoPlist": {
         "CFBundleDisplayName": "PrayerCare",
         "NSUserNotificationsUsageDescription": "PrayerCare sends gentle reminders for daily prayer, care actions, and group updates.",
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": ["remote-notification"],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.prayercare.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E8F0EC",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

@@ -27,6 +27,8 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: isDisabled, busy: Boolean(loading) }}
       disabled={isDisabled}
       style={(state) => {
         const extraStyle = typeof style === 'function' ? style(state) : style;

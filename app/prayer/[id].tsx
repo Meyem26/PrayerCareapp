@@ -1,6 +1,6 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { SharePrayerModal } from '@/components/groups/SharePrayerModal';
 import { CareActionsSection } from '@/components/prayer/CareActionsSection';
@@ -8,8 +8,10 @@ import { PraiseSection } from '@/components/prayer/PraiseSection';
 import { TimelineList } from '@/components/prayer/TimelineList';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { LoadingScreen, Screen } from '@/components/ui/Screen';
+import { useToast } from '@/components/ui/Toast';
 import { OverflowMenu, type OverflowMenuItem } from '@/components/ui/OverflowMenu';
-import { Screen } from '@/components/ui/Screen';
 import { getScheduleLabel } from '@/constants/schedule';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +34,7 @@ import type { PrayerTimelineEvent, PrayerWithRelations } from '@/types/prayer';
 export default function PrayerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, profile } = useAuth();
+  const { showToast } = useToast();
   const [prayer, setPrayer] = useState<PrayerWithRelations | null>(null);
   const [timeline, setTimeline] = useState<PrayerTimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +44,7 @@ export default function PrayerDetailScreen() {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [shareLoading, setShareLoading] = useState(false);
   const [careFormOpen, setCareFormOpen] = useState(false);
+  const [confirmKind, setConfirmKind] = useState<'delete' | 'answered' | null>(null);
 
   const loadPrayer = useCallback(async () => {
     if (!id) return;
@@ -60,42 +64,38 @@ export default function PrayerDetailScreen() {
     }, [loadPrayer]),
   );
 
-  async function runAction(action: () => Promise<{ error: string | null }>) {
+  async function runAction(
+    action: () => Promise<{ error: string | null }>,
+    successMessage?: string,
+  ) {
     setActionLoading(true);
     const result = await action();
     setActionLoading(false);
 
     if (result.error) {
-      Alert.alert('Something went wrong', result.error);
+      setError(result.error);
+      showToast({ message: result.error, tone: 'info' });
       return;
     }
 
+    if (successMessage) {
+      showToast({ message: successMessage, tone: 'success' });
+    }
     await loadPrayer();
   }
 
-  function confirmDelete() {
-    Alert.alert(
-      'Delete prayer?',
-      'This cannot be undone. Your timeline history will be removed.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            if (!id) return;
-            setActionLoading(true);
-            const result = await deletePrayer(id);
-            setActionLoading(false);
-            if (result.error) {
-              Alert.alert('Error', result.error);
-              return;
-            }
-            router.replace('/(tabs)/journey');
-          },
-        },
-      ],
-    );
+  async function handleDeleteConfirm() {
+    if (!id) return;
+    setActionLoading(true);
+    const result = await deletePrayer(id);
+    setActionLoading(false);
+    setConfirmKind(null);
+    if (result.error) {
+      showToast({ message: result.error, tone: 'info' });
+      return;
+    }
+    showToast({ message: 'Prayer removed.', tone: 'gentle' });
+    router.replace('/(tabs)/journey');
   }
 
   async function handleShareToGroup(groupId: string, creatorKeepsPersonal: boolean) {
@@ -106,28 +106,21 @@ export default function PrayerDetailScreen() {
     setShareLoading(false);
 
     if (result.error) {
-      Alert.alert('Something went wrong', result.error);
+      showToast({ message: result.error, tone: 'info' });
       return;
     }
 
     setShareModalVisible(false);
+    showToast({ message: 'Shared with your group.', tone: 'success' });
     await loadPrayer();
   }
 
-  function confirmAnswered() {
-    Alert.alert(
-      'Mark as answered?',
-      'This prayer will leave your Today list. Write a praise report on the next screen to celebrate the answer.',
-      [
-        { text: 'Not yet', style: 'cancel' },
-        {
-          text: 'Yes, answered',
-          onPress: () => {
-            if (!id || !user?.id) return;
-            runAction(() => markPrayerAnswered(id, user.id));
-          },
-        },
-      ],
+  async function handleAnsweredConfirm() {
+    if (!id || !user?.id) return;
+    setConfirmKind(null);
+    await runAction(
+      () => markPrayerAnswered(id, user.id),
+      'Praise God — this prayer is marked answered.',
     );
   }
 
@@ -151,7 +144,7 @@ export default function PrayerDetailScreen() {
       });
       items.push({
         label: 'Mark answered',
-        onPress: confirmAnswered,
+        onPress: () => setConfirmKind('answered'),
       });
       items.push({
         label: 'Care action',
@@ -175,18 +168,14 @@ export default function PrayerDetailScreen() {
     items.push({
       label: 'Delete',
       destructive: true,
-      onPress: confirmDelete,
+      onPress: () => setConfirmKind('delete'),
     });
 
     return items;
   }, [prayer, id, user?.id]);
 
   if (loading && !prayer) {
-    return (
-      <Screen centered>
-        <AppText muted>Loading...</AppText>
-      </Screen>
-    );
+    return <LoadingScreen />;
   }
 
   if (!prayer) {
@@ -255,7 +244,10 @@ export default function PrayerDetailScreen() {
             loading={actionLoading}
             onPress={() => {
               if (!id || !user?.id || !profile) return;
-              runAction(() => logPrayerActivity(id, user.id, profile.timezone));
+              runAction(
+                () => logPrayerActivity(id, user.id, profile.timezone),
+                'Amen. Your prayer is recorded for today.',
+              );
             }}
           />
         ) : null}
@@ -289,6 +281,29 @@ export default function PrayerDetailScreen() {
         loading={shareLoading}
         onClose={() => setShareModalVisible(false)}
         onShare={handleShareToGroup}
+      />
+
+      <ConfirmDialog
+        visible={confirmKind === 'delete'}
+        title="Delete prayer?"
+        message="This cannot be undone. Your timeline history for this prayer will be removed."
+        confirmLabel="Delete"
+        cancelLabel="Keep prayer"
+        destructive
+        loading={actionLoading}
+        onCancel={() => setConfirmKind(null)}
+        onConfirm={handleDeleteConfirm}
+      />
+
+      <ConfirmDialog
+        visible={confirmKind === 'answered'}
+        title="Mark as answered?"
+        message="This prayer will leave your Today list. You can write a praise report to celebrate what God has done."
+        confirmLabel="Yes, answered"
+        cancelLabel="Not yet"
+        loading={actionLoading}
+        onCancel={() => setConfirmKind(null)}
+        onConfirm={handleAnsweredConfirm}
       />
     </Screen>
   );

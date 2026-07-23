@@ -1,0 +1,30 @@
+export {
+  BETA_FULL_ACCESS_TIER,
+  FEATURE_KEYS,
+  PLANS,
+  PUBLIC_DEFAULT_TIER,
+  SUBSCRIPTION_PROVIDERS,
+  SUBSCRIPTION_STATUSES,
+  SUBSCRIPTION_TIERS,
+  hasTierAccess,
+  isSubscriptionTier,
+  tierRank,
+  type FeatureEntitlement,
+  type FeatureKey,
+  type PlanDefinition,
+  type SubscriptionProvider,
+  type SubscriptionStatus,
+  type SubscriptionTier,
+} from '@/lib/subscriptions/plans';
+
+export {
+  SUBSCRIPTIONS_ENFORCED,
+  canAccessFeature,
+  getEffectiveTier,
+  getFeatureEntitlement,
+  getFeatureLimit,
+  isWithinLimit,
+  remainingAllowance,
+  resolveSubscriptionTier,
+  type EntitlementResult,
+} from '@/lib/subscriptions/permissions';

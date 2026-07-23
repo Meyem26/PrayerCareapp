@@ -13,6 +13,7 @@ import { Screen } from '@/components/ui/Screen';
 import { TextArea } from '@/components/ui/TextArea';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/components/ui/Toast';
 import { generateVerseWithAi } from '@/lib/api/ai';
 import { consumeAiPrayerDraft } from '@/lib/ai-draft-store';
 import { fetchMyGroups } from '@/lib/api/groups';
@@ -33,6 +34,7 @@ export default function CreatePrayerScreen() {
     source?: string;
   }>();
   const { user, profile } = useAuth();
+  const { showToast } = useToast();
   const isEditing = Boolean(id);
 
   const [categories, setCategories] = useState<PrayerCategory[]>([]);
@@ -182,6 +184,10 @@ export default function CreatePrayerScreen() {
         return;
       }
 
+      showToast({
+        message: isEditing ? 'Prayer updated.' : 'Your prayer is saved. May God meet you here.',
+        tone: 'success',
+      });
       router.replace({ pathname: '/prayer/[id]', params: { id } });
       return;
     }
@@ -211,6 +217,10 @@ export default function CreatePrayerScreen() {
       return;
     }
 
+    showToast({
+      message: 'Your prayer is saved. May God meet you here.',
+      tone: 'success',
+    });
     router.replace({ pathname: '/prayer/[id]', params: { id: result.data.id } });
   }
 

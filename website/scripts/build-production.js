@@ -64,6 +64,10 @@ window.PRAYERCARE_CONFIG = {
   siteUrl: ${JSON.stringify(siteUrl)},
   gaMeasurementId: ${JSON.stringify(gaMeasurementId)},
   appUrl: ${JSON.stringify(appUrl)},
+  betaMode: ${JSON.stringify(
+    process.env.EXPO_PUBLIC_BETA_MODE !== 'false' &&
+      process.env.PRAYERCARE_BETA_MODE !== 'false',
+  )},
 };
 `,
   'utf8',

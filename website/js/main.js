@@ -8,18 +8,37 @@
 
   // Google Analytics 4
   var config = window.PRAYERCARE_CONFIG || {};
+  var appBase = config.appUrl ? String(config.appUrl).replace(/\/$/, '') : '';
+  var betaMode = config.betaMode !== false;
 
-  var headerOpenApp = document.getElementById('header-open-app');
+  function applyPrimaryCta() {
+    document.querySelectorAll('.js-primary-cta').forEach(function (el) {
+      var href = betaMode
+        ? el.getAttribute('data-beta-href') || '#join-beta'
+        : el.getAttribute('data-launch-href') || (appBase ? appBase + '/sign-up' : '#join-beta');
+      var label = betaMode
+        ? el.getAttribute('data-beta-label') || 'Join the Beta'
+        : el.getAttribute('data-launch-label') || 'Create Free Account';
+
+      if (href.indexOf('__APP_URL__') !== -1 && appBase) {
+        href = href.replace(/__APP_URL__/g, appBase);
+      }
+      el.setAttribute('href', href);
+      el.textContent = label;
+    });
+  }
+
+  applyPrimaryCta();
+
+  var headerSignIn = document.getElementById('header-sign-in');
+  var mobileSignIn = document.getElementById('mobile-sign-in');
   var betaOpenApp = document.getElementById('beta-open-app');
-  if (config.appUrl) {
-    var signUpUrl = config.appUrl.replace(/\/$/, '') + '/sign-up';
-    if (headerOpenApp) {
-      headerOpenApp.href = signUpUrl;
-      headerOpenApp.hidden = false;
-      headerOpenApp.textContent = 'Create Account';
-    }
+
+  if (appBase) {
+    if (headerSignIn) headerSignIn.href = appBase + '/login';
+    if (mobileSignIn) mobileSignIn.href = appBase + '/login';
     if (betaOpenApp) {
-      betaOpenApp.href = signUpUrl;
+      betaOpenApp.href = appBase + '/sign-up';
       betaOpenApp.textContent = 'Create Account';
     }
   }
