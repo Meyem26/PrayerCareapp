@@ -19,6 +19,7 @@ export async function fetchTodayPrayers(
   userId: string,
   timezone: string,
 ): Promise<{ data: Prayer[]; error: string | null }> {
+  // p_user_id must match the signed-in user (RPC enforces auth.uid()).
   const date = todayForTimezone(timezone);
   const { data, error } = await supabase.rpc('get_prayers_for_date', {
     p_user_id: userId,
