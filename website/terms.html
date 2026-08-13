@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#4F8EF7" />
+    <title>Terms of Service | PrayerCare</title>
+    <meta
+      name="description"
+      content="Terms of Service for PrayerCare — the prayer and care application."
+    />
+    <link rel="canonical" href="__SITE_URL__/terms" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PrayerCare" />
+    <meta property="og:title" content="Terms of Service | PrayerCare" />
+    <meta property="og:url" content="__SITE_URL__/terms" />
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" id="top">
+      <div class="container header-inner">
+        <div class="logo-block">
+          <a class="logo" href="/" aria-label="PrayerCare home">
+            <span class="logo-mark" aria-hidden="true"></span>
+            <span class="logo-text">PrayerCare</span>
+          </a>
+        </div>
+        <div class="header-actions">
+          <a class="header-signin" href="__APP_URL__/login">Sign In</a>
+          <a class="btn btn-primary btn-sm header-cta" href="__APP_URL__/sign-up">Get Started</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="legal-page section">
+      <div class="container narrow">
+        <p class="legal-eyebrow"><a href="/">← Back to PrayerCare</a></p>
+        <h1 class="legal-title">Terms of Service</h1>
+        <p class="legal-updated">Last updated: August 13, 2026</p>
+
+        <div class="legal-body">
+          <p>By using PrayerCare you agree to these terms.</p>
+
+          <h2>What PrayerCare is</h2>
+          <p>
+            PrayerCare is a tool to help you organize prayer, care actions, and praise. It is not a
+            substitute for pastoral counseling, medical advice, mental-health care, or emergency
+            services. If you or someone else is in danger, contact local emergency services.
+          </p>
+
+          <h2>Your account and content</h2>
+          <ul>
+            <li>You are responsible for the content you enter and for keeping your login secure.</li>
+            <li>
+              Treat group members with respect. Do not share others’ private prayer needs outside
+              the group without permission.
+            </li>
+            <li>
+              You can delete your account at any time in the app under
+              <strong>Profile → Delete Account</strong>.
+            </li>
+          </ul>
+
+          <h2>AI features</h2>
+          <p>
+            AI features draft prayers and suggest Scripture references as editable starting points.
+            Do not misuse AI to generate harmful, deceptive, or abusive content. PrayerCare does not
+            claim that AI-generated text is God’s speech.
+          </p>
+
+          <h2>Service availability</h2>
+          <p>
+            We offer PrayerCare “as is.” Features may change as we improve the product. We may
+            suspend accounts that abuse the service or violate these terms.
+          </p>
+
+          <h2>Free use</h2>
+          <p>
+            The current public release of PrayerCare is free to use. We may introduce optional paid
+            plans in the future; if we do, we will explain pricing clearly before charging.
+          </p>
+
+          <h2>Contact</h2>
+          <p>
+            Questions:
+            <a href="mailto:support@prayercare.online">support@prayercare.online</a><br />
+            Privacy:
+            <a href="/privacy">Privacy Policy</a>
+          </p>
+
+          <p class="legal-note">
+            These terms are a practical starting point. Have a qualified attorney review them for
+            your jurisdiction before public store submission if needed.
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div class="footer-brand">
+          <span class="logo-mark" aria-hidden="true"></span>
+          <span>PrayerCare</span>
+        </div>
+        <nav class="footer-nav" aria-label="Footer">
+          <a href="/">Home</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+          <a href="__APP_URL__/sign-up">Get Started</a>
+        </nav>
+        <p class="footer-copy">&copy; <span id="year"></span> PrayerCare. Made with peace and purpose.</p>
+      </div>
+    </footer>
+
+    <script>
+      document.getElementById('year').textContent = String(new Date().getFullYear());
+    </script>
+  </body>
+</html>

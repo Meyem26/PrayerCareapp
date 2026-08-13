@@ -84,6 +84,16 @@ fs.writeFileSync(
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
+  <url>
+    <loc>${siteUrl}/privacy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>${siteUrl}/terms</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
 </urlset>
 `,
   'utf8',
@@ -102,29 +112,40 @@ Sitemap: ${siteUrl}/sitemap.xml
 );
 console.log('Wrote robots.txt');
 
-// Inject production URLs into index.html (idempotent — safe to run every deploy)
-const indexPath = path.join(root, 'index.html');
-let indexHtml = fs.readFileSync(indexPath, 'utf8');
+function injectUrls(fileName, options = {}) {
+  const filePath = path.join(root, fileName);
+  if (!fs.existsSync(filePath)) {
+    console.warn('Skip missing file:', fileName);
+    return;
+  }
 
-indexHtml = indexHtml.replace(/__SITE_URL__/g, siteUrl);
-indexHtml = indexHtml.replace(/__APP_URL__/g, appUrl);
-indexHtml = indexHtml.replace(
-  /(<link rel="canonical" href=")[^"]*(")/,
-  `$1${siteUrl}/$2`,
-);
-indexHtml = indexHtml.replace(
-  /(<meta property="og:url" content=")[^"]*(")/,
-  `$1${siteUrl}/$2`,
-);
-indexHtml = indexHtml.replace(
-  /(<meta property="og:image" content=")[^"]*(")/,
-  `$1${siteUrl}/assets/og-image.svg$2`,
-);
-indexHtml = indexHtml.replace(
-  /(<meta name="twitter:image" content=")[^"]*(")/,
-  `$1${siteUrl}/assets/og-image.svg$2`,
-);
+  let html = fs.readFileSync(filePath, 'utf8');
+  html = html.replace(/__SITE_URL__/g, siteUrl);
+  html = html.replace(/__APP_URL__/g, appUrl);
 
-fs.writeFileSync(indexPath, indexHtml, 'utf8');
-console.log('Updated index.html with site URL:', siteUrl);
+  if (options.canonicalPath != null) {
+    const canonical = `${siteUrl}${options.canonicalPath}`;
+    html = html.replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${canonical}$2`);
+    html = html.replace(/(<meta property="og:url" content=")[^"]*(")/, `$1${canonical}$2`);
+  }
+
+  if (options.updateOgImage) {
+    html = html.replace(
+      /(<meta property="og:image" content=")[^"]*(")/,
+      `$1${siteUrl}/assets/og-image.svg$2`,
+    );
+    html = html.replace(
+      /(<meta name="twitter:image" content=")[^"]*(")/,
+      `$1${siteUrl}/assets/og-image.svg$2`,
+    );
+  }
+
+  fs.writeFileSync(filePath, html, 'utf8');
+  console.log('Updated', fileName, 'with site URL:', siteUrl);
+}
+
+injectUrls('index.html', { canonicalPath: '/', updateOgImage: true });
+injectUrls('privacy.html', { canonicalPath: '/privacy' });
+injectUrls('terms.html', { canonicalPath: '/terms' });
+
 console.log('Production build complete.');

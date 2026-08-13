@@ -113,63 +113,23 @@ prayer,pray,bible,christian,church,ministry,journal,faith,worship,care,group,ser
 
 ---
 
-## Privacy Policy (draft — have a lawyer review before public launch)
+## Privacy Policy & Terms (hosted)
 
-Host as a simple page. Draft:
+Public HTTPS pages (required for App Store / Play):
 
-```
-Privacy Policy — PrayerCare
-Last updated: [DATE]
+| Page | URL |
+|------|-----|
+| Privacy Policy | `https://www.prayercare.online/privacy` |
+| Terms of Service | `https://www.prayercare.online/terms` |
 
-PrayerCare (“we”) provides a prayer and care application. This policy explains what we collect and how we use it.
+Source files: `website/privacy.html`, `website/terms.html`  
+Contact email used in the pages: `support@prayercare.online` (change that address if you use a different inbox).
 
-What we collect
-• Account information (email, display name)
-• Prayer content, notes, group membership, care actions, and praise reports you create
-• Device push tokens if you enable notifications
-• Basic analytics needed to operate and improve the service
-
-How we use information
-• To provide and improve PrayerCare
-• To send account emails (verification, password reset) and optional reminders
-• To support private beta feedback
-
-Sharing
-We do not sell your personal data. We use processors such as Supabase (database/auth) and email providers (e.g. Resend) to run the service.
-
-Data retention
-We retain account and prayer data until you delete your account in the app (Profile → Delete Account) or request deletion at [SUPPORT EMAIL].
-
-Children
-PrayerCare is not directed at children under 13.
-
-Contact
-[SUPPORT EMAIL]
-https://www.prayercare.online
-```
-
----
-
-## Terms of Service (short draft)
-
-```
-Terms of Service — PrayerCare
-Last updated: [DATE]
-
-By using PrayerCare you agree to these terms.
-
-• PrayerCare is a tool to support prayer and care; it is not a substitute for pastoral counseling or emergency services.
-• You are responsible for content you enter and for treating group members with respect.
-• During private beta, features may change; we offer the service “as is.”
-• Do not misuse AI features to generate harmful or deceptive content.
-• We may suspend accounts that abuse the service.
-• Contact [SUPPORT EMAIL] for questions. You can delete your account anytime in the app (Profile → Delete Account).
-```
+**Have a lawyer review before public launch** if you want formal legal sign-off. The pages are written for transparency and store submission readiness.
 
 ---
 
 ## Age rating hints
-
 - Religion / spirituality content (non-graphic)
 - No gambling, no unrestricted web, no user-to-user dating
 - User-generated text (prayers) — may need “Users Interact” disclosure
