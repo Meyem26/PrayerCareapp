@@ -15,7 +15,9 @@
       "infoPlist": {
         "CFBundleDisplayName": "PrayerCare",
         "NSUserNotificationsUsageDescription": "PrayerCare sends gentle reminders for daily prayer, care actions, and group updates.",
-        "UIBackgroundModes": ["remote-notification"],
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -23,7 +25,7 @@
       "package": "com.prayercare.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E8F0EC",
+        "backgroundColor": "#000000",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -67,15 +69,13 @@
       "betaMode": false,
       "router": {},
       "eas": {
-        "projectId": "REPLACE_AFTER_EAS_INIT"
+        "projectId": "83766463-33dc-4416-afc8-dd020334acc3"
       }
     },
-    "owner": "REPLACE_WITH_EXPO_USERNAME",
     "runtimeVersion": {
       "policy": "appVersion"
     },
+    "owner": "kakam",
     "updates": {
-      "url": "https://u.expo.dev/REPLACE_AFTER_EAS_INIT"
+      "url": "https://u.expo.dev/83766463-33dc-4416-afc8-dd020334acc3"
     }
-  }
-}

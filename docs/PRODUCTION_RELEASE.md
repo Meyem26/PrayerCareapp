@@ -92,7 +92,8 @@ npx eas-cli secret:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://YOUR.
 npx eas-cli secret:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "eyJ..." --scope project
 npx eas-cli secret:create --name EXPO_PUBLIC_LANDING_URL --value "https://www.prayercare.online" --scope project
 npx eas-cli secret:create --name EXPO_PUBLIC_WEB_APP_URL --value "https://app.prayercare.online" --scope project
-npx eas-cli secret:create --name EXPO_PUBLIC_BETA_MODE --value "true" --scope project
+npx eas-cli secret:create --name EXPO_PUBLIC_BETA_MODE --value "false" --scope project
+npx eas-cli secret:create --name EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED --value "false" --scope project
 ```
 
 ### Step 4.3 — Brand assets
