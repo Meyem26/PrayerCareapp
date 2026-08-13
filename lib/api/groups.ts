@@ -1,6 +1,12 @@
 import { supabase } from '@/lib/supabase';
 import { ensureAuthenticated } from '@/lib/auth-session';
-import type { GroupInvite, GroupMember, GroupWithMeta, PrayerGroup } from '@/types/group';
+import type {
+  GroupInvite,
+  GroupMember,
+  GroupWithMeta,
+  PendingGroupInvite,
+  PrayerGroup,
+} from '@/types/group';
 import type { PrayerWithRelations } from '@/types/prayer';
 
 export async function fetchMyGroups(): Promise<{
@@ -122,20 +128,87 @@ export async function joinGroupByCode(
   return { data: data as PrayerGroup, error: null };
 }
 
+export async function acceptGroupInviteByToken(
+  token: string,
+): Promise<{ data: PrayerGroup | null; error: string | null }> {
+  const { error: authError } = await ensureAuthenticated();
+  if (authError) return { data: null, error: authError };
+
+  const { data, error } = await supabase.rpc('accept_group_invite_by_token', {
+    p_token: token.trim(),
+  });
+
+  if (error) return { data: null, error: error.message };
+  return { data: data as PrayerGroup, error: null };
+}
+
 export async function inviteMemberByEmail(
   groupId: string,
   email: string,
-): Promise<{ error: string | null }> {
+  options?: { requireCode?: boolean; sendEmail?: boolean },
+): Promise<{ inviteId: string | null; error: string | null }> {
   const { userId, error: authError } = await ensureAuthenticated();
-  if (authError || !userId) return { error: authError };
+  if (authError || !userId) return { inviteId: null, error: authError };
 
-  const { error } = await supabase.from('group_invites').insert({
-    group_id: groupId,
-    invited_by: userId,
-    email: email.trim().toLowerCase(),
-  });
+  const requireCode = options?.requireCode ?? false;
+  const sendEmail = options?.sendEmail ?? true;
 
-  return { error: error?.message ?? null };
+  const { data, error } = await supabase
+    .from('group_invites')
+    .insert({
+      group_id: groupId,
+      invited_by: userId,
+      email: email.trim().toLowerCase(),
+      require_code: requireCode,
+    })
+    .select('id')
+    .single();
+
+  if (error) return { inviteId: null, error: error.message };
+  const inviteId = data?.id as string | undefined;
+  if (!inviteId) return { inviteId: null, error: 'Invite was not created.' };
+
+  if (sendEmail) {
+    const { data: fnData, error: fnError } = await supabase.functions.invoke('send-group-invite', {
+      body: { invite_id: inviteId },
+    });
+
+    if (fnError) {
+      return {
+        inviteId,
+        error:
+          'Invite was saved, but the email could not be sent. Deploy the send-group-invite Edge Function (and Resend key), or share the join link manually.',
+      };
+    }
+    if (fnData?.error) {
+      return {
+        inviteId,
+        error: `Invite saved, but email failed: ${String(fnData.error)}`,
+      };
+    }
+  }
+
+  return { inviteId, error: null };
+}
+
+export async function fetchMyPendingInvites(): Promise<{
+  data: PendingGroupInvite[];
+  error: string | null;
+}> {
+  const { error: authError } = await ensureAuthenticated();
+  if (authError) return { data: [], error: authError };
+
+  const { data, error } = await supabase.rpc('list_my_pending_group_invites');
+  if (error) {
+    const hint = error.message.includes('list_my_pending_group_invites')
+      ? ' Run migration 20250628000022_group_invite_links.sql in Supabase.'
+      : '';
+    return { data: [], error: `${error.message}.${hint}` };
+  }
+  return {
+    data: (data ?? []) as PendingGroupInvite[],
+    error: null,
+  };
 }
 
 export async function fetchPendingInvites(groupId: string): Promise<{

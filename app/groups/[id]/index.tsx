@@ -16,6 +16,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
+import { getGroupJoinUrlByCode } from '@/constants/beta';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -67,8 +68,11 @@ export default function GroupDetailScreen() {
 
   async function handleShareCode() {
     if (!group?.invite_code) return;
+    const link = getGroupJoinUrlByCode(group.invite_code);
     await Share.share({
-      message: `Join our private prayer group "${group.name}" on PrayerCare.\n\nInvite code: ${group.invite_code}`,
+      message: `Join our private prayer group "${group.name}" on PrayerCare.\n\nOpen this link:\n${link}\n\nOr enter invite code: ${group.invite_code}`,
+      url: link,
+      title: `Join ${group.name}`,
     });
   }
 
@@ -162,10 +166,10 @@ export default function GroupDetailScreen() {
           <View style={styles.codeBox}>
             <AppText style={styles.code}>{group.invite_code}</AppText>
             <AppText variant="bodySmall" muted>
-              Share this code privately with people you trust.
+              Share the link or code. Email invites can require a code or allow the link alone.
             </AppText>
           </View>
-          <Button title="Share invite code" variant="secondary" onPress={handleShareCode} />
+          <Button title="Share invite link" variant="secondary" onPress={handleShareCode} />
           {canManage ? (
             <Button
               title="Invite by email"

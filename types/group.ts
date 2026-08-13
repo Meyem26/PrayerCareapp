@@ -23,7 +23,21 @@ export type GroupInvite = {
   id: string;
   group_id: string;
   email: string;
+  token?: string;
+  require_code?: boolean;
   status: 'pending' | 'accepted' | 'expired' | 'revoked';
+  expires_at: string;
+  created_at: string;
+};
+
+export type PendingGroupInvite = {
+  invite_id: string;
+  group_id: string;
+  group_name: string;
+  invite_code: string;
+  token: string;
+  require_code: boolean;
+  email: string;
   expires_at: string;
   created_at: string;
 };

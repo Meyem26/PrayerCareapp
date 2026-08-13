@@ -23,3 +23,11 @@ export const APP_SIGN_UP_PATH = '/sign-up';
 export function getAppSignUpUrl(): string {
   return `${WEB_APP_URL.replace(/\/$/, '')}${APP_SIGN_UP_PATH}`;
 }
+
+export function getGroupJoinUrlByCode(inviteCode: string): string {
+  return `${WEB_APP_URL.replace(/\/$/, '')}/groups/join?code=${encodeURIComponent(inviteCode)}`;
+}
+
+export function getGroupJoinUrlByToken(token: string): string {
+  return `${WEB_APP_URL.replace(/\/$/, '')}/groups/join?token=${encodeURIComponent(token)}`;
+}
