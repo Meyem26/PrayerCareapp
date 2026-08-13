@@ -32,7 +32,7 @@ import { getCategoryLabel, getScheduleFromPrayer } from '@/lib/prayer-utils';
 import type { GroupMember, GroupWithMeta } from '@/types/group';
 import type { PrayerWithRelations } from '@/types/prayer';
 
-type ConfirmKind = 'leave' | 'promote' | 'remove' | null;
+type ConfirmKind = 'leave' | 'makeAdmin' | 'makeLeader' | 'remove' | null;
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -102,7 +102,21 @@ export default function GroupDetailScreen() {
       return;
     }
 
-    if (confirmKind === 'promote' && pendingMember) {
+    if (confirmKind === 'makeAdmin' && pendingMember) {
+      const { error: promoteError } = await updateMemberRole(pendingMember.member_id, 'admin');
+      setActionLoading(false);
+      setConfirmKind(null);
+      setPendingMember(null);
+      if (promoteError) {
+        setError(promoteError);
+        return;
+      }
+      showToast('Member promoted to admin.');
+      load();
+      return;
+    }
+
+    if (confirmKind === 'makeLeader' && pendingMember) {
       const { error: promoteError } = await updateMemberRole(pendingMember.member_id, 'leader');
       setActionLoading(false);
       setConfirmKind(null);
@@ -117,6 +131,15 @@ export default function GroupDetailScreen() {
     }
 
     if (confirmKind === 'remove' && pendingMember) {
+      const adminCount = members.filter((m) => m.role === 'admin').length;
+      if (pendingMember.role === 'admin' && adminCount <= 1) {
+        setActionLoading(false);
+        setConfirmKind(null);
+        setPendingMember(null);
+        setError('You cannot remove the only admin. Promote someone else to admin first.');
+        return;
+      }
+
       const { error: removeError } = await removeMember(pendingMember.member_id);
       setActionLoading(false);
       setConfirmKind(null);
@@ -154,23 +177,31 @@ export default function GroupDetailScreen() {
   const confirmTitle =
     confirmKind === 'leave'
       ? 'Leave group?'
-      : confirmKind === 'promote'
-        ? `Make ${pendingMember?.display_name ?? 'member'} a leader?`
-        : confirmKind === 'remove'
-          ? `Remove ${pendingMember?.display_name ?? 'member'}?`
-          : '';
+      : confirmKind === 'makeAdmin'
+        ? `Make ${pendingMember?.display_name ?? 'member'} an admin?`
+        : confirmKind === 'makeLeader'
+          ? `Make ${pendingMember?.display_name ?? 'member'} a leader?`
+          : confirmKind === 'remove'
+            ? `Remove ${pendingMember?.display_name ?? 'member'}?`
+            : '';
 
   const confirmMessage =
     confirmKind === 'leave'
       ? 'You will no longer see shared prayers from this group.'
-      : confirmKind === 'promote'
-        ? 'Leaders can invite members and manage the group.'
-        : confirmKind === 'remove'
-          ? 'They will lose access to group prayers.'
-          : '';
+      : confirmKind === 'makeAdmin'
+        ? 'Admins can invite people, promote members, and remove members from this group.'
+        : confirmKind === 'makeLeader'
+          ? 'Leaders can invite members and help manage the group.'
+          : confirmKind === 'remove'
+            ? 'They will lose access to group prayers.'
+            : '';
 
   const confirmLabel =
-    confirmKind === 'leave' ? 'Leave' : confirmKind === 'promote' ? 'Confirm' : 'Remove';
+    confirmKind === 'leave'
+      ? 'Leave'
+      : confirmKind === 'makeAdmin' || confirmKind === 'makeLeader'
+        ? 'Confirm'
+        : 'Remove';
 
   return (
     <Screen padded={false}>
@@ -240,18 +271,29 @@ export default function GroupDetailScreen() {
               key={member.member_id}
               member={member}
               isSelf={member.user_id === user?.id}
-              canManage={canManage}
-              onPromote={
+              viewerRole={group.my_role}
+              onMakeAdmin={
+                group.my_role === 'admin' && member.role !== 'admin'
+                  ? () => {
+                      setError(null);
+                      setPendingMember(member);
+                      setConfirmKind('makeAdmin');
+                    }
+                  : undefined
+              }
+              onMakeLeader={
+                (group.my_role === 'admin' || group.my_role === 'leader') &&
                 member.role === 'member'
                   ? () => {
                       setError(null);
                       setPendingMember(member);
-                      setConfirmKind('promote');
+                      setConfirmKind('makeLeader');
                     }
                   : undefined
               }
               onRemove={
-                member.role === 'member'
+                group.my_role === 'admin' ||
+                (group.my_role === 'leader' && member.role === 'member')
                   ? () => {
                       setError(null);
                       setPendingMember(member);

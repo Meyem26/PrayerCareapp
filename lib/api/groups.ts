@@ -230,17 +230,32 @@ export async function updateMemberRole(
   memberId: string,
   role: 'member' | 'leader' | 'admin',
 ): Promise<{ error: string | null }> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('group_members')
     .update({ role })
-    .eq('id', memberId);
+    .eq('id', memberId)
+    .select('id')
+    .maybeSingle();
 
-  return { error: error?.message ?? null };
+  if (error) return { error: error.message };
+  if (!data) {
+    return { error: 'Could not update that member. You may not have permission.' };
+  }
+  return { error: null };
 }
 
 export async function removeMember(memberId: string): Promise<{ error: string | null }> {
-  const { error } = await supabase.from('group_members').delete().eq('id', memberId);
-  return { error: error?.message ?? null };
+  const { data, error } = await supabase
+    .from('group_members')
+    .delete()
+    .eq('id', memberId)
+    .select('id');
+
+  if (error) return { error: error.message };
+  if (!data?.length) {
+    return { error: 'Could not remove that member. You may not have permission.' };
+  }
+  return { error: null };
 }
 
 export async function leaveGroup(groupId: string): Promise<{ error: string | null }> {

@@ -7,8 +7,9 @@ import type { GroupMember, GroupMemberRole } from '@/types/group';
 type MemberRowProps = {
   member: GroupMember;
   isSelf: boolean;
-  canManage: boolean;
-  onPromote?: () => void;
+  viewerRole?: GroupMemberRole | null;
+  onMakeAdmin?: () => void;
+  onMakeLeader?: () => void;
   onRemove?: () => void;
 };
 
@@ -18,7 +19,31 @@ function roleLabel(role: GroupMemberRole): string {
   return 'Member';
 }
 
-export function MemberRow({ member, isSelf, canManage, onPromote, onRemove }: MemberRowProps) {
+export function MemberRow({
+  member,
+  isSelf,
+  viewerRole,
+  onMakeAdmin,
+  onMakeLeader,
+  onRemove,
+}: MemberRowProps) {
+  const isAdminViewer = viewerRole === 'admin';
+  const isLeaderViewer = viewerRole === 'leader' || isAdminViewer;
+
+  const showMakeAdmin =
+    Boolean(onMakeAdmin) && isAdminViewer && !isSelf && member.role !== 'admin';
+  const showMakeLeader =
+    Boolean(onMakeLeader) &&
+    isLeaderViewer &&
+    !isSelf &&
+    member.role === 'member';
+  const showRemove =
+    Boolean(onRemove) &&
+    !isSelf &&
+    (isAdminViewer || (isLeaderViewer && member.role === 'member'));
+
+  const showActions = showMakeAdmin || showMakeLeader || showRemove;
+
   return (
     <View style={styles.row}>
       <View style={styles.info}>
@@ -30,16 +55,23 @@ export function MemberRow({ member, isSelf, canManage, onPromote, onRemove }: Me
           {roleLabel(member.role)}
         </AppText>
       </View>
-      {canManage && !isSelf && member.role === 'member' ? (
+      {showActions ? (
         <View style={styles.actions}>
-          {onPromote ? (
-            <Pressable onPress={onPromote} style={styles.actionBtn}>
+          {showMakeAdmin ? (
+            <Pressable onPress={onMakeAdmin} style={styles.actionBtn}>
+              <AppText variant="bodySmall" accent>
+                Make admin
+              </AppText>
+            </Pressable>
+          ) : null}
+          {showMakeLeader ? (
+            <Pressable onPress={onMakeLeader} style={styles.actionBtn}>
               <AppText variant="bodySmall" accent>
                 Make leader
               </AppText>
             </Pressable>
           ) : null}
-          {onRemove ? (
+          {showRemove ? (
             <Pressable onPress={onRemove} style={styles.actionBtn}>
               <AppText variant="bodySmall" style={styles.remove}>
                 Remove
