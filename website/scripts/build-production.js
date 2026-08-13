@@ -6,7 +6,7 @@ const root = path.join(__dirname, '..');
 const siteUrl = (
   process.env.SITE_URL ||
   process.env.PRAYERCARE_SITE_URL ||
-  'https://prayercare.app'
+  'https://www.prayercare.online'
 ).replace(/\/$/, '');
 
 function normalizeSupabaseUrl(url) {
@@ -26,7 +26,8 @@ const supabaseUrl = normalizeSupabaseUrl(
 const supabaseAnonKey =
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
   process.env.SUPABASE_ANON_KEY ||
-  process.env.PRAYERCARE_SUPABASE_ANON_KEY;
+  process.env.PRAYERCARE_SUPABASE_ANON_KEY ||
+  '';
 
 const gaMeasurementId =
   process.env.GA_MEASUREMENT_ID || process.env.PRAYERCARE_GA_MEASUREMENT_ID || '';
@@ -38,7 +39,7 @@ function deriveAppUrl(site, explicit) {
     const host = parsed.hostname.replace(/^www\./i, '');
     return `https://app.${host}`;
   } catch {
-    return 'https://app.prayercare.app';
+    return 'https://app.prayercare.online';
   }
 }
 
@@ -48,10 +49,9 @@ const appUrl = deriveAppUrl(
 );
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error(
-    'Missing Supabase env vars. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY.',
+  console.warn(
+    'WARNING: Missing Supabase env vars. Deploy will continue so Privacy/Terms pages publish. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel when you need server-backed website features.',
   );
-  process.exit(1);
 }
 
 // config.js
