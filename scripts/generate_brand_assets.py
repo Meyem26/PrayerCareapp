@@ -92,6 +92,41 @@ def extract_mark(icon_rgba: Image.Image) -> Image.Image:
     return out.crop(bbox) if bbox else out
 
 
+def darken_mark_for_cream(mark: Image.Image) -> Image.Image:
+    """Make outline + flame darker so the mark reads clearly on cream UI."""
+    # Deep forest outline + bronze flame so the mark reads on cream
+    OUTLINE = (42, 62, 52, 255)
+    GOLD_LIGHT = (122, 82, 18, 255)
+    GOLD_DARK = (88, 56, 10, 255)
+
+    im = mark.convert("RGBA")
+    w, h = im.size
+    px = im.load()
+    out = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    out_px = out.load()
+
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a < 12:
+                continue
+            # Near-white / light gray outline → sage
+            if r >= 200 and g >= 200 and b >= 200:
+                out_px[x, y] = OUTLINE
+                continue
+            # Gold / yellow flame → deepen
+            if r > g and r > b and (r - b) > 30:
+                # Blend toward darker gold by brightness
+                t = max(0.0, min(1.0, (r - 120) / 135.0))
+                nr = int(GOLD_DARK[0] * (1 - t) + GOLD_LIGHT[0] * t)
+                ng = int(GOLD_DARK[1] * (1 - t) + GOLD_LIGHT[1] * t)
+                nb = int(GOLD_DARK[2] * (1 - t) + GOLD_LIGHT[2] * t)
+                out_px[x, y] = (nr, ng, nb, a)
+                continue
+            out_px[x, y] = (r, g, b, a)
+    return out
+
+
 def to_rgb(im: Image.Image, bg=(0, 0, 0)) -> Image.Image:
     rgb = Image.new("RGB", im.size, bg)
     rgba = im.convert("RGBA")
@@ -113,8 +148,9 @@ def main() -> None:
     print("square tile:", tile.size)
 
     mark = extract_mark(tile)
+    mark_ui = darken_mark_for_cream(mark)
 
-    # Marketing masters (black tile for reference; transparent mark)
+    # Marketing masters
     m2048 = fit_centered(tile, 2048, CREAM, scale=1.0)
     to_rgb(m2048, CREAM_RGB).save(BRAND / "prayercare-icon-2048.png", "PNG")
     fit_centered(mark, 2048, (0, 0, 0, 0), scale=0.72).save(
@@ -122,37 +158,37 @@ def main() -> None:
     )
     print("brand masters saved in assets/brand/")
 
-    # 1) App icon — mark on cream (#FAF9F7), matches splash + app background
-    icon = fit_centered(mark, 1024, CREAM, scale=0.78)
+    # App / splash / store icons use darker mark on cream (visible)
+    icon = fit_centered(mark_ui, 1024, CREAM, scale=0.78)
     icon_rgb = to_rgb(icon, CREAM_RGB)
     icon_rgb.save(IMAGES / "icon.png", "PNG")
     print("icon.png", icon_rgb.size, icon_rgb.mode)
 
-    # 2) Splash — same mark, slightly inset on cream
-    splash = fit_centered(mark, 1024, CREAM, scale=0.70)
+    splash = fit_centered(mark_ui, 1024, CREAM, scale=0.70)
     splash_rgb = to_rgb(splash, CREAM_RGB)
     splash_rgb.save(IMAGES / "splash-icon.png", "PNG")
     print("splash-icon.png", splash_rgb.size)
 
-    # 3) Android foreground — mark only, ~62% safe zone
-    fg = fit_centered(mark, 1024, (0, 0, 0, 0), scale=0.62)
+    fg = fit_centered(mark_ui, 1024, (0, 0, 0, 0), scale=0.62)
     fg.save(IMAGES / "android-icon-foreground.png", "PNG")
     print("android-icon-foreground.png", fg.size)
 
-    # 4) Android background — solid cream (matches icon + splash)
     Image.new("RGB", (1024, 1024), CREAM_RGB).save(IMAGES / "android-icon-background.png", "PNG")
     print("android-icon-background.png 1024x1024 cream")
 
-    # 5) Favicon 96×96
     fav = icon_rgb.resize((96, 96), Image.Resampling.LANCZOS)
     fav.save(IMAGES / "favicon.png", "PNG")
     print("favicon.png", fav.size)
 
-    # Monochrome themed icon (white silhouette)
-    mono = Image.new("RGBA", mark.size, (0, 0, 0, 0))
-    for y in range(mark.height):
-        for x in range(mark.width):
-            if mark.getpixel((x, y))[3] > 20:
+    # Compact UI mark for headers / tab bar (transparent PNG)
+    ui_mark = fit_centered(mark_ui, 256, (0, 0, 0, 0), scale=0.92)
+    ui_mark.save(IMAGES / "brand-mark.png", "PNG")
+    print("brand-mark.png", ui_mark.size)
+
+    mono = Image.new("RGBA", mark_ui.size, (0, 0, 0, 0))
+    for y in range(mark_ui.height):
+        for x in range(mark_ui.width):
+            if mark_ui.getpixel((x, y))[3] > 20:
                 mono.putpixel((x, y), (255, 255, 255, 255))
     fit_centered(mono, 432, (0, 0, 0, 0), scale=0.62).save(
         IMAGES / "android-icon-monochrome.png", "PNG"

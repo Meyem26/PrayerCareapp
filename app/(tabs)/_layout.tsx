@@ -1,7 +1,7 @@
-import { Redirect } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 
+import { BrandHeaderTitle } from '@/components/navigation/BrandHeaderTitle';
+import { BrandTabIcon } from '@/components/navigation/BrandTabIcon';
 import { ProfileMenuButton } from '@/components/navigation/ProfileMenuButton';
 import { NotificationBootstrap } from '@/components/notifications/NotificationBootstrap';
 import { LoadingScreen } from '@/components/ui/Screen';
@@ -31,90 +31,65 @@ export default function TabLayout() {
     <>
       <NotificationBootstrap />
       <Tabs
-      screenOptions={{
-        headerShown: true,
-        headerStyle: { backgroundColor: theme.colors.background },
-        headerTitleStyle: {
-          color: theme.colors.text,
-          fontSize: 17,
-          fontWeight: '600',
-        },
-        headerShadowVisible: false,
-        headerRight: () => (
-          <ProfileMenuButton />
-        ),
-        headerRightContainerStyle: {
-          paddingRight: theme.spacing.md,
-        },
-        tabBarStyle: {
-          backgroundColor: theme.colors.surface,
-          borderTopColor: theme.colors.border,
-        },
-        tabBarActiveTintColor: theme.colors.accent,
-        tabBarInactiveTintColor: theme.colors.textMuted,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Today',
-          tabBarLabel: 'Today',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'sun.max', android: 'wb_sunny', web: 'wb_sunny' }}
-              tintColor={color}
-              size={24}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="pray"
-        options={{
-          title: 'Pray',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'hands.sparkles',
-                android: 'volunteer_activism',
-                web: 'volunteer_activism',
-              }}
-              tintColor={color}
-              size={24}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="groups"
-        options={{
-          title: 'Groups',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'person.3', android: 'groups', web: 'groups' }}
-              tintColor={color}
-              size={24}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="journey"
-        options={{
-          title: 'Journey',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'point.bottomleft.forward.to.point.topright.scurvepath',
-                android: 'timeline',
-                web: 'timeline',
-              }}
-              tintColor={color}
-              size={24}
-            />
-          ),
-        }}
-      />
-    </Tabs>
+        screenOptions={{
+          headerShown: true,
+          headerStyle: { backgroundColor: theme.colors.background },
+          headerShadowVisible: false,
+          headerTitle: () => null,
+          headerLeftContainerStyle: {
+            paddingLeft: theme.spacing.md,
+            flex: 1,
+          },
+          headerRight: () => <ProfileMenuButton />,
+          headerRightContainerStyle: {
+            paddingRight: theme.spacing.md,
+          },
+          tabBarStyle: {
+            backgroundColor: theme.colors.surface,
+            borderTopColor: theme.colors.border,
+            paddingTop: 6,
+          },
+          tabBarActiveTintColor: theme.colors.accentDark,
+          tabBarInactiveTintColor: theme.colors.textMuted,
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: '600',
+          },
+        }}>
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Today',
+            headerLeft: () => <BrandHeaderTitle title="Today" />,
+            tabBarLabel: 'Today',
+            tabBarIcon: ({ focused }) => <BrandTabIcon name="today" focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="pray"
+          options={{
+            title: 'Pray',
+            headerLeft: () => <BrandHeaderTitle title="Pray" />,
+            tabBarIcon: ({ focused }) => <BrandTabIcon name="pray" focused={focused} size={28} />,
+          }}
+        />
+        <Tabs.Screen
+          name="groups"
+          options={{
+            title: 'Groups',
+            headerLeft: () => <BrandHeaderTitle title="Groups" />,
+            tabBarIcon: ({ focused }) => <BrandTabIcon name="groups" focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="journey"
+          options={{
+            title: 'Journey',
+            headerLeft: () => <BrandHeaderTitle title="Journey" />,
+            tabBarIcon: ({ focused }) => <BrandTabIcon name="journey" focused={focused} />,
+          }}
+        />
+      </Tabs>
     </>
   );
 }
