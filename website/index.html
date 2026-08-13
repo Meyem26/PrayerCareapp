@@ -75,12 +75,10 @@
           <a
             class="btn btn-primary btn-sm header-cta js-primary-cta"
             id="header-primary-cta"
-            href="#join-beta"
-            data-beta-href="#join-beta"
-            data-beta-label="Join the Beta"
+            href="__APP_URL__/sign-up"
             data-launch-href="__APP_URL__/sign-up"
-            data-launch-label="Create Free Account">
-            Join the Beta
+            data-launch-label="Get Started">
+            Get Started
           </a>
         </div>
         <button
@@ -123,12 +121,10 @@
             <div class="hero-actions">
               <a
                 class="btn btn-primary js-primary-cta"
-                href="#join-beta"
-                data-beta-href="#join-beta"
-                data-beta-label="Join the Beta"
+                href="__APP_URL__/sign-up"
                 data-launch-href="__APP_URL__/sign-up"
-                data-launch-label="Create Free Account">
-                Join the Beta
+                data-launch-label="Get Started">
+                Get Started
               </a>
               <a class="btn btn-secondary" href="#demo">See the App</a>
             </div>
@@ -556,7 +552,7 @@
       </section>
 
       <!-- CTA -->
-      <section class="cta section" id="join-beta" aria-labelledby="cta-heading">
+      <section class="cta section" id="get-started" aria-labelledby="cta-heading">
         <div class="container">
           <div class="cta-card reveal">
             <h2 id="cta-heading" class="cta-title">
@@ -564,31 +560,18 @@
               Remembering to pray changes lives too.
             </h2>
             <p class="cta-subtitle">
-              Join a small group of early testers helping shape PrayerCare for churches,
-              ministries, and believers everywhere.
+              PrayerCare is free to use. Create your account and begin organizing prayers, care,
+              and praise in one peaceful place.
             </p>
-            <form class="beta-form" id="beta-form" novalidate>
-              <label class="sr-only" for="beta-email">Email address</label>
-              <input
-                type="email"
-                id="beta-email"
-                name="email"
-                placeholder="Your email address"
-                required
-                autocomplete="email"
-              />
-              <button type="submit" class="btn btn-primary btn-lg">Join the Beta</button>
-            </form>
-            <p class="form-note" id="form-note" role="status" aria-live="polite"></p>
-            <div class="beta-success-next" id="beta-success-next" hidden>
-              <p class="beta-success-title">You're on the list.</p>
-              <p class="beta-success-body">
-                <strong>Next step:</strong> create your app account (this is separate from joining
-                the beta). Use the <strong>same email</strong> below — tap
-                <strong>Create Account</strong>, not Sign In.
-              </p>
-              <a class="btn btn-primary btn-lg" id="beta-open-app" href="__APP_URL__/sign-up">
-                Create Account
+            <div class="cta-actions">
+              <a
+                class="btn btn-primary btn-lg js-app-signup"
+                id="cta-create-account"
+                href="__APP_URL__/sign-up">
+                Create Free Account
+              </a>
+              <a class="cta-signin js-app-signin" id="cta-sign-in" href="__APP_URL__/login">
+                Already have an account? Sign In
               </a>
             </div>
           </div>

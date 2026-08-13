@@ -10,8 +10,8 @@ import {
 
 /**
  * When false, plan limits are ignored and everyone has full access.
- * Private beta keeps this false via BETA_MODE. Set EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED=true
- * at public launch (and set BETA_MODE false) to turn restrictions on.
+ * Public launch: keep EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED unset/false (PrayerCare is free).
+ * Later, set EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED=true to turn on freemium limits.
  */
 export const SUBSCRIPTIONS_ENFORCED =
   !BETA_MODE && process.env.EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED === 'true';

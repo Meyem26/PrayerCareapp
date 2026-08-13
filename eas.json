@@ -21,7 +21,7 @@
         "simulator": false
       },
       "env": {
-        "EXPO_PUBLIC_BETA_MODE": "true"
+        "EXPO_PUBLIC_BETA_MODE": "false"
       }
     },
     "testflight": {
@@ -31,12 +31,16 @@
         "simulator": false
       },
       "env": {
-        "EXPO_PUBLIC_BETA_MODE": "true"
+        "EXPO_PUBLIC_BETA_MODE": "false"
       }
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_BETA_MODE": "false",
+        "EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED": "false"
+      }
     }
   },
   "submit": {

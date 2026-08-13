@@ -6,7 +6,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
-import { BETA_MODE, LANDING_URL } from '@/constants/beta';
+import { BETA_MODE } from '@/constants/beta';
 import { useAuth } from '@/contexts/AuthContext';
 import { theme } from '@/constants/theme';
 import { isSupabaseConfigured } from '@/lib/supabase';
@@ -74,27 +74,26 @@ export default function SignUpScreen() {
             <AppText muted>
               Create a peaceful space to pray, care, and celebrate answered prayers.
             </AppText>
-            <AppText variant="bodySmall" muted style={styles.betaNote}>
-              Step 2 of 2: Create your app account with the same email you used to join the beta
-              at {LANDING_URL.replace(/^https?:\/\//, '')}. Joining the beta alone does not create
-              a login.
-            </AppText>
             {BETA_MODE ? (
               <View style={styles.betaSteps}>
                 <AppText variant="label" accent style={styles.betaStepsTitle}>
-                  Beta quick start
+                  Quick start
                 </AppText>
                 <AppText variant="bodySmall" style={styles.betaStep}>
-                  1. Join beta on the website (you did this)
+                  1. You were invited to try PrayerCare
                 </AppText>
                 <AppText variant="bodySmall" style={styles.betaStep}>
-                  2. Create your account here with the same email
+                  2. Create your account here with your email
                 </AppText>
                 <AppText variant="bodySmall" style={styles.betaStep}>
                   3. Sign in anytime after that
                 </AppText>
               </View>
-            ) : null}
+            ) : (
+              <AppText variant="bodySmall" muted style={styles.freeNote}>
+                PrayerCare is free. Create your account to get started.
+              </AppText>
+            )}
           </View>
 
           <View style={styles.form}>
@@ -152,7 +151,7 @@ const styles = StyleSheet.create({
   hero: {
     gap: theme.spacing.sm,
   },
-  betaNote: {
+  freeNote: {
     marginTop: theme.spacing.sm,
     lineHeight: 20,
   },

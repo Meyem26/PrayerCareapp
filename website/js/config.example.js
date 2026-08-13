@@ -8,8 +8,8 @@ window.PRAYERCARE_CONFIG = {
   supabaseUrl: 'https://YOUR_PROJECT.supabase.co',
   supabaseAnonKey: 'YOUR_ANON_KEY',
   siteUrl: 'http://localhost:3000',
-  appUrl: 'https://app.yourdomain.com',
-  /** true = Join Beta CTA; false = Create Free Account → /sign-up */
-  betaMode: true,
+  appUrl: 'https://app.prayercare.online',
+  /** Opt-in private beta waitlist CTAs. Public launch: false → Get Started / sign-up. */
+  betaMode: false,
   gaMeasurementId: '',
 };

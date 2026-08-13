@@ -1279,6 +1279,38 @@ body.menu-open {
   line-height: 1.7;
 }
 
+.cta-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.cta-actions .btn-primary {
+  background: var(--gold);
+  box-shadow: 0 4px 16px rgba(214, 166, 77, 0.4);
+  white-space: nowrap;
+}
+
+.cta-actions .btn-primary:hover {
+  background: #c4953f;
+  color: white;
+}
+
+.cta-signin {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.cta-signin:hover {
+  color: white;
+}
+
 .beta-form {
   display: flex;
   flex-direction: column;

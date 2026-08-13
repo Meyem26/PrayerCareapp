@@ -64,7 +64,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "betaMode": true,
+      "betaMode": false,
       "router": {},
       "eas": {
         "projectId": "REPLACE_AFTER_EAS_INIT"
