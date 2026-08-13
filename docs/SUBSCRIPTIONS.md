@@ -1,23 +1,42 @@
 # PrayerCare Freemium Architecture
 
-PrayerCare is designed as a freemium product from day one. **Private beta does not charge anyone** and unlocks all features. Payments (Stripe) come after public launch without redesigning the schema.
+PrayerCare is designed as a freemium product, but **the first public release is completely free**.
+
+- No Stripe
+- No paywalls
+- No feature restrictions in the app
+- Schema stays ready for paid plans later
 
 ---
 
-## Plans
+## Current launch mode (Aug 2026)
 
-| Tier | Audience | Access today (beta) |
-|------|----------|---------------------|
-| `free` | Every Christian | Full (unlocked in beta) |
-| `plus` | Individuals | Full (unlocked in beta) |
-| `ministry` | Ministries / small churches | Full (unlocked in beta) |
-| `church` | Larger churches | Full (unlocked in beta) |
+| Setting | Value |
+|---------|--------|
+| `EXPO_PUBLIC_BETA_MODE` | `false` |
+| `EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED` | `false` (must stay false) |
+| New user `subscription_tier` | `free` |
+| New user subscription `provider` | `manual` |
+| App feature access | **All features unlocked** via permissions kill-switch |
 
-During private beta every user is assigned **`church`** (highest tier) and enforcement is **off**.
+`canAccess()` returns `true` for every feature while enforcement is off. Do **not** set `EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED=true` until you intentionally launch freemium.
 
 ---
 
-## Clean architecture (recommended)
+## Plans (catalog for later)
+
+| Tier | Audience | Enforced later (not now) |
+|------|----------|--------------------------|
+| `free` | Every Christian | Core journal + limited AI + 1 group |
+| `plus` | Individuals | Advanced personal features |
+| `ministry` | Ministries / small churches | Care + group tools |
+| `church` | Larger churches | Full church suite |
+
+While enforcement is **off**, every signed-in user has full product access regardless of stored tier.
+
+---
+
+## Clean architecture (keep for later)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -41,155 +60,69 @@ During private beta every user is assigned **`church`** (highest tier) and enfor
 
 **Why this shape**
 
-1. **Centralized checks** — never hardcode “if plus then …” in random screens. Use `useEntitlements()` or `canAccessFeature()`.
-2. **Denormalized tier on profile** — one field for UI; easy to read.
-3. **`subscriptions` table** — ready for Stripe customer/subscription IDs, periods, cancel flags.
-4. **`plan_entitlements` in DB** — server/RPC can enforce limits later; app matrix in TypeScript stays in sync for UX.
-5. **Beta kill-switch** — `BETA_MODE` or `EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED` turns limits on/off without rewriting features.
+1. **Centralized checks** — use `useEntitlements()` / `canAccessFeature()` when freemium turns on.
+2. **Denormalized tier on profile** — one field for UI.
+3. **`subscriptions` table** — ready for Stripe IDs later.
+4. **`plan_entitlements` in DB** — server/RPC can enforce later.
+5. **Kill-switch** — `EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED` turns limits on/off without rewriting features.
 
 ---
 
-## What was added
+## Migrations
 
-### Migration `018`
+| File | Purpose |
+|------|---------|
+| `018_subscription_tiers.sql` | Enums, tables, entitlements, beta defaults |
+| `019_public_free_launch.sql` | Free defaults, `handle_new_user` → free/manual, relabel existing users |
 
-File: `supabase/migrations/20250628000018_subscription_tiers.sql`
+### Run migration 019 (required for public launch)
 
-- Enums: `subscription_tier`, `subscription_status`, `subscription_provider`
-- `profiles.subscription_tier` (default `church` for beta)
-- `subscriptions` table (Stripe-ready columns, nullable)
-- `plan_entitlements` seeded for all four plans
-- Backfill existing users → `church` + beta subscription row
-- `handle_new_user()` assigns `church` + beta subscription
-- SQL helpers: `user_subscription_tier()`, `user_has_feature()`, `user_feature_limit()`
+**Supabase Dashboard → SQL Editor → New query**
 
-### App code
+1. Open `supabase/migrations/20250628000019_public_free_launch.sql`
+2. Paste the full file into the editor
+3. Click **Run**
+4. Confirm success (no red errors)
 
-| Path | Role |
-|------|------|
-| `lib/subscriptions/plans.ts` | Plan definitions + feature keys |
-| `lib/subscriptions/permissions.ts` | `canAccessFeature`, limits, beta unlock |
-| `hooks/useEntitlements.ts` | React hook for screens |
-| `contexts/AuthContext.tsx` | Exposes `subscriptionTier` + `canAccess` |
-
----
-
-## Usage (now and later)
-
-```tsx
-import { useEntitlements } from '@/hooks/useEntitlements';
-
-function ExportButton() {
-  const { canAccess } = useEntitlements();
-
-  if (!canAccess('export_journal')) {
-    return <UpgradeHint plan="plus" />;
-  }
-
-  return <Button title="Export journal" onPress={exportJournal} />;
-}
-```
-
-AI monthly limits (future):
-
-```tsx
-const { withinLimit, getLimit } = useEntitlements();
-const usedThisMonth = 3; // from ai_generation_logs
-
-if (!withinLimit('ai_prayer_generation', usedThisMonth)) {
-  // show “You've used your free AI prayers this month”
-}
-```
-
----
-
-## Private beta → public launch checklist
-
-### During beta (current)
-
-```
-[x] EXPO_PUBLIC_BETA_MODE=true
-[ ] EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED unset/false
-[x] New users get subscription_tier = church
-[x] All canAccess() return true
-[ ] No Stripe keys
-```
-
-### At public launch
-
-1. Run SQL to change defaults (example):
-
-```sql
-ALTER TABLE public.profiles
-  ALTER COLUMN subscription_tier SET DEFAULT 'free';
-
--- Optional: keep early beta testers on plus/church as a thank-you,
--- or set everyone without a paid subscription to free:
-UPDATE public.profiles SET subscription_tier = 'free'
-WHERE id IN (
-  SELECT user_id FROM public.subscriptions WHERE provider = 'beta'
-);
-
-UPDATE public.subscriptions
-SET status = 'canceled', canceled_at = NOW(), metadata = metadata || '{"ended":"beta"}'::jsonb
-WHERE provider = 'beta' AND status = 'active';
-```
-
-2. Update `handle_new_user()` to insert `free` + `provider = 'manual'` (or wait for Stripe checkout).
-
-3. Env:
-
-```
-EXPO_PUBLIC_BETA_MODE=false
-EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED=true
-```
-
-4. Add Stripe (later): webhook updates `subscriptions` + syncs `profiles.subscription_tier`.
-
----
-
-## Future Stripe (do not build yet)
-
-When ready:
-
-1. Create Stripe Products/Prices for Plus, Ministry, Church.
-2. Edge Function `stripe-webhook` listening for:
-   - `checkout.session.completed`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-3. Upsert `subscriptions` with `provider='stripe'`, customer/subscription IDs, period dates.
-4. Sync `profiles.subscription_tier` from the active subscription.
-5. Optional Customer Portal for cancel/upgrade.
-
-Schema already has:
-
-- `provider_customer_id`
-- `provider_subscription_id`
-- `provider_price_id`
-- `current_period_start` / `current_period_end`
-- `cancel_at_period_end`
-
-No redesign needed.
-
----
-
-## Run migration 018
-
-**Supabase → SQL Editor** → paste and run:
-
-`supabase/migrations/20250628000018_subscription_tiers.sql`
-
-Then verify:
+Verify:
 
 ```sql
 SELECT subscription_tier, count(*) FROM public.profiles GROUP BY 1;
-SELECT * FROM public.plan_entitlements WHERE tier = 'free' LIMIT 5;
-SELECT public.user_has_feature('export_journal'); -- as authenticated user
+-- expect: free
+
+SELECT tier, provider, status, count(*)
+FROM public.subscriptions
+GROUP BY 1, 2, 3;
+-- expect: active free/manual rows; old beta rows canceled
 ```
+
+If migration **018** was never run, run **018 first**, then **019**.
 
 ---
 
-## Feature key reference
+## Env (free launch)
+
+```
+EXPO_PUBLIC_BETA_MODE=false
+EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED=false
+```
+
+EAS production profile already sets both. Do not add Stripe keys.
+
+---
+
+## When you add freemium later (post-launch)
+
+1. Decide free vs paid feature matrix in `lib/subscriptions/plans.ts` + `plan_entitlements`.
+2. Set `EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED=true`.
+3. Wire `useEntitlements()` on gated screens.
+4. Add Stripe products + webhook Edge Function (schema already has columns).
+
+Do **not** do this for the first public release.
+
+---
+
+## Feature key reference (future freemium matrix)
 
 Free: journal, AI (limited), reminders, recurring, today, history, calendar, praise, sermon notes, meditation notes, **1 prayer group**.
 
@@ -198,3 +131,5 @@ Plus adds: unlimited AI, multiple groups, advanced search, export.
 Ministry adds: care actions, analytics, follow-up, reporting, group permissions, shared lists, unlimited members.
 
 Church adds: unlimited ministries, church dashboard, leadership analytics, church reporting, integrations.
+
+Again: this matrix is **not enforced** during the free public launch.

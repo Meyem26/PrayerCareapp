@@ -31,10 +31,11 @@ Follow these phases **in order**. Do not generate store builds until Phases 1–
 
 ### You must still do
 1. Run migration **018** (subscriptions) if not done  
-2. Confirm migration **017** (beta waitlist gate)  
-3. Turn **Allow new users to sign up** ON in Supabase Auth  
-4. Custom SMTP via Resend for auth emails  
-5. Replace **app icon** and **splash** (see Phase 5)
+2. Run migration **019** (public free launch defaults)  
+3. Confirm migration **017** (beta waitlist gate — optional after public signup)  
+4. Turn **Allow new users to sign up** ON in Supabase Auth  
+5. Custom SMTP via Resend for auth emails  
+6. Replace **app icon** and **splash** (see Phase 5)
 
 ### Still HIGH priority to fix before public launch
 - [ ] Surface errors on Groups / Journey / Sermon lists (same pattern as Today)

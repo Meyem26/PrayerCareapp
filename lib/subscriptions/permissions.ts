@@ -10,8 +10,9 @@ import {
 
 /**
  * When false, plan limits are ignored and everyone has full access.
- * Public launch: keep EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED unset/false (PrayerCare is free).
- * Later, set EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED=true to turn on freemium limits.
+ *
+ * Free public launch: keep this false (also set in eas.json production).
+ * Do not set EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED=true until freemium is intentional.
  */
 export const SUBSCRIPTIONS_ENFORCED =
   !BETA_MODE && process.env.EXPO_PUBLIC_SUBSCRIPTIONS_ENFORCED === 'true';
@@ -29,6 +30,7 @@ export function resolveSubscriptionTier(
   return BETA_MODE ? BETA_FULL_ACCESS_TIER : 'free';
 }
 
+/** Effective tier for UI. Unrestricted while enforcement is off. */
 export function getEffectiveTier(
   profileTier: string | null | undefined,
 ): SubscriptionTier {

@@ -19,10 +19,10 @@ export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 export const SUBSCRIPTION_PROVIDERS = ['manual', 'beta', 'stripe'] as const;
 export type SubscriptionProvider = (typeof SUBSCRIPTION_PROVIDERS)[number];
 
-/** Highest tier — used for private beta full unlock. */
+/** Full unlock when subscription limits are not enforced (free public launch). */
 export const BETA_FULL_ACCESS_TIER: SubscriptionTier = 'church';
 
-/** Default tier for new users after public launch (change when leaving beta). */
+/** Label stored on new profiles during free public launch. */
 export const PUBLIC_DEFAULT_TIER: SubscriptionTier = 'free';
 
 export const FEATURE_KEYS = [
