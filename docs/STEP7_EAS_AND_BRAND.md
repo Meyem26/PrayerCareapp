@@ -74,7 +74,7 @@ Leave `eas.json` `YOUR_APPLE_*` until you create the App Store Connect app. Not 
 - iOS bundle / Android package: **`com.prayercare.app`**
 - Version: `1.0.0`
 - Splash background: `#FAF9F7` (kept)
-- Adaptive icon background color: `#000000` (matches logo)
+- App icon + Android adaptive icon background: `#FAF9F7` (matches app UI)
 - `betaMode`: **false**
 
 ---
