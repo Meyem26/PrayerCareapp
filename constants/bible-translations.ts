@@ -112,3 +112,14 @@ export function getTranslationForScriptureFetch(preferredId: string): BibleTrans
 export function isAutoFetchTranslation(id: string): boolean {
   return getBibleTranslation(id)?.autoFetch ?? false;
 }
+
+/** Short attribution line for UI (e.g. "WEB · World English Bible (public domain)"). */
+export function formatScriptureAttribution(translationId: string | null | undefined): string {
+  if (!translationId) return 'Scripture';
+  const translation = getBibleTranslation(translationId);
+  if (!translation) return translationId;
+  if (translation.license === 'public-domain') {
+    return `${translation.id} · ${translation.label.replace(` (${translation.id})`, '')} (public domain)`;
+  }
+  return `${translation.id} · ${translation.label.replace(` (${translation.id})`, '')}`;
+}

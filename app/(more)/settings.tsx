@@ -157,8 +157,9 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <AppText variant="label">Notifications</AppText>
           <AppText variant="bodySmall" muted>
-            Preferences are saved now. On a physical device, allow notifications when prompted.
-            Scheduled delivery will use your saved push token.
+            Preferences and your device token are saved when you allow notifications. Push delivery
+            (daily reminder, care due, invites, weekly) is not enabled yet — these toggles prepare
+            your choices for when reminders go live.
           </AppText>
 
           <View style={styles.switchRow}>

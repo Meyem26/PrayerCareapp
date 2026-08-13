@@ -9,6 +9,7 @@ import { OverflowMenu, type OverflowMenuItem } from '@/components/ui/OverflowMen
 import { Screen } from '@/components/ui/Screen';
 import { TextArea } from '@/components/ui/TextArea';
 import { theme } from '@/constants/theme';
+import { formatScriptureAttribution } from '@/constants/bible-translations';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   deleteSermonNote,
@@ -196,7 +197,7 @@ export default function SermonNoteDetailScreen() {
                   </AppText>
                   {snapshot?.source === 'api' ? (
                     <AppText variant="bodySmall" muted>
-                      {snapshot.translation_id} · Scripture API
+                      {formatScriptureAttribution(snapshot.translation_id)}
                     </AppText>
                   ) : snapshot?.source === 'manual' && snapshot.text.includes('Could not') ? (
                     <AppText variant="bodySmall" style={styles.fetchHint}>

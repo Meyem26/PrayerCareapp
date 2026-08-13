@@ -13,6 +13,7 @@ import { LoadingScreen, Screen } from '@/components/ui/Screen';
 import { useToast } from '@/components/ui/Toast';
 import { OverflowMenu, type OverflowMenuItem } from '@/components/ui/OverflowMenu';
 import { getScheduleLabel } from '@/constants/schedule';
+import { formatScriptureAttribution } from '@/constants/bible-translations';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -235,6 +236,11 @@ export default function PrayerDetailScreen() {
             <AppText variant="label">Scripture</AppText>
             <AppText style={styles.scriptureRef}>{scripture.reference}</AppText>
             <AppText style={styles.body}>{scripture.text}</AppText>
+            {scripture.translation_id ? (
+              <AppText variant="bodySmall" muted>
+                {formatScriptureAttribution(scripture.translation_id)}
+              </AppText>
+            ) : null}
           </View>
         ) : null}
 

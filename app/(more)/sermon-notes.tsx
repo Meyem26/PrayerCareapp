@@ -11,6 +11,7 @@ import {
 import { SermonNoteCard } from '@/components/sermon/SermonNoteCard';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
 import { fetchSermonNotes } from '@/lib/api/sermon';
@@ -20,10 +21,12 @@ export default function SermonNotesScreen() {
   const [notes, setNotes] = useState<SermonNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadNotes = useCallback(async () => {
-    const { data } = await fetchSermonNotes();
+    const { data, error: fetchError } = await fetchSermonNotes();
     setNotes(data);
+    setError(fetchError);
     setLoading(false);
     setRefreshing(false);
   }, []);
@@ -35,7 +38,7 @@ export default function SermonNotesScreen() {
     }, [loadNotes]),
   );
 
-  if (loading && notes.length === 0) {
+  if (loading && notes.length === 0 && !error) {
     return (
       <Screen centered>
         <ActivityIndicator size="large" color={theme.colors.accent} />
@@ -56,6 +59,7 @@ export default function SermonNotesScreen() {
               setRefreshing(true);
               loadNotes();
             }}
+            tintColor={theme.colors.accent}
           />
         }
         ListHeaderComponent={
@@ -64,6 +68,11 @@ export default function SermonNotesScreen() {
             <AppText muted>
               Revisit what God spoke — verses fetched from Scripture, your meditation preserved.
             </AppText>
+            {error ? (
+              <AppText style={styles.error}>
+                We couldn't load sermon notes. Pull to refresh, or try again in a moment.
+              </AppText>
+            ) : null}
             <Button
               title="New sermon note"
               onPress={() => router.push('/sermon/create')}
@@ -78,9 +87,14 @@ export default function SermonNotesScreen() {
           />
         )}
         ListEmptyComponent={
-          <AppText muted style={styles.empty}>
-            No sermon notes yet. Capture your next message from church or your quiet time.
-          </AppText>
+          !loading && !error ? (
+            <EmptyState
+              title="No sermon notes yet"
+              body="Capture a message from church or quiet time. Lookup verses from a public-domain translation and keep your meditation with them."
+              actionLabel="New sermon note"
+              onAction={() => router.push('/sermon/create')}
+            />
+          ) : null
         }
       />
     </Screen>
@@ -92,6 +106,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     gap: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
+    flexGrow: 1,
   },
   header: {
     gap: theme.spacing.sm,
@@ -100,9 +115,8 @@ const styles = StyleSheet.create({
   createButton: {
     marginTop: theme.spacing.sm,
   },
-  empty: {
-    textAlign: 'center',
+  error: {
+    color: theme.colors.error,
     lineHeight: 24,
-    marginTop: theme.spacing.xl,
   },
 });

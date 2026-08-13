@@ -11,6 +11,7 @@ import {
 import { GroupCard } from '@/components/groups/GroupCard';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
 import { fetchMyGroups } from '@/lib/api/groups';
@@ -20,10 +21,12 @@ export default function GroupsScreen() {
   const [groups, setGroups] = useState<GroupWithMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadGroups = useCallback(async () => {
-    const { data } = await fetchMyGroups();
+    const { data, error: fetchError } = await fetchMyGroups();
     setGroups(data);
+    setError(fetchError);
     setLoading(false);
     setRefreshing(false);
   }, []);
@@ -35,7 +38,7 @@ export default function GroupsScreen() {
     }, [loadGroups]),
   );
 
-  if (loading && groups.length === 0) {
+  if (loading && groups.length === 0 && !error) {
     return (
       <Screen centered>
         <ActivityIndicator size="large" color={theme.colors.accent} />
@@ -56,6 +59,7 @@ export default function GroupsScreen() {
               setRefreshing(true);
               loadGroups();
             }}
+            tintColor={theme.colors.accent}
           />
         }
         ListHeaderComponent={
@@ -64,6 +68,11 @@ export default function GroupsScreen() {
             <AppText muted>
               Private communities for shared prayer and care. Only invited members can join.
             </AppText>
+            {error ? (
+              <AppText style={styles.error}>
+                We couldn't load your groups. Pull to refresh, or try again in a moment.
+              </AppText>
+            ) : null}
             <View style={styles.actions}>
               <Button title="Create group" onPress={() => router.push('/groups/create')} />
               <Button
@@ -81,10 +90,14 @@ export default function GroupsScreen() {
           />
         )}
         ListEmptyComponent={
-          <AppText muted style={styles.empty}>
-            You are not in any groups yet. Create one for your small group, ministry, or care
-            team.
-          </AppText>
+          !loading && !error ? (
+            <EmptyState
+              title="No groups yet"
+              body="Create a private group for your small group, ministry, or care team — or join with an invite code."
+              actionLabel="Create group"
+              onAction={() => router.push('/groups/create')}
+            />
+          ) : null
         }
       />
     </Screen>
@@ -96,6 +109,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     gap: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
+    flexGrow: 1,
   },
   header: {
     gap: theme.spacing.md,
@@ -105,9 +119,8 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
     marginTop: theme.spacing.sm,
   },
-  empty: {
-    textAlign: 'center',
-    marginTop: theme.spacing.xl,
+  error: {
+    color: theme.colors.error,
     lineHeight: 24,
   },
 });

@@ -14,6 +14,7 @@ import { MemberRow } from '@/components/groups/MemberRow';
 import { PrayerCard } from '@/components/prayer/PrayerCard';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
@@ -177,9 +178,12 @@ export default function GroupDetailScreen() {
         <View style={styles.section}>
           <AppText variant="label">Shared prayers ({prayers.length})</AppText>
           {prayers.length === 0 ? (
-            <AppText muted style={styles.empty}>
-              No group prayers yet. Share a prayer when you create one.
-            </AppText>
+            <EmptyState
+              title="No shared prayers yet"
+              body="When you create a prayer, choose this group to share it. Members will see it here."
+              actionLabel="Start a prayer"
+              onAction={() => router.push('/(tabs)/pray')}
+            />
           ) : (
             prayers.map((prayer) => {
               const schedule = getScheduleFromPrayer(prayer);
@@ -242,8 +246,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 4,
     color: theme.colors.accentDark,
-  },
-  empty: {
-    lineHeight: 24,
   },
 });

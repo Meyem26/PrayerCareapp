@@ -15,6 +15,7 @@ import { DateNavigator } from '@/components/history/DateNavigator';
 import { MonthCalendar } from '@/components/history/MonthCalendar';
 import { PrayerCard } from '@/components/prayer/PrayerCard';
 import { AppText } from '@/components/ui/AppText';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
@@ -57,6 +58,7 @@ export default function JourneyScreen() {
   const [filter, setFilter] = useState<Filter>('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const timezone = profile?.timezone ?? 'UTC';
   const today = getTodayDateString(timezone);
@@ -70,8 +72,9 @@ export default function JourneyScreen() {
   const [historyError, setHistoryError] = useState<string | null>(null);
 
   const loadPrayers = useCallback(async () => {
-    const { data } = await fetchJourneyPrayers();
+    const { data, error: fetchError } = await fetchJourneyPrayers();
     setPrayers(data);
+    setError(fetchError);
     setLoading(false);
     setRefreshing(false);
   }, []);
@@ -117,7 +120,7 @@ export default function JourneyScreen() {
 
   const filtered = prayers.filter((p) => matchesFilter(p, filter));
 
-  if (loading && prayers.length === 0 && viewMode === 'list') {
+  if (loading && prayers.length === 0 && viewMode === 'list' && !error) {
     return (
       <Screen centered>
         <ActivityIndicator size="large" color={theme.colors.accent} />
@@ -191,6 +194,11 @@ export default function JourneyScreen() {
             <AppText muted>
               Every prayer tells a story — created, prayed, cared for, answered.
             </AppText>
+            {error ? (
+              <AppText style={styles.error}>
+                We couldn't load your journey. Pull to refresh, or try again in a moment.
+              </AppText>
+            ) : null}
             <ViewModeToggle value={viewMode} onChange={setViewMode} />
             <View style={styles.filters}>
               {FILTERS.map((item) => (
@@ -220,13 +228,29 @@ export default function JourneyScreen() {
           );
         }}
         ListEmptyComponent={
-          <AppText muted style={styles.empty}>
-            {filter === 'all'
-              ? 'No prayers yet. Tap Pray to begin your first prayer.'
-              : filter === 'praise'
-                ? 'No answered prayers in your praise window right now.'
-                : `No ${filter} prayers.`}
-          </AppText>
+          !loading && !error ? (
+            filter === 'all' ? (
+              <EmptyState
+                title="No prayers yet"
+                body="Your journey starts with one prayer. Add it with a schedule and it will show up on Today when it's due."
+                actionLabel="Start a prayer"
+                onAction={() => router.push('/(tabs)/pray')}
+              />
+            ) : (
+              <EmptyState
+                title={
+                  filter === 'praise'
+                    ? 'No praise right now'
+                    : `No ${filter} prayers`
+                }
+                body={
+                  filter === 'praise'
+                    ? 'Answered prayers appear here while they are in your praise window.'
+                    : 'Try another filter, or start a new prayer from Pray.'
+                }
+              />
+            )
+          ) : null
         }
       />
     </Screen>
@@ -267,6 +291,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     gap: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
+    flexGrow: 1,
   },
   calendarScroll: {
     padding: theme.spacing.lg,
@@ -321,9 +346,8 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
     fontWeight: '600',
   },
-  empty: {
-    textAlign: 'center',
-    marginTop: theme.spacing.xl,
+  error: {
+    color: theme.colors.error,
     lineHeight: 24,
   },
 });

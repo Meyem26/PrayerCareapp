@@ -86,7 +86,7 @@ export default function TodayScreen() {
             <View style={styles.verseBlock}>
               <AppText style={styles.verseText}>"{TODAY_VERSE.text}"</AppText>
               <AppText muted style={styles.verseRef}>
-                — {TODAY_VERSE.reference}
+                — {TODAY_VERSE.reference} · WEB (public domain)
               </AppText>
             </View>
             {error ? (

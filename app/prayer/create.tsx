@@ -12,6 +12,7 @@ import { OptionCard } from '@/components/ui/OptionCard';
 import { Screen } from '@/components/ui/Screen';
 import { TextArea } from '@/components/ui/TextArea';
 import { theme } from '@/constants/theme';
+import { formatScriptureAttribution } from '@/constants/bible-translations';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import { generateVerseWithAi } from '@/lib/api/ai';
@@ -334,7 +335,7 @@ export default function CreatePrayerScreen() {
             />
             {scriptureTranslationId && scriptureText ? (
               <AppText variant="bodySmall" muted>
-                {scriptureTranslationId} · verified Scripture text
+                {formatScriptureAttribution(scriptureTranslationId)}
               </AppText>
             ) : null}
             <View style={styles.verseActions}>
