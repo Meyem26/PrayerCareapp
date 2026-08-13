@@ -4,11 +4,18 @@ export type GeneratedPrayer = {
   prayer_text: string;
   scripture_reference: string;
   scripture_text: string;
+  /** True only when verse text came from the Bible API, not the model. */
+  scripture_verified?: boolean;
+  scripture_translation_id?: string | null;
+  /** Present when a suggested reference could not be verified. */
+  scripture_note?: string | null;
 };
 
 export type GeneratedVerse = {
   reference: string;
   text: string;
+  translation_id?: string | null;
+  verified?: boolean;
 };
 
 export type AiGenerateType = 'prayer' | 'verse';

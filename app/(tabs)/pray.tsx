@@ -68,8 +68,8 @@ export default function PrayScreen() {
           showsVerticalScrollIndicator={false}>
           <AppText variant="greeting">What&apos;s on your heart today?</AppText>
           <AppText muted>
-            Share naturally. AI will draft a biblical prayer in Jesus&apos; name — everything
-            remains fully editable.
+            Share naturally. AI drafts a biblical prayer in Jesus&apos; name. Scripture text is
+            loaded from a trusted Bible source — everything remains fully editable.
           </AppText>
 
           <TextArea

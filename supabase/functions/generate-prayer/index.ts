@@ -7,6 +7,7 @@ import {
   AI_VERSE_USER_PROMPT,
   parseJsonFromModel,
 } from './prompts.ts';
+import { verifyScriptureReference } from './verify-scripture.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,6 +30,47 @@ function jsonResponse(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
+}
+
+/** Never return model-authored verse wording — only API-verified text. */
+async function attachVerifiedScripture(
+  suggestedReference: string,
+  translationId: string,
+): Promise<{
+  scripture_reference: string;
+  scripture_text: string;
+  scripture_verified: boolean;
+  scripture_translation_id: string | null;
+  scripture_note: string | null;
+}> {
+  if (!suggestedReference.trim()) {
+    return {
+      scripture_reference: '',
+      scripture_text: '',
+      scripture_verified: false,
+      scripture_translation_id: null,
+      scripture_note: null,
+    };
+  }
+
+  const result = await verifyScriptureReference(suggestedReference, translationId);
+  if (result.verified) {
+    return {
+      scripture_reference: result.reference,
+      scripture_text: result.text,
+      scripture_verified: true,
+      scripture_translation_id: result.translation_id,
+      scripture_note: null,
+    };
+  }
+
+  return {
+    scripture_reference: '',
+    scripture_text: '',
+    scripture_verified: false,
+    scripture_translation_id: null,
+    scripture_note: result.reason,
+  };
 }
 
 Deno.serve(async (req) => {
@@ -138,38 +180,64 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'AI response could not be parsed.' }, 502);
     }
 
+    // Discard any model-authored verse wording immediately (do not trust it).
+    delete parsed.scripture_text;
+    delete parsed.scriptureText;
+    delete parsed.text;
+
     await supabase.from('ai_generation_logs').insert({
       user_id: user.id,
       generation_type: generationType,
     });
 
     if (body.type === 'verse') {
-      const reference = String(parsed.reference ?? '').trim();
-      const text = String(parsed.text ?? '').trim();
-      if (!reference || !text) {
-        return jsonResponse({ error: 'AI verse response was incomplete.' }, 502);
+      const reference = String(parsed.reference ?? parsed.scripture_reference ?? '').trim();
+      if (!reference) {
+        return jsonResponse({ error: 'AI did not suggest a Scripture reference. Please try again.' }, 502);
       }
-      return jsonResponse({ reference, text });
+
+      const verified = await attachVerifiedScripture(reference, translationId);
+      if (!verified.scripture_verified || !verified.scripture_text) {
+        return jsonResponse(
+          {
+            error:
+              verified.scripture_note ??
+              'That Scripture reference could not be verified. Please try again or enter a verse manually.',
+          },
+          422,
+        );
+      }
+
+      return jsonResponse({
+        reference: verified.scripture_reference,
+        text: verified.scripture_text,
+        translation_id: verified.scripture_translation_id,
+        verified: true,
+      });
     }
 
     const title = String(parsed.title ?? '').trim();
     const prayer_point = String(parsed.prayer_point ?? parsed.prayerPoint ?? '').trim();
     const prayer_text = String(parsed.prayer_text ?? parsed.prayerText ?? '').trim();
-    const scripture_reference = String(
+    const suggestedRef = String(
       parsed.scripture_reference ?? parsed.scriptureReference ?? '',
     ).trim();
-    const scripture_text = String(parsed.scripture_text ?? parsed.scriptureText ?? '').trim();
 
     if (!title || !prayer_text) {
       return jsonResponse({ error: 'AI prayer response was incomplete.' }, 502);
     }
 
+    const scripture = await attachVerifiedScripture(suggestedRef, translationId);
+
     return jsonResponse({
       title,
       prayer_point,
       prayer_text,
-      scripture_reference,
-      scripture_text,
+      scripture_reference: scripture.scripture_reference,
+      scripture_text: scripture.scripture_text,
+      scripture_verified: scripture.scripture_verified,
+      scripture_translation_id: scripture.scripture_translation_id,
+      scripture_note: scripture.scripture_note,
     });
   } catch (error) {
     console.error('generate-prayer error:', error);

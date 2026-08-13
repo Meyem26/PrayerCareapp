@@ -15,6 +15,7 @@ import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import { generateVerseWithAi } from '@/lib/api/ai';
+import { fetchScriptureFromApi } from '@/lib/api/bible';
 import { consumeAiPrayerDraft } from '@/lib/ai-draft-store';
 import { fetchMyGroups } from '@/lib/api/groups';
 import {
@@ -43,6 +44,8 @@ export default function CreatePrayerScreen() {
   const [body, setBody] = useState(typeof heart === 'string' ? heart : '');
   const [scriptureRef, setScriptureRef] = useState('');
   const [scriptureText, setScriptureText] = useState('');
+  const [scriptureNote, setScriptureNote] = useState<string | null>(null);
+  const [scriptureTranslationId, setScriptureTranslationId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [scheduleType, setScheduleType] = useState<ScheduleType>('daily');
   const [weekdays, setWeekdays] = useState<number[]>([]);
@@ -75,6 +78,8 @@ export default function CreatePrayerScreen() {
     setBody(draft.prayer_text);
     setScriptureRef(draft.scripture_reference);
     setScriptureText(draft.scripture_text);
+    setScriptureNote(draft.scripture_note ?? null);
+    setScriptureTranslationId(draft.scripture_translation_id ?? null);
     setAiGenerated(true);
     setAiPromptSnapshot(typeof heart === 'string' ? heart : null);
   }, [isEditing, source, heart]);
@@ -111,6 +116,7 @@ export default function CreatePrayerScreen() {
 
   async function handleGenerateVerse() {
     setError(null);
+    setScriptureNote(null);
 
     if (!title.trim() || !prayerPoint.trim()) {
       setError('Add a title and prayer point first so AI can suggest a fitting verse.');
@@ -132,6 +138,42 @@ export default function CreatePrayerScreen() {
 
     setScriptureRef(data.reference);
     setScriptureText(data.text);
+    setScriptureTranslationId(data.translation_id ?? null);
+    setScriptureNote(null);
+  }
+
+  async function handleFetchOfficialVerse() {
+    setError(null);
+    setScriptureNote(null);
+
+    if (!scriptureRef.trim()) {
+      setError('Enter a Scripture reference first (e.g. Philippians 4:6-7).');
+      return;
+    }
+
+    setVerseLoading(true);
+    const { data, error: fetchError } = await fetchScriptureFromApi(
+      scriptureRef.trim(),
+      profile?.bible_translation_id,
+    );
+    setVerseLoading(false);
+
+    if (fetchError || !data) {
+      setError(fetchError ?? 'Could not look up that verse.');
+      setScriptureText('');
+      return;
+    }
+
+    setScriptureRef(data.reference);
+    setScriptureText(data.text);
+    setScriptureTranslationId(data.translation_id ?? null);
+  }
+
+  function handleClearVerse() {
+    setScriptureRef('');
+    setScriptureText('');
+    setScriptureNote(null);
+    setScriptureTranslationId(null);
   }
 
   async function handleSave() {
@@ -269,8 +311,14 @@ export default function CreatePrayerScreen() {
           <View style={styles.section}>
             <AppText variant="label">Scripture to stand on</AppText>
             <AppText variant="bodySmall" muted>
-              Would you like a Bible verse to stand on? Write your own or generate one.
+              Optional. AI suggests a reference; PrayerCare loads the official verse text from a
+              trusted Bible source. You can edit or clear it anytime.
             </AppText>
+            {scriptureNote ? (
+              <AppText variant="bodySmall" style={styles.scriptureWarning}>
+                {scriptureNote} You can look up a verse below or leave Scripture blank.
+              </AppText>
+            ) : null}
             <Input
               label="Reference"
               value={scriptureRef}
@@ -281,15 +329,31 @@ export default function CreatePrayerScreen() {
               label="Verse text"
               value={scriptureText}
               onChangeText={setScriptureText}
-              placeholder="Full verse text..."
+              placeholder="Official verse text (loaded from Bible source)..."
               style={styles.shortArea}
             />
-            <Button
-              title="Generate one for me"
-              variant="secondary"
-              loading={verseLoading}
-              onPress={handleGenerateVerse}
-            />
+            {scriptureTranslationId && scriptureText ? (
+              <AppText variant="bodySmall" muted>
+                {scriptureTranslationId} · verified Scripture text
+              </AppText>
+            ) : null}
+            <View style={styles.verseActions}>
+              <Button
+                title="Suggest a verse"
+                variant="secondary"
+                loading={verseLoading}
+                onPress={handleGenerateVerse}
+              />
+              <Button
+                title="Look up reference"
+                variant="secondary"
+                loading={verseLoading}
+                onPress={handleFetchOfficialVerse}
+              />
+              {scriptureRef || scriptureText ? (
+                <Button title="Clear verse" variant="ghost" onPress={handleClearVerse} />
+              ) : null}
+            </View>
           </View>
 
           <CategoryPicker categories={categories} value={categoryId} onChange={setCategoryId} />
@@ -366,6 +430,14 @@ const styles = StyleSheet.create({
   },
   shortArea: {
     minHeight: 88,
+  },
+  verseActions: {
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.xs,
+  },
+  scriptureWarning: {
+    color: theme.colors.gold,
+    lineHeight: 20,
   },
   error: {
     color: theme.colors.error,
