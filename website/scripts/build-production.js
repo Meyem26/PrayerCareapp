@@ -132,11 +132,11 @@ function injectUrls(fileName, options = {}) {
   if (options.updateOgImage) {
     html = html.replace(
       /(<meta property="og:image" content=")[^"]*(")/,
-      `$1${siteUrl}/assets/og-image.svg$2`,
+      `$1${siteUrl}/assets/og-image.png$2`,
     );
     html = html.replace(
       /(<meta name="twitter:image" content=")[^"]*(")/,
-      `$1${siteUrl}/assets/og-image.svg$2`,
+      `$1${siteUrl}/assets/og-image.png$2`,
     );
   }
 
