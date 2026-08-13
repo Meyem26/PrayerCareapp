@@ -10,18 +10,96 @@ import { Screen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
-function parseRecoveryTokens(url: string): { accessToken: string; refreshToken: string } | null {
-  const hash = url.includes('#') ? url.split('#')[1] : '';
-  const params = new URLSearchParams(hash);
-  const accessToken = params.get('access_token');
-  const refreshToken = params.get('refresh_token');
-  const type = params.get('type');
+type RecoveryPayload =
+  | { kind: 'tokens'; accessToken: string; refreshToken: string }
+  | { kind: 'code'; code: string }
+  | { kind: 'token_hash'; tokenHash: string };
 
-  if (type !== 'recovery' || !accessToken || !refreshToken) {
+function readSearchAndHash(url: string): { search: string; hash: string } {
+  try {
+    const parsed = new URL(url);
+    return {
+      search: parsed.search.startsWith('?') ? parsed.search.slice(1) : parsed.search,
+      hash: parsed.hash.startsWith('#') ? parsed.hash.slice(1) : parsed.hash,
+    };
+  } catch {
+    const hash = url.includes('#') ? url.split('#')[1] ?? '' : '';
+    const withoutHash = url.split('#')[0] ?? '';
+    const search = withoutHash.includes('?') ? withoutHash.split('?')[1] ?? '' : '';
+    return { search, hash };
+  }
+}
+
+function parseRecoveryPayload(url: string): RecoveryPayload | null {
+  const { search, hash } = readSearchAndHash(url);
+  const hashParams = new URLSearchParams(hash);
+  const queryParams = new URLSearchParams(search);
+
+  const accessToken = hashParams.get('access_token') ?? queryParams.get('access_token');
+  const refreshToken = hashParams.get('refresh_token') ?? queryParams.get('refresh_token');
+  const type = hashParams.get('type') ?? queryParams.get('type');
+
+  if (type === 'recovery' && accessToken && refreshToken) {
+    return { kind: 'tokens', accessToken, refreshToken };
+  }
+
+  const code = queryParams.get('code') ?? hashParams.get('code');
+  if (code) {
+    return { kind: 'code', code };
+  }
+
+  const tokenHash = queryParams.get('token_hash') ?? hashParams.get('token_hash');
+  if (tokenHash && (type === 'recovery' || !type)) {
+    return { kind: 'token_hash', tokenHash };
+  }
+
+  return null;
+}
+
+function getBootstrapUrl(): string | null {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    // Linking.getInitialURL() on web often omits the #access_token fragment.
+    return window.location.href;
+  }
+  return null;
+}
+
+function clearRecoveryParamsFromUrl() {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+  window.history.replaceState({}, document.title, window.location.pathname || '/reset-password');
+}
+
+async function establishRecoverySession(url: string): Promise<string | null> {
+  const payload = parseRecoveryPayload(url);
+
+  if (payload?.kind === 'tokens') {
+    const { error } = await supabase.auth.setSession({
+      access_token: payload.accessToken,
+      refresh_token: payload.refreshToken,
+    });
+    return error?.message ?? null;
+  }
+
+  if (payload?.kind === 'code') {
+    const { error } = await supabase.auth.exchangeCodeForSession(payload.code);
+    return error?.message ?? null;
+  }
+
+  if (payload?.kind === 'token_hash') {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: payload.tokenHash,
+      type: 'recovery',
+    });
+    return error?.message ?? null;
+  }
+
+  // detectSessionInUrl may already have created a recovery session from the hash.
+  const { data } = await supabase.auth.getSession();
+  if (data.session) {
     return null;
   }
 
-  return { accessToken, refreshToken };
+  return 'This reset link is invalid or has expired. Request a new one from Sign In.';
 }
 
 export default function ResetPasswordScreen() {
@@ -29,42 +107,70 @@ export default function ResetPasswordScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [bootstrapping, setBootstrapping] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    async function bootstrapRecoverySession(initialUrl: string | null) {
-      if (!initialUrl) {
+    let cancelled = false;
+
+    async function bootstrap(url: string | null) {
+      setBootstrapping(true);
+      setError(null);
+
+      if (!url) {
+        const { data } = await supabase.auth.getSession();
+        if (cancelled) return;
+        if (data.session) {
+          setReady(true);
+          setBootstrapping(false);
+          return;
+        }
         setError('Open the reset link from your email to set a new password.');
+        setBootstrapping(false);
         return;
       }
 
-      const tokens = parseRecoveryTokens(initialUrl);
-      if (!tokens) {
-        setError('This reset link is invalid or has expired. Request a new one from Sign In.');
-        return;
-      }
-
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: tokens.accessToken,
-        refresh_token: tokens.refreshToken,
-      });
+      const sessionError = await establishRecoverySession(url);
+      if (cancelled) return;
 
       if (sessionError) {
-        setError(sessionError.message);
+        setReady(false);
+        setError(sessionError);
+        setBootstrapping(false);
         return;
       }
 
+      clearRecoveryParamsFromUrl();
       setReady(true);
+      setBootstrapping(false);
     }
 
-    Linking.getInitialURL().then(bootstrapRecoverySession);
+    const webUrl = getBootstrapUrl();
+    if (webUrl) {
+      bootstrap(webUrl);
+    } else {
+      Linking.getInitialURL().then((url) => bootstrap(url));
+    }
 
-    const subscription = Linking.addEventListener('url', ({ url }) => {
-      bootstrapRecoverySession(url);
+    const linkingSub = Linking.addEventListener('url', ({ url }) => {
+      bootstrap(url);
     });
 
-    return () => subscription.remove();
+    const { data: authSub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' && session) {
+        setReady(true);
+        setError(null);
+        setBootstrapping(false);
+        clearRecoveryParamsFromUrl();
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      linkingSub.remove();
+      authSub.subscription.unsubscribe();
+    };
   }, []);
 
   async function handleSavePassword() {
@@ -101,11 +207,11 @@ export default function ResetPasswordScreen() {
         style={styles.flex}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <AppText variant="greeting">Set a new password</AppText>
-          <AppText muted>
-            Choose a secure password for your PrayerCare account.
-          </AppText>
+          <AppText muted>Choose a secure password for your PrayerCare account.</AppText>
 
-          {ready ? (
+          {bootstrapping ? (
+            <AppText muted>Checking your reset link…</AppText>
+          ) : ready ? (
             <View style={styles.form}>
               <Input
                 label="New password"
