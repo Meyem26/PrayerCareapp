@@ -33,10 +33,11 @@ Follow these phases **in order**. Do not generate store builds until Phases 1–
 1. Run migration **018** (subscriptions) if not done  
 2. Run migration **019** (public free launch defaults)  
 3. Run migration **020** (RPC auth.uid() binding — security)  
-4. Confirm migration **017** (beta waitlist gate — optional after public signup)  
-5. Turn **Allow new users to sign up** ON in Supabase Auth  
-6. Custom SMTP via Resend for auth emails  
-7. Replace **app icon** and **splash** (see Phase 5)
+4. Deploy Edge Function **`delete-account`** (Profile → Delete Account)  
+5. Confirm migration **017** (beta waitlist gate — optional after public signup)  
+6. Turn **Allow new users to sign up** ON in Supabase Auth  
+7. Custom SMTP via Resend for auth emails  
+8. Replace **app icon** and **splash** (see Phase 5)
 
 ### Still HIGH priority to fix before public launch
 - [ ] Surface errors on Groups / Journey / Sermon lists (same pattern as Today)

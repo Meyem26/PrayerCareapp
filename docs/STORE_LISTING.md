@@ -138,7 +138,7 @@ Sharing
 We do not sell your personal data. We use processors such as Supabase (database/auth) and email providers (e.g. Resend) to run the service.
 
 Data retention
-We retain account and prayer data until you delete your account or request deletion at [SUPPORT EMAIL].
+We retain account and prayer data until you delete your account in the app (Profile → Delete Account) or request deletion at [SUPPORT EMAIL].
 
 Children
 PrayerCare is not directed at children under 13.
@@ -163,7 +163,7 @@ By using PrayerCare you agree to these terms.
 • During private beta, features may change; we offer the service “as is.”
 • Do not misuse AI features to generate harmful or deceptive content.
 • We may suspend accounts that abuse the service.
-• Contact [SUPPORT EMAIL] for questions or account deletion.
+• Contact [SUPPORT EMAIL] for questions. You can delete your account anytime in the app (Profile → Delete Account).
 ```
 
 ---
