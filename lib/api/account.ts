@@ -16,10 +16,13 @@ export async function deleteAccount(): Promise<{ error: string | null }> {
   });
 
   if (error) {
+    const raw = error.message ?? '';
+    const looksMissing =
+      /failed to send|fetch|network|404|not found|edge function/i.test(raw);
     return {
-      error:
-        error.message ??
-        'Could not delete your account. Check that the delete-account function is deployed.',
+      error: looksMissing
+        ? 'Account deletion is not available yet. Deploy the delete-account Edge Function in Supabase, then try again.'
+        : raw || 'Could not delete your account. Please try again.',
     };
   }
 
