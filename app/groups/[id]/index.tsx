@@ -2,7 +2,6 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   RefreshControl,
   ScrollView,
   Share,
@@ -14,8 +13,10 @@ import { MemberRow } from '@/components/groups/MemberRow';
 import { PrayerCard } from '@/components/prayer/PrayerCard';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
+import { useToast } from '@/components/ui/Toast';
 import { getGroupJoinUrlByCode } from '@/constants/beta';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,17 +32,23 @@ import { getCategoryLabel, getScheduleFromPrayer } from '@/lib/prayer-utils';
 import type { GroupMember, GroupWithMeta } from '@/types/group';
 import type { PrayerWithRelations } from '@/types/prayer';
 
+type ConfirmKind = 'leave' | 'promote' | 'remove' | null;
+
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [group, setGroup] = useState<GroupWithMeta | null>(null);
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [prayers, setPrayers] = useState<PrayerWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [confirmKind, setConfirmKind] = useState<ConfirmKind>(null);
+  const [pendingMember, setPendingMember] = useState<GroupMember | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const canManage =
-    group?.my_role === 'admin' || group?.my_role === 'leader';
+  const canManage = group?.my_role === 'admin' || group?.my_role === 'leader';
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -76,60 +83,55 @@ export default function GroupDetailScreen() {
     });
   }
 
-  function handleLeave() {
-    Alert.alert('Leave group?', 'You will no longer see shared prayers from this group.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Leave',
-        style: 'destructive',
-        onPress: async () => {
-          if (!id) return;
-          const { error } = await leaveGroup(id);
-          if (error) {
-            Alert.alert('Error', error);
-            return;
-          }
-          router.replace('/(tabs)/groups');
-        },
-      },
-    ]);
-  }
+  async function handleConfirm() {
+    if (!id || !confirmKind) return;
+    setError(null);
+    setActionLoading(true);
 
-  function handlePromote(member: GroupMember) {
-    Alert.alert(
-      `Make ${member.display_name ?? 'member'} a leader?`,
-      'Leaders can invite members and manage the group.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Confirm',
-          onPress: async () => {
-            const { error } = await updateMemberRole(member.member_id, 'leader');
-            if (error) Alert.alert('Error', error);
-            else load();
-          },
-        },
-      ],
-    );
-  }
+    if (confirmKind === 'leave') {
+      const { error: leaveError } = await leaveGroup(id);
+      setActionLoading(false);
+      if (leaveError) {
+        setError(leaveError);
+        setConfirmKind(null);
+        return;
+      }
+      setConfirmKind(null);
+      showToast('You left the group.');
+      router.replace('/(tabs)/groups');
+      return;
+    }
 
-  function handleRemove(member: GroupMember) {
-    Alert.alert(
-      `Remove ${member.display_name ?? 'member'}?`,
-      'They will lose access to group prayers.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            const { error } = await removeMember(member.member_id);
-            if (error) Alert.alert('Error', error);
-            else load();
-          },
-        },
-      ],
-    );
+    if (confirmKind === 'promote' && pendingMember) {
+      const { error: promoteError } = await updateMemberRole(pendingMember.member_id, 'leader');
+      setActionLoading(false);
+      setConfirmKind(null);
+      setPendingMember(null);
+      if (promoteError) {
+        setError(promoteError);
+        return;
+      }
+      showToast('Member promoted to leader.');
+      load();
+      return;
+    }
+
+    if (confirmKind === 'remove' && pendingMember) {
+      const { error: removeError } = await removeMember(pendingMember.member_id);
+      setActionLoading(false);
+      setConfirmKind(null);
+      setPendingMember(null);
+      if (removeError) {
+        setError(removeError);
+        return;
+      }
+      showToast('Member removed.');
+      load();
+      return;
+    }
+
+    setActionLoading(false);
+    setConfirmKind(null);
   }
 
   if (loading && !group) {
@@ -149,12 +151,39 @@ export default function GroupDetailScreen() {
     );
   }
 
+  const confirmTitle =
+    confirmKind === 'leave'
+      ? 'Leave group?'
+      : confirmKind === 'promote'
+        ? `Make ${pendingMember?.display_name ?? 'member'} a leader?`
+        : confirmKind === 'remove'
+          ? `Remove ${pendingMember?.display_name ?? 'member'}?`
+          : '';
+
+  const confirmMessage =
+    confirmKind === 'leave'
+      ? 'You will no longer see shared prayers from this group.'
+      : confirmKind === 'promote'
+        ? 'Leaders can invite members and manage the group.'
+        : confirmKind === 'remove'
+          ? 'They will lose access to group prayers.'
+          : '';
+
+  const confirmLabel =
+    confirmKind === 'leave' ? 'Leave' : confirmKind === 'promote' ? 'Confirm' : 'Remove';
+
   return (
     <Screen padded={false}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              load();
+            }}
+          />
         }>
         <View style={styles.header}>
           <AppText variant="greeting">{group.name}</AppText>
@@ -212,14 +241,55 @@ export default function GroupDetailScreen() {
               member={member}
               isSelf={member.user_id === user?.id}
               canManage={canManage}
-              onPromote={member.role === 'member' ? () => handlePromote(member) : undefined}
-              onRemove={member.role === 'member' ? () => handleRemove(member) : undefined}
+              onPromote={
+                member.role === 'member'
+                  ? () => {
+                      setError(null);
+                      setPendingMember(member);
+                      setConfirmKind('promote');
+                    }
+                  : undefined
+              }
+              onRemove={
+                member.role === 'member'
+                  ? () => {
+                      setError(null);
+                      setPendingMember(member);
+                      setConfirmKind('remove');
+                    }
+                  : undefined
+              }
             />
           ))}
         </View>
 
-        <Button title="Leave group" variant="ghost" onPress={handleLeave} />
+        {error ? <AppText style={styles.error}>{error}</AppText> : null}
+
+        <Button
+          title="Leave group"
+          variant="ghost"
+          onPress={() => {
+            setError(null);
+            setConfirmKind('leave');
+          }}
+        />
       </ScrollView>
+
+      <ConfirmDialog
+        visible={confirmKind !== null}
+        title={confirmTitle}
+        message={confirmMessage}
+        confirmLabel={confirmLabel}
+        cancelLabel="Cancel"
+        destructive={confirmKind === 'leave' || confirmKind === 'remove'}
+        loading={actionLoading}
+        onCancel={() => {
+          if (actionLoading) return;
+          setConfirmKind(null);
+          setPendingMember(null);
+        }}
+        onConfirm={handleConfirm}
+      />
     </Screen>
   );
 }
@@ -250,5 +320,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 4,
     color: theme.colors.accentDark,
+  },
+  error: {
+    color: theme.colors.error,
+    lineHeight: 24,
   },
 });

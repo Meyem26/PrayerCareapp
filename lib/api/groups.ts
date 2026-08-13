@@ -247,11 +247,34 @@ export async function leaveGroup(groupId: string): Promise<{ error: string | nul
   const { userId, error: authError } = await ensureAuthenticated();
   if (authError || !userId) return { error: authError };
 
-  const { error } = await supabase
+  const { error: rpcError } = await supabase.rpc('leave_prayer_group', {
+    p_group_id: groupId,
+  });
+
+  if (!rpcError) return { error: null };
+
+  const missingRpc =
+    /leave_prayer_group|Could not find the function|schema cache/i.test(rpcError.message);
+
+  if (!missingRpc) {
+    return { error: rpcError.message };
+  }
+
+  // Fallback until migration 023 is applied.
+  const { data, error } = await supabase
     .from('group_members')
     .delete()
     .eq('group_id', groupId)
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .select('id');
 
-  return { error: error?.message ?? null };
+  if (error) return { error: error.message };
+  if (!data?.length) {
+    return {
+      error:
+        'Could not leave this group. Run migration 20250628000023_leave_group.sql in Supabase, then try again.',
+    };
+  }
+
+  return { error: null };
 }
