@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "prayercare",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.prayercare.app",
@@ -60,7 +59,8 @@
           "sounds": []
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
