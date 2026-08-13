@@ -51,6 +51,11 @@
         "appleTeamId": "YOUR_APPLE_TEAM_ID"
       }
     },
-    "production": {}
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    }
   }
 }

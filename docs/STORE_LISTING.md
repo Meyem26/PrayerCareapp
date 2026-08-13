@@ -40,13 +40,13 @@ WHAT YOU CAN DO
 • Praise reports when God answers
 • Journey & history so faithfulness is remembered over time
 
-PRIVATE BETA
-PrayerCare is currently in private beta. Join the waitlist at www.prayercare.online, then create your account with the same email.
+FREE TO USE
+PrayerCare is free. Create an account at www.prayercare.online or in the app and begin.
 
 A PEACEFUL DESIGN
 Calm colors, clear screens, and gentle guidance—so the app never gets in the way of prayer.
 
-Support: [YOUR SUPPORT EMAIL]
+Support: support@prayercare.online
 Website: https://www.prayercare.online
 Privacy: https://www.prayercare.online/privacy
 ```
@@ -66,7 +66,7 @@ prayer,pray,bible,christian,church,ministry,journal,faith,worship,care,group,ser
 | Type | Value |
 |------|--------|
 | Marketing | `https://www.prayercare.online` |
-| Support | `mailto:[you@prayercare.online]` or a support page |
+| Support | `mailto:support@prayercare.online` |
 | Privacy Policy | `https://www.prayercare.online/privacy` *(must be public HTTPS)* |
 | Terms | `https://www.prayercare.online/terms` |
 
@@ -141,5 +141,5 @@ Contact email used in the pages: `support@prayercare.online` (change that addres
 - [ ] Privacy URL loads on mobile Safari/Chrome  
 - [ ] Screenshots match current UI (Welcome back greeting)  
 - [ ] Support email monitored  
-- [ ] Beta waitlist + Create Account flow documented for reviewers if account required  
+- [ ] Create Account flow documented for reviewers if account required  
 - [ ] Demo account for App Review (Apple often asks)
