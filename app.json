@@ -32,7 +32,11 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE"
+        "VIBRATE",
+        "POST_NOTIFICATIONS",
+        "SCHEDULE_EXACT_ALARM",
+        "USE_EXACT_ALARM",
+        "WAKE_LOCK"
       ]
     },
     "web": {
@@ -55,12 +59,15 @@
         {
           "icon": "./assets/images/icon.png",
           "color": "#5B7B6A",
-          "defaultChannel": "default",
-          "sounds": []
+          "defaultChannel": "prayer-reminders",
+          "sounds": [],
+          "enableBackgroundRemoteNotifications": false
         }
       ],
+      "@react-native-community/datetimepicker",
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true

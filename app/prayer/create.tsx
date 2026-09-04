@@ -2,8 +2,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
-import { CategoryPicker } from '@/components/prayer/CategoryPicker';
 import { ShareWithGroupPicker } from '@/components/groups/ShareWithGroupPicker';
+import { CategoryPicker } from '@/components/prayer/CategoryPicker';
+import { ReminderTimesPicker } from '@/components/prayer/ReminderTimesPicker';
 import { SchedulePicker } from '@/components/prayer/SchedulePicker';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -11,13 +12,14 @@ import { Input } from '@/components/ui/Input';
 import { OptionCard } from '@/components/ui/OptionCard';
 import { Screen } from '@/components/ui/Screen';
 import { TextArea } from '@/components/ui/TextArea';
-import { theme } from '@/constants/theme';
-import { formatScriptureAttribution } from '@/constants/bible-translations';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/Toast';
+import { formatScriptureAttribution } from '@/constants/bible-translations';
+import { normalizeReminderTime } from '@/constants/reminders';
+import { theme } from '@/constants/theme';
+import { useAuth } from '@/contexts/AuthContext';
+import { consumeAiPrayerDraft } from '@/lib/ai-draft-store';
 import { generateVerseWithAi } from '@/lib/api/ai';
 import { fetchScriptureFromApi } from '@/lib/api/bible';
-import { consumeAiPrayerDraft } from '@/lib/ai-draft-store';
 import { fetchMyGroups } from '@/lib/api/groups';
 import {
   createPrayer,
@@ -25,9 +27,11 @@ import {
   fetchPrayerDetail,
   updatePrayer,
 } from '@/lib/api/prayers';
+import { ensureNotificationPermissions } from '@/lib/notifications/permissions';
 import { getScheduleFromPrayer, getScriptureFromPrayer, isValidSchedule } from '@/lib/prayer-utils';
 import type { GroupWithMeta } from '@/types/group';
 import type { PrayerCategory, ScheduleType } from '@/types/prayer';
+import type { ReminderTimeDraft } from '@/types/reminder';
 
 export default function CreatePrayerScreen() {
   const { heart, id, source } = useLocalSearchParams<{
@@ -50,6 +54,7 @@ export default function CreatePrayerScreen() {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [scheduleType, setScheduleType] = useState<ScheduleType>('daily');
   const [weekdays, setWeekdays] = useState<number[]>([]);
+  const [reminders, setReminders] = useState<ReminderTimeDraft[]>([]);
   const [loading, setLoading] = useState(false);
   const [verseLoading, setVerseLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditing);
@@ -100,6 +105,16 @@ export default function CreatePrayerScreen() {
       setBody(data.body);
       setCategoryId(data.category_id);
       setAiGenerated(data.ai_generated);
+      setReminders(
+        (data.prayer_reminders ?? [])
+          .slice()
+          .sort((a, b) => a.sort_order - b.sort_order || a.reminder_time.localeCompare(b.reminder_time))
+          .map((row) => ({
+            key: row.id,
+            time: normalizeReminderTime(row.reminder_time),
+            enabled: row.enabled,
+          })),
+      );
 
       const schedule = getScheduleFromPrayer(data);
       if (schedule) {
@@ -200,6 +215,16 @@ export default function CreatePrayerScreen() {
       return;
     }
 
+    if (reminders.some((item) => item.enabled) && Platform.OS !== 'web') {
+      const granted = await ensureNotificationPermissions();
+      if (!granted) {
+        setError(
+          'Please allow notifications so PrayerCare can remind you at the times you chose.',
+        );
+        return;
+      }
+    }
+
     setLoading(true);
 
     if (isEditing && id) {
@@ -216,6 +241,7 @@ export default function CreatePrayerScreen() {
           scriptureReference: scriptureRef,
           scriptureText: scriptureText,
           translationId: profile.bible_translation_id,
+          reminders,
         },
         profile.timezone,
       );
@@ -251,6 +277,7 @@ export default function CreatePrayerScreen() {
       aiPromptSnapshot,
       groupId: shareMode === 'group' ? selectedGroupId : null,
       creatorKeepsPersonal: shareMode === 'group' ? creatorKeepsPersonal : true,
+      reminders,
     });
 
     setLoading(false);
@@ -405,6 +432,8 @@ export default function CreatePrayerScreen() {
             onChangeSchedule={setScheduleType}
             onChangeWeekdays={setWeekdays}
           />
+
+          <ReminderTimesPicker value={reminders} onChange={setReminders} />
 
           {error ? <AppText style={styles.error}>{error}</AppText> : null}
 

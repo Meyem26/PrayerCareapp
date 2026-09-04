@@ -67,6 +67,22 @@ export type Database = {
           timezone: string;
         }
       >;
+      prayer_reminders: TableDef<
+        {
+          id: string;
+          prayer_id: string;
+          reminder_time: string;
+          enabled: boolean;
+          sort_order: number;
+          created_at: string;
+        },
+        {
+          prayer_id: string;
+          reminder_time: string;
+          enabled?: boolean;
+          sort_order?: number;
+        }
+      >;
       prayer_categories: TableDef<PrayerCategory>;
       prayer_timeline_events: TableDef<
         PrayerTimelineEvent,

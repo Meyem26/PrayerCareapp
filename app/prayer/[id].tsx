@@ -13,6 +13,7 @@ import { LoadingScreen, Screen } from '@/components/ui/Screen';
 import { useToast } from '@/components/ui/Toast';
 import { OverflowMenu, type OverflowMenuItem } from '@/components/ui/OverflowMenu';
 import { getScheduleLabel } from '@/constants/schedule';
+import { formatReminderTimeLabel, normalizeReminderTime } from '@/constants/reminders';
 import { formatScriptureAttribution } from '@/constants/bible-translations';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,7 +32,6 @@ import {
   getScriptureFromPrayer,
 } from '@/lib/prayer-utils';
 import type { PrayerTimelineEvent, PrayerWithRelations } from '@/types/prayer';
-
 export default function PrayerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, profile } = useAuth();
@@ -215,6 +215,15 @@ export default function PrayerDetailScreen() {
             {schedule ? (
               <AppText variant="bodySmall" muted>
                 {getScheduleLabel(schedule.schedule_type)}
+              </AppText>
+            ) : null}
+            {(prayer.prayer_reminders ?? []).filter((r) => r.enabled).length > 0 ? (
+              <AppText variant="bodySmall" muted>
+                Reminders:{' '}
+                {(prayer.prayer_reminders ?? [])
+                  .filter((r) => r.enabled)
+                  .map((r) => formatReminderTimeLabel(normalizeReminderTime(r.reminder_time)))
+                  .join(' · ')}
               </AppText>
             ) : null}
             {prayer.visibility === 'group' ? (

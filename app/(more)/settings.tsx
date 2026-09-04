@@ -14,6 +14,7 @@ import {
   updateNotificationPreferences,
 } from '@/lib/api/history';
 import { registerForPushNotifications } from '@/lib/notifications/register';
+import { syncDailyDigestNotification } from '@/lib/notifications/schedule-reminders';
 import { formatTimezoneLabel, getDeviceTimezone } from '@/lib/utils/timezone';
 
 const REMINDER_TIMES = [
@@ -102,6 +103,11 @@ export default function SettingsScreen() {
     if (wantsPush && user?.id) {
       await registerForPushNotifications(user.id);
     }
+
+    const digestResult = await syncDailyDigestNotification(dailyReminder, reminderTime);
+    if (digestResult.error) {
+      setError(digestResult.error);
+    }
   }
 
   return (
@@ -157,9 +163,9 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <AppText variant="label">Notifications</AppText>
           <AppText variant="bodySmall" muted>
-            Preferences and your device token are saved when you allow notifications. Push delivery
-            (daily reminder, care due, invites, weekly) is not enabled yet — these toggles prepare
-            your choices for when reminders go live.
+            Per-prayer reminder times (set when you create or edit a prayer) send real phone
+            notifications even when PrayerCare is closed. The daily reminder below is an optional
+            nudge to open your Today list.
           </AppText>
 
           <View style={styles.switchRow}>

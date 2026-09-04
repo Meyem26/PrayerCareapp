@@ -82,6 +82,7 @@ export type PrayerWithRelations = Prayer & {
   prayer_schedules: PrayerSchedule | PrayerSchedule[] | null;
   prayer_categories: { label: string } | null;
   scripture_snapshots: ScriptureSnapshot[] | null;
+  prayer_reminders?: import('@/types/reminder').PrayerReminder[] | null;
 };
 
 export type CreatePrayerInput = {
@@ -101,6 +102,7 @@ export type CreatePrayerInput = {
   aiPromptSnapshot?: string | null;
   groupId?: string | null;
   creatorKeepsPersonal?: boolean;
+  reminders?: import('@/types/reminder').ReminderTimeDraft[];
 };
 
 export type UpdatePrayerInput = Partial<
@@ -112,4 +114,5 @@ export type UpdatePrayerInput = Partial<
   scriptureReference?: string;
   scriptureText?: string;
   translationId?: string;
+  reminders?: import('@/types/reminder').ReminderTimeDraft[];
 };

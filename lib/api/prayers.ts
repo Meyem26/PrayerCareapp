@@ -1,6 +1,10 @@
 import { DEFAULT_BIBLE_TRANSLATION_ID } from '@/constants/bible-translations';
+import { normalizeReminderTime } from '@/constants/reminders';
+import { replacePrayerReminders } from '@/lib/api/prayer-reminders';
 import { supabase } from '@/lib/supabase';
 import { ensureAuthenticated } from '@/lib/auth-session';
+import { cancelPrayerLocalNotifications, syncPrayerLocalNotifications } from '@/lib/notifications/schedule-reminders';
+import { getScheduleFromPrayer } from '@/lib/prayer-utils';
 import { getTodayDateString } from '@/lib/utils/date';
 import type {
   CreatePrayerInput,
@@ -8,8 +12,41 @@ import type {
   PrayerCategory,
   PrayerTimelineEvent,
   PrayerWithRelations,
+  ScheduleType,
   UpdatePrayerInput,
 } from '@/types/prayer';
+import type { ReminderTimeDraft } from '@/types/reminder';
+
+async function persistAndSyncReminders(options: {
+  prayerId: string;
+  title: string;
+  prayerPoint?: string | null;
+  scheduleType: ScheduleType;
+  weekdays: number[];
+  startDate: string;
+  timezone: string;
+  drafts: ReminderTimeDraft[];
+}): Promise<{ error: string | null }> {
+  const { data: reminders, error } = await replacePrayerReminders(options.prayerId, options.drafts);
+  if (error) return { error };
+
+  const sync = await syncPrayerLocalNotifications({
+    prayerId: options.prayerId,
+    title: options.title,
+    prayerPoint: options.prayerPoint,
+    scheduleType: options.scheduleType,
+    weekdays: options.weekdays,
+    startDate: options.startDate,
+    timezone: options.timezone,
+    reminders: reminders.map((row) => ({
+      id: row.id,
+      time: normalizeReminderTime(row.reminder_time),
+      enabled: row.enabled,
+    })),
+  });
+
+  return { error: sync.error };
+}
 
 function todayForTimezone(timezone: string): string {
   return getTodayDateString(timezone);
@@ -76,7 +113,8 @@ export async function fetchPrayerDetail(prayerId: string): Promise<{
         *,
         prayer_schedules (*),
         prayer_categories (label),
-        scripture_snapshots (*)
+        scripture_snapshots (*),
+        prayer_reminders (*)
       `,
       )
       .eq('id', prayerId)
@@ -88,6 +126,33 @@ export async function fetchPrayerDetail(prayerId: string): Promise<{
       .order('created_at', { ascending: false }),
   ]);
 
+  if (prayerResult.error?.message.toLowerCase().includes('prayer_reminders')) {
+    const fallback = await supabase
+      .from('prayers')
+      .select(
+        `
+        *,
+        prayer_schedules (*),
+        prayer_categories (label),
+        scripture_snapshots (*)
+      `,
+      )
+      .eq('id', prayerId)
+      .maybeSingle();
+
+    if (fallback.error) {
+      return { data: null, timeline: [], error: fallback.error.message };
+    }
+    if (!fallback.data) {
+      return { data: null, timeline: [], error: 'Prayer not found.' };
+    }
+    return {
+      data: { ...fallback.data, prayer_reminders: [] } as PrayerWithRelations,
+      timeline: (timelineResult.data ?? []) as PrayerTimelineEvent[],
+      error:
+        'Prayer reminders need migration 024. Run supabase/migrations/20250628000024_prayer_reminders.sql in Supabase.',
+    };
+  }
   if (prayerResult.error) {
     return { data: null, timeline: [], error: prayerResult.error.message };
   }
@@ -149,7 +214,24 @@ export async function createPrayer(
     };
   }
 
-  return { data: prayer as Prayer, error: null };
+  const saved = prayer as Prayer;
+  if (input.reminders) {
+    const reminderResult = await persistAndSyncReminders({
+      prayerId: saved.id,
+      title: input.title.trim(),
+      prayerPoint: input.prayerPoint?.trim() || null,
+      scheduleType: input.scheduleType,
+      weekdays: input.weekdays ?? [],
+      startDate,
+      timezone: input.timezone,
+      drafts: input.reminders,
+    });
+    if (reminderResult.error) {
+      return { data: saved, error: reminderResult.error };
+    }
+  }
+
+  return { data: saved, error: null };
 }
 
 export async function sharePrayerToGroup(
@@ -193,6 +275,10 @@ export async function updatePrayer(
     if (error) return { error: error.message };
   }
 
+  let scheduleType = input.scheduleType;
+  let weekdays = input.weekdays ?? [];
+  let startDate = todayForTimezone(timezone);
+
   if (input.scheduleType !== undefined) {
     const { error } = await supabase
       .from('prayer_schedules')
@@ -212,6 +298,60 @@ export async function updatePrayer(
       event_type: 'schedule_changed',
       metadata: { schedule_type: input.scheduleType },
     });
+  }
+
+  if (
+    input.reminders !== undefined ||
+    input.scheduleType !== undefined ||
+    input.title !== undefined ||
+    input.prayer_point !== undefined
+  ) {
+    const { data: scheduleRow } = await supabase
+      .from('prayer_schedules')
+      .select('schedule_type, weekdays, start_date, timezone')
+      .eq('prayer_id', prayerId)
+      .maybeSingle();
+
+    if (scheduleRow) {
+      scheduleType = (scheduleType ?? scheduleRow.schedule_type) as ScheduleType;
+      weekdays = input.weekdays ?? scheduleRow.weekdays ?? [];
+      startDate = scheduleRow.start_date;
+    }
+
+    const { data: prayerRow } = await supabase
+      .from('prayers')
+      .select('title, prayer_point')
+      .eq('id', prayerId)
+      .maybeSingle();
+
+    const drafts =
+      input.reminders ??
+      (
+        await supabase
+          .from('prayer_reminders')
+          .select('*')
+          .eq('prayer_id', prayerId)
+          .order('sort_order', { ascending: true })
+      ).data?.map((row) => ({
+        key: row.id,
+        time: normalizeReminderTime(row.reminder_time),
+        enabled: row.enabled,
+      })) ??
+      [];
+
+    const reminderResult = await persistAndSyncReminders({
+      prayerId,
+      title: (input.title ?? prayerRow?.title ?? 'Prayer').toString(),
+      prayerPoint:
+        input.prayer_point !== undefined ? input.prayer_point : prayerRow?.prayer_point ?? null,
+      scheduleType: scheduleType ?? 'daily',
+      weekdays,
+      startDate,
+      timezone: scheduleRow?.timezone ?? timezone,
+      drafts,
+    });
+
+    if (reminderResult.error) return { error: reminderResult.error };
   }
 
   if (input.scriptureReference !== undefined || input.scriptureText !== undefined) {
@@ -261,6 +401,7 @@ export async function updatePrayer(
 }
 
 export async function deletePrayer(prayerId: string): Promise<{ error: string | null }> {
+  await cancelPrayerLocalNotifications(prayerId);
   const { error } = await supabase.from('prayers').delete().eq('id', prayerId);
   return { error: error?.message ?? null };
 }
@@ -283,6 +424,30 @@ export async function setPrayerHidden(
     event_type: hidden ? 'hidden' : 'unhidden',
     metadata: {},
   });
+
+  if (hidden) {
+    await cancelPrayerLocalNotifications(prayerId);
+  } else {
+    const detail = await fetchPrayerDetail(prayerId);
+    const schedule = detail.data ? getScheduleFromPrayer(detail.data) : null;
+    const reminders = detail.data?.prayer_reminders ?? [];
+    if (detail.data && schedule) {
+      await syncPrayerLocalNotifications({
+        prayerId,
+        title: detail.data.title,
+        prayerPoint: detail.data.prayer_point,
+        scheduleType: schedule.schedule_type,
+        weekdays: schedule.weekdays ?? [],
+        startDate: schedule.start_date,
+        timezone: schedule.timezone,
+        reminders: reminders.map((row) => ({
+          id: row.id,
+          time: normalizeReminderTime(row.reminder_time),
+          enabled: row.enabled,
+        })),
+      });
+    }
+  }
 
   return { error: null };
 }
@@ -311,6 +476,10 @@ export async function markPrayerAnswered(
     p_user_id: userId,
   });
 
+  if (!error) {
+    await cancelPrayerLocalNotifications(prayerId);
+  }
+
   return { error: error?.message ?? null };
 }
 
@@ -323,5 +492,28 @@ export async function restartPrayer(
     p_user_id: userId,
   });
 
-  return { error: error?.message ?? null };
+  if (error) return { error: error.message };
+
+  const detail = await fetchPrayerDetail(prayerId);
+  const schedule = detail.data ? getScheduleFromPrayer(detail.data) : null;
+  const reminders = detail.data?.prayer_reminders ?? [];
+
+  if (detail.data && schedule) {
+    await syncPrayerLocalNotifications({
+      prayerId,
+      title: detail.data.title,
+      prayerPoint: detail.data.prayer_point,
+      scheduleType: schedule.schedule_type,
+      weekdays: schedule.weekdays ?? [],
+      startDate: schedule.start_date,
+      timezone: schedule.timezone,
+      reminders: reminders.map((row) => ({
+        id: row.id,
+        time: normalizeReminderTime(row.reminder_time),
+        enabled: row.enabled,
+      })),
+    });
+  }
+
+  return { error: null };
 }
