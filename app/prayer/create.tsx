@@ -180,8 +180,8 @@ export default function CreatePrayerScreen() {
   async function handleSave() {
     setError(null);
 
-    if (!title.trim() || !body.trim()) {
-      setError('Please add a title and prayer.');
+    if (!title.trim() || !prayerPoint.trim() || !body.trim()) {
+      setError('Please add a title, prayer point, and prayer.');
       return;
     }
 
@@ -300,7 +300,7 @@ export default function CreatePrayerScreen() {
             label="Prayer point"
             value={prayerPoint}
             onChangeText={setPrayerPoint}
-            placeholder="One sentence summary (optional)"
+            placeholder="One sentence summary"
           />
           <TextArea
             label="Prayer"
