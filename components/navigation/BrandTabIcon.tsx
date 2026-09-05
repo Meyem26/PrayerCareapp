@@ -27,13 +27,13 @@ type BrandTabIconProps = {
 };
 
 /** Inactive: a simple symbol. Focused: the brand flame, so it travels with you. */
-export function BrandTabIcon({ name, focused, size = 26 }: BrandTabIconProps) {
+export function BrandTabIcon({ name, focused, size = 24 }: BrandTabIconProps) {
   if (focused) {
     return (
       <View style={styles.wrap}>
         <Image
           source={require('@/assets/images/brand-mark.png')}
-          style={{ width: size + 2, height: size + 2 }}
+          style={{ width: size, height: size }}
           resizeMode="contain"
         />
       </View>
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 32,
-    minHeight: 32,
+    width: 28,
+    height: 28,
   },
 });

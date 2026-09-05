@@ -34,4 +34,4 @@ npx eas-cli build --platform android --profile preview --non-interactive
 
 - Web does not schedule OS notifications.
 - Emulators without Google Play / notification support may not fire reliably — use a real phone.
-- Android 12+ may ask for exact alarms; PrayerCare requests `SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM`.
+- Exact-alarm permissions (`USE_EXACT_ALARM` / `SCHEDULE_EXACT_ALARM`) are **not** declared — Play reserves those for alarm/calendar apps. Prayer reminders still schedule via normal notification APIs (timing may be slightly less exact on some Android versions when the phone is asleep).
