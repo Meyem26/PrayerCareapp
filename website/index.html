@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#FAF9F7" />
+    <meta name="theme-color" content="#2F4639" />
 
     <title>PrayerCare | Remember Every Prayer. Celebrate Every Answer.</title>
     <meta
@@ -13,7 +13,6 @@
     <meta name="author" content="PrayerCare" />
     <link rel="canonical" href="https://www.prayercare.online/" />
 
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="PrayerCare" />
     <meta property="og:title" content="PrayerCare | Remember Every Prayer. Celebrate Every Answer." />
@@ -27,7 +26,6 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:locale" content="en_US" />
 
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="PrayerCare | Remember Every Prayer. Celebrate Every Answer." />
     <meta
@@ -36,7 +34,6 @@
     />
     <meta name="twitter:image" content="https://www.prayercare.online/assets/og-image.png" />
 
-    <!-- Icons -->
     <link rel="icon" href="/assets/favicon.png" type="image/png" />
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
@@ -44,7 +41,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/styles.css" />
@@ -61,16 +58,14 @@
           </a>
         </div>
         <nav class="nav" aria-label="Primary">
-          <a href="#story">Our Story</a>
-          <a href="#journey">The Journey</a>
-          <a href="#features">Features</a>
+          <a href="#story">The Need</a>
+          <a href="#path">The Path</a>
+          <a href="#journey">How It Works</a>
+          <a href="#praise">Praise</a>
           <a href="#demo">See the App</a>
         </nav>
         <div class="header-actions">
-          <a
-            class="header-signin"
-            id="header-sign-in"
-            href="https://app.prayercare.online/login">
+          <a class="header-signin" id="header-sign-in" href="https://app.prayercare.online/login">
             Sign In
           </a>
           <a
@@ -95,61 +90,56 @@
         </button>
       </div>
       <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile" hidden>
-        <a href="#story">Our Story</a>
-        <a href="#journey">The Journey</a>
-        <a href="#features">Features</a>
+        <a href="#story">The Need</a>
+        <a href="#path">The Path</a>
+        <a href="#journey">How It Works</a>
+        <a href="#praise">Praise</a>
         <a href="#demo">See the App</a>
         <a id="mobile-sign-in" href="https://app.prayercare.online/login">Sign In</a>
       </nav>
     </header>
 
     <main id="main">
-      <!-- Hero -->
-      <section class="hero section" aria-labelledby="hero-heading">
+      <!-- Hero: one composition, brand-first -->
+      <section class="hero" aria-labelledby="hero-heading">
+        <div class="hero-atmosphere" aria-hidden="true"></div>
         <div class="container hero-grid">
           <div class="hero-copy reveal">
-            <p class="eyebrow">A peaceful place for prayer &amp; care</p>
-            <h1 id="hero-heading" class="hero-title">
-              Never forget a prayer.<br />
-              Never miss an opportunity to care.<br />
-              Never overlook God's faithfulness.
-            </h1>
+            <p class="brand-lockup">PrayerCare</p>
+            <h1 id="hero-heading" class="hero-title">Never forget a prayer.</h1>
             <p class="hero-subtitle">
-              PrayerCare helps Christians, prayer groups, ministries and churches organize
-              prayers, remember to pray, care for people intentionally, and celebrate answered
-              prayers—all in one beautiful place.
+              Organize prayer, return with intention, follow through with care, and celebrate what
+              God has done—in one peaceful place.
             </p>
             <div class="hero-actions">
               <a
                 class="btn btn-primary js-primary-cta"
                 href="https://app.prayercare.online/sign-up"
                 data-launch-href="https://app.prayercare.online/sign-up"
-                data-launch-label="Get Started">
-                Get Started
+                data-launch-label="Begin praying">
+                Begin praying
               </a>
-              <a class="btn btn-secondary" href="#demo">See the App</a>
+              <a class="btn btn-ghost" href="#path">See the path</a>
             </div>
           </div>
 
           <div class="hero-visual reveal reveal-delay" aria-hidden="true">
-            <div class="hero-mockup-wrap">
-              <div class="mockup-badge mockup-badge--top">Today's prayers</div>
-              <div class="mockup-badge mockup-badge--left">Scripture rooted</div>
-              <div class="mockup-badge mockup-badge--right">Care &amp; praise</div>
-              <div class="iphone-mockup iphone-mockup--hero">
+            <div class="hero-device">
+              <div class="iphone-mockup">
                 <div class="iphone-frame">
-                  <div class="iphone-notch" aria-hidden="true"></div>
-                  <div class="iphone-screen app-screen" data-screen="today">
+                  <div class="iphone-notch"></div>
+                  <div class="iphone-screen app-screen">
                     <div class="app-status-bar">
                       <span>9:41</span>
-                      <span class="app-status-icons" aria-hidden="true">●●●</span>
+                      <span aria-hidden="true">●●●</span>
                     </div>
                     <div class="app-content app-content--today">
+                      <p class="app-brand-mini">PrayerCare</p>
                       <p class="app-greeting">Good morning, Sarah.</p>
-                      <p class="app-subline">You have 3 prayer commitments today.</p>
+                      <p class="app-subline">Three prayers waiting with you today.</p>
                       <div class="app-prayer-card">
-                        <span class="app-card-tag">Daily</span>
-                        <h4 class="app-card-title">Healing for Mom's surgery</h4>
+                        <span class="app-card-tag">Daily · 7:00 AM</span>
+                        <h4 class="app-card-title">Healing for Mom&rsquo;s surgery</h4>
                         <p class="app-card-meta">Philippians 4:6–7</p>
                         <div class="app-card-actions">
                           <span class="app-chip app-chip--done">Prayed</span>
@@ -159,22 +149,22 @@
                       <div class="app-prayer-card">
                         <span class="app-card-tag app-card-tag--gold">Group</span>
                         <h4 class="app-card-title">Job search — David</h4>
-                        <p class="app-card-meta">Prayer Circle · 4 members praying</p>
+                        <p class="app-card-meta">Prayer Circle · 4 members</p>
                       </div>
                       <div class="app-prayer-card app-prayer-card--muted">
-                        <span class="app-card-tag">Weekly</span>
+                        <span class="app-card-tag">Reminders</span>
                         <h4 class="app-card-title">Church planting in Nairobi</h4>
-                        <p class="app-card-meta">Every Sunday</p>
+                        <p class="app-card-meta">7 AM · 12 PM · 7 PM</p>
                       </div>
                     </div>
-                    <nav class="app-tab-bar" aria-hidden="true">
+                    <nav class="app-tab-bar">
                       <span class="app-tab app-tab--active">Today</span>
                       <span class="app-tab">Pray</span>
                       <span class="app-tab">Groups</span>
                       <span class="app-tab">Journey</span>
                     </nav>
                   </div>
-                  <div class="iphone-home-indicator" aria-hidden="true"></div>
+                  <div class="iphone-home-indicator"></div>
                 </div>
               </div>
             </div>
@@ -182,235 +172,262 @@
         </div>
       </section>
 
-      <!-- Emotional Story -->
-      <section class="story section" id="story" aria-labelledby="story-heading">
+      <!-- The need -->
+      <section class="story section-band section-band--forest" id="story" aria-labelledby="story-heading">
         <div class="container narrow reveal">
-          <h2 id="story-heading" class="section-title centered">You've been there.</h2>
-          <div class="story-body">
-            <p class="story-question">Have you ever told someone,</p>
-            <p class="story-quote">"I'll pray for you…"</p>
-            <p class="story-question">only to remember weeks later that you forgot?</p>
-
-            <p class="story-question">Have you ever written a prayer request on paper, in WhatsApp, or in your Notes app…</p>
-            <p class="story-question">only to lose track of it?</p>
-
-            <p class="story-question">Have you ever wondered,</p>
-            <p class="story-quote">"What happened to that person we prayed for?"</p>
-            <p class="story-detail">Did the surgery go well? Did they find a job? Did God answer?</p>
-
-            <p class="story-emphasis">Most Christians have. Most churches have.</p>
-            <p class="story-closer">PrayerCare was built for those moments.</p>
+          <p class="eyebrow eyebrow--on-dark">The quiet ache</p>
+          <h2 id="story-heading" class="section-title section-title--light centered">
+            You&rsquo;ve been there.
+          </h2>
+          <div class="story-body story-body--light">
+            <p>Someone shares a burden. Your heart says yes.</p>
+            <p class="story-quote">&ldquo;I&rsquo;ll pray for you…&rdquo;</p>
+            <p>Then life moves. The note is buried. The chat scrolls away. Weeks later you wonder—</p>
+            <p class="story-quote story-quote--soft">What happened to that prayer?</p>
+            <p class="story-closer">
+              PrayerCare was built for those moments—so compassion doesn&rsquo;t disappear into
+              forgetting.
+            </p>
           </div>
         </div>
       </section>
 
-      <figure class="scripture-moment scripture-moment--perseverance reveal" aria-label="Scripture">
-        <blockquote class="scripture-moment__quote">
+      <figure class="scripture-band reveal" aria-label="Scripture">
+        <blockquote>
           <p>Pray without ceasing.</p>
         </blockquote>
-        <figcaption class="scripture-moment__ref">1 Thessalonians 5:17</figcaption>
+        <figcaption>1 Thessalonians 5:17</figcaption>
       </figure>
 
-      <!-- The Journey -->
-      <section class="journey section" id="journey" aria-labelledby="journey-heading">
+      <!-- Path -->
+      <section class="path section-band section-band--sage" id="path" aria-labelledby="path-heading">
         <div class="container">
           <div class="section-intro reveal">
-            <h2 id="journey-heading" class="section-title centered">The Journey</h2>
+            <p class="eyebrow">A simpler way forward</p>
+            <h2 id="path-heading" class="section-title centered">Remember. Pray. Follow up. Celebrate.</h2>
             <p class="section-lead centered">
-              Where burdens become prayers, prayers become care, and care becomes praise.
+              Four movements that keep prayer alive—from the first yes to the praise that follows.
             </p>
           </div>
-
-          <ol class="journey-path">
-            <li class="journey-step reveal">
-              <div class="journey-icon" aria-hidden="true">🕊</div>
-              <div class="journey-content">
-                <h3>Burden</h3>
-                <p>Someone shares a need. Your heart responds.</p>
-              </div>
+          <ol class="path-rail reveal">
+            <li class="path-step">
+              <span class="path-num" aria-hidden="true">01</span>
+              <h3>Remember</h3>
+              <p>Capture what matters before it fades.</p>
             </li>
-            <li class="journey-step reveal">
-              <div class="journey-icon" aria-hidden="true">🙏</div>
-              <div class="journey-content">
-                <h3>Prayer</h3>
-                <p>Turn compassion into intentional intercession.</p>
-              </div>
+            <li class="path-step">
+              <span class="path-num" aria-hidden="true">02</span>
+              <h3>Pray</h3>
+              <p>Return on purpose, with Scripture nearby.</p>
             </li>
-            <li class="journey-step reveal">
-              <div class="journey-icon" aria-hidden="true">📖</div>
-              <div class="journey-content">
-                <h3>Scripture</h3>
-                <p>Root every prayer in God's Word.</p>
-              </div>
+            <li class="path-step">
+              <span class="path-num" aria-hidden="true">03</span>
+              <h3>Follow up</h3>
+              <p>Let love become meals, visits, and calls.</p>
             </li>
-            <li class="journey-step reveal">
-              <div class="journey-icon" aria-hidden="true">☀️</div>
-              <div class="journey-content">
-                <h3>Daily Prayer</h3>
-                <p>Return to what matters, day after day.</p>
-              </div>
-            </li>
-            <li class="journey-step reveal">
-              <div class="journey-icon" aria-hidden="true">👥</div>
-              <div class="journey-content">
-                <h3>Prayer Group</h3>
-                <p>Walk together. No one prays alone.</p>
-              </div>
-            </li>
-            <li class="journey-step reveal">
-              <div class="journey-icon" aria-hidden="true">💛</div>
-              <div class="journey-content">
-                <h3>Care Action</h3>
-                <p>Love becomes practical. Help becomes real.</p>
-              </div>
-            </li>
-            <li class="journey-step reveal">
-              <div class="journey-icon" aria-hidden="true">✨</div>
-              <div class="journey-content">
-                <h3>Praise Report</h3>
-                <p>Celebrate what God has done.</p>
-              </div>
-            </li>
-            <li class="journey-step reveal">
-              <div class="journey-icon" aria-hidden="true">📅</div>
-              <div class="journey-content">
-                <h3>Spiritual History</h3>
-                <p>See His faithfulness across the years.</p>
-              </div>
+            <li class="path-step">
+              <span class="path-num" aria-hidden="true">04</span>
+              <h3>Celebrate</h3>
+              <p>Mark answers and give God the glory.</p>
             </li>
           </ol>
         </div>
       </section>
 
-      <!-- Features -->
-      <section class="features section" id="features" aria-labelledby="features-heading">
-        <div class="container">
-          <div class="section-intro reveal">
-            <h2 id="features-heading" class="section-title centered">Beautiful by design</h2>
-            <p class="section-lead centered">
-              Every feature exists to help you pray with peace—and care with purpose.
-            </p>
+      <!-- Journey chapters -->
+      <section class="journey" id="journey" aria-labelledby="journey-heading">
+        <div class="container section-intro reveal">
+          <p class="eyebrow">How PrayerCare works</p>
+          <h2 id="journey-heading" class="section-title centered">The prayer journey, made visible</h2>
+          <p class="section-lead centered">
+            Not another cluttered checklist—an intentional path from burden to praise.
+          </p>
+        </div>
+
+        <!-- Capture -->
+        <article class="chapter chapter--ivory">
+          <div class="container chapter-grid reveal">
+            <div class="chapter-copy">
+              <p class="chapter-label">Capture</p>
+              <h3 class="chapter-title">A prayer comes in. Hold it gently.</h3>
+              <p>
+                Write what&rsquo;s on your heart—or let the optional AI assistant help shape a
+                Christ-centered draft. Every word stays yours to edit. Attach Scripture so the
+                request rests on the Word.
+              </p>
+            </div>
+            <div class="chapter-visual" aria-hidden="true">
+              <div class="ui-panel ui-panel--create">
+                <p class="ui-kicker">Create a prayer</p>
+                <div class="ui-field">
+                  <span>What&rsquo;s on your heart?</span>
+                  <p>My friend is waiting on test results…</p>
+                </div>
+                <div class="ui-ai">
+                  <span>AI Prayer Assistant</span>
+                  <p>Lord, we lift our friend to You. Grant peace that surpasses understanding…</p>
+                  <small>Isaiah 41:10</small>
+                </div>
+                <div class="ui-chips">
+                  <span>Daily</span>
+                  <span>Until answered</span>
+                </div>
+              </div>
+            </div>
           </div>
+        </article>
 
-          <div class="feature-grid">
-            <article class="feature-card reveal">
-              <div class="feature-icon" aria-hidden="true">✍️</div>
-              <h3>AI Prayer Assistant</h3>
-              <p class="feature-lead">Write what's on your heart.</p>
+        <!-- Remember -->
+        <article class="chapter chapter--sage">
+          <div class="container chapter-grid chapter-grid--flip reveal">
+            <div class="chapter-copy">
+              <p class="chapter-label">Remember</p>
+              <h3 class="chapter-title">Intention becomes a reminder.</h3>
               <p>
-                PrayerCare can help you transform your thoughts into a Christ-centered prayer
-                rooted in Scripture. Everything remains editable.
+                Set one time—or morning, midday, and evening for the same prayer. PrayerCare sends
+                real phone notifications so the request meets you again, even when the day is full.
               </p>
-            </article>
+            </div>
+            <div class="chapter-visual" aria-hidden="true">
+              <div class="ui-panel ui-panel--reminders">
+                <p class="ui-kicker">Prayer reminders</p>
+                <ul class="ui-reminder-list">
+                  <li><strong>7:00 AM</strong><span>Morning watch</span></li>
+                  <li><strong>12:00 PM</strong><span>Midday return</span></li>
+                  <li><strong>7:00 PM</strong><span>Evening lift</span></li>
+                </ul>
+                <div class="ui-notif">
+                  <span class="ui-notif-app">PrayerCare</span>
+                  <p>Time to pray for healing for Mom&rsquo;s surgery.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
 
-            <figure class="scripture-moment scripture-moment--prayer reveal" aria-label="Scripture">
-              <blockquote class="scripture-moment__quote">
-                <p>
-                  Do not be anxious about anything, but in everything, by prayer and supplication
-                  with thanksgiving let your requests be made known to God.
-                </p>
-              </blockquote>
-              <figcaption class="scripture-moment__ref">Philippians 4:6–7</figcaption>
-            </figure>
-
-            <article class="feature-card reveal">
-              <div class="feature-icon" aria-hidden="true">🔔</div>
-              <h3>Prayer Schedule</h3>
-              <p class="feature-lead">Choose once.</p>
+        <!-- Pray -->
+        <article class="chapter chapter--deep">
+          <div class="container chapter-grid reveal">
+            <div class="chapter-copy chapter-copy--light">
+              <p class="chapter-label chapter-label--gold">Pray</p>
+              <h3 class="chapter-title chapter-title--light">Start the day with clarity.</h3>
               <p>
-                Daily. Weekly. Specific weekdays. Until answered. PrayerCare remembers even when
-                life gets busy.
+                Today gathers what you scheduled—personal prayers and group requests—so you know
+                who to lift up. Mark that you prayed. Keep walking with the same people until the
+                story turns.
               </p>
-            </article>
+            </div>
+            <div class="chapter-visual" aria-hidden="true">
+              <div class="ui-panel ui-panel--today-dark">
+                <p class="ui-kicker ui-kicker--light">Today</p>
+                <p class="ui-today-count">3 commitments</p>
+                <div class="ui-mini-card">
+                  <span>Daily</span>
+                  <strong>Healing for Mom&rsquo;s surgery</strong>
+                </div>
+                <div class="ui-mini-card">
+                  <span>Group</span>
+                  <strong>Job search — David</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
 
-            <article class="feature-card reveal">
-              <div class="feature-icon" aria-hidden="true">🤝</div>
-              <h3>Prayer Groups</h3>
-              <p class="feature-lead">Families. Friends. Bible studies. Intercessors.</p>
+        <!-- Follow up -->
+        <article class="chapter chapter--ivory">
+          <div class="container chapter-grid chapter-grid--flip reveal">
+            <div class="chapter-copy">
+              <p class="chapter-label">Follow up</p>
+              <h3 class="chapter-title">Love with hands and feet.</h3>
               <p>
-                Church ministries. Mission teams. Everyone stays united around the same prayer
-                journey.
+                Prayer is powerful. Care is practical. Schedule a meal, a visit, or a call. Families,
+                small groups, and ministries stay united around the same journey—so no one carries it
+                alone.
               </p>
-            </article>
+            </div>
+            <div class="chapter-visual" aria-hidden="true">
+              <div class="ui-panel">
+                <p class="ui-kicker">Prayer Circle</p>
+                <p class="ui-meta">4 members · 2 prayers today</p>
+                <div class="ui-avatars">
+                  <span>S</span><span>M</span><span>J</span><span>+1</span>
+                </div>
+                <div class="ui-mini-card ui-mini-card--care">
+                  <strong>Meal for the Johnsons</strong>
+                  <span>Care action · due tomorrow</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
 
-            <article class="feature-card reveal">
-              <div class="feature-icon" aria-hidden="true">🍽</div>
-              <h3>Care Actions</h3>
-              <p class="feature-lead">Prayer is powerful. Love is practical.</p>
-              <p>
-                Schedule a visit. Send a meal. Make a phone call. Offer help. Follow up. Because
-                caring matters too.
-              </p>
-            </article>
-
-            <article class="feature-card reveal reveal-wide">
-              <div class="feature-icon" aria-hidden="true">🎉</div>
-              <h3>Praise Reports</h3>
-              <p class="feature-lead">Don't just record requests. Celebrate answers.</p>
-              <p>
-                Imagine opening your church meeting and saying: "This week we received 12 prayer
-                requests. 4 prayers were answered. 7 care actions were completed. God has been
-                faithful." PrayerCare preserves those moments.
-              </p>
-            </article>
-
-            <article class="feature-card reveal">
-              <div class="feature-icon" aria-hidden="true">📆</div>
-              <h3>Spiritual History</h3>
-              <p class="feature-lead">Years later, open any day on the calendar.</p>
-              <p>
-                See what you prayed. See what God answered. Remember His faithfulness. Your
-                spiritual journey becomes visible.
-              </p>
-            </article>
-
-            <article class="feature-card reveal">
-              <div class="feature-icon" aria-hidden="true">📝</div>
-              <h3>Sermon Notes</h3>
-              <p class="feature-lead">Capture sermons beautifully.</p>
-              <p>
-                Save every Bible verse. Write reflections. Return to them during the week.
-                Meditate on God's Word long after Sunday ends.
-              </p>
-            </article>
+      <!-- Answered / Praise -->
+      <section class="praise section-band section-band--gold" id="praise" aria-labelledby="praise-heading">
+        <div class="container praise-layout reveal">
+          <div class="praise-copy">
+            <p class="eyebrow eyebrow--gold">Look what God has done</p>
+            <h2 id="praise-heading" class="section-title">From request to praise.</h2>
+            <p class="section-lead section-lead--left">
+              When God answers, don&rsquo;t let the story vanish into silence. Move the prayer into
+              celebration—so your church, your group, and your own heart remember His faithfulness.
+            </p>
+            <ol class="praise-flow">
+              <li><span>Prayer</span></li>
+              <li aria-hidden="true">→</li>
+              <li><span>Waiting</span></li>
+              <li aria-hidden="true">→</li>
+              <li><span>Answered</span></li>
+              <li aria-hidden="true">→</li>
+              <li><span class="praise-flow-end">Praise</span></li>
+            </ol>
+          </div>
+          <div class="praise-card" aria-hidden="true">
+            <span class="praise-badge">Answered</span>
+            <h3>New job for David</h3>
+            <p class="praise-verse">
+              &ldquo;The Lord is good; his mercy is everlasting.&rdquo;
+            </p>
+            <p class="praise-meta">Praise report · shared with Prayer Circle</p>
+            <p class="praise-note">
+              Imagine opening a meeting and saying: this week we prayed, we cared—and God answered.
+            </p>
           </div>
         </div>
       </section>
 
-      <!-- App showcase -->
-      <section class="showcase section" id="demo" aria-labelledby="demo-heading">
+      <!-- Scripture warmth -->
+      <figure class="scripture-band scripture-band--warm reveal" aria-label="Scripture">
+        <blockquote>
+          <p>
+            Do not be anxious about anything, but in everything, by prayer and petition with
+            thanksgiving, present your requests to God.
+          </p>
+        </blockquote>
+        <figcaption>Philippians 4:6</figcaption>
+      </figure>
+
+      <!-- Product showcase -->
+      <section class="showcase section-band section-band--ivory" id="demo" aria-labelledby="demo-heading">
         <div class="container">
           <div class="section-intro reveal">
-            <h2 id="demo-heading" class="section-title centered">See PrayerCare in action</h2>
+            <p class="eyebrow">Inside the app</p>
+            <h2 id="demo-heading" class="section-title centered">A calm prayer life in your pocket</h2>
             <p class="section-lead centered">
-              A calm, real prayer life in your pocket—not another cluttered app.
+              Real PrayerCare screens—designed for peace, not pressure.
             </p>
           </div>
 
           <div class="showcase-layout reveal">
             <div class="showcase-tabs" role="tablist" aria-label="App screens">
-              <button
-                type="button"
-                class="showcase-tab is-active"
-                role="tab"
-                aria-selected="true"
-                data-showcase="today">
+              <button type="button" class="showcase-tab is-active" role="tab" aria-selected="true" data-showcase="today">
                 Today
               </button>
-              <button
-                type="button"
-                class="showcase-tab"
-                role="tab"
-                aria-selected="false"
-                data-showcase="pray">
+              <button type="button" class="showcase-tab" role="tab" aria-selected="false" data-showcase="pray">
                 Pray &amp; Scripture
               </button>
-              <button
-                type="button"
-                class="showcase-tab"
-                role="tab"
-                aria-selected="false"
-                data-showcase="groups">
+              <button type="button" class="showcase-tab" role="tab" aria-selected="false" data-showcase="groups">
                 Groups &amp; Care
               </button>
             </div>
@@ -418,9 +435,8 @@
             <div class="showcase-stage">
               <div class="iphone-mockup iphone-mockup--showcase">
                 <div class="iphone-frame">
-                  <div class="iphone-notch" aria-hidden="true"></div>
+                  <div class="iphone-notch"></div>
 
-                  <!-- Today -->
                   <div class="iphone-screen app-screen showcase-screen is-active" data-showcase-panel="today">
                     <div class="app-status-bar"><span>9:41</span><span aria-hidden="true">●●●</span></div>
                     <div class="app-content app-content--today">
@@ -428,8 +444,8 @@
                       <p class="app-subline">You have 3 prayer commitments today.</p>
                       <div class="app-prayer-card">
                         <span class="app-card-tag">Daily</span>
-                        <h4 class="app-card-title">Healing for Mom's surgery</h4>
-                        <p class="app-card-verse">"Do not be anxious about anything…"</p>
+                        <h4 class="app-card-title">Healing for Mom&rsquo;s surgery</h4>
+                        <p class="app-card-verse">&ldquo;Do not be anxious about anything…&rdquo;</p>
                         <p class="app-card-meta">Philippians 4:6–7</p>
                       </div>
                       <div class="app-prayer-card">
@@ -438,7 +454,7 @@
                         <p class="app-card-meta">Praise report · shared with group</p>
                       </div>
                     </div>
-                    <nav class="app-tab-bar" aria-hidden="true">
+                    <nav class="app-tab-bar">
                       <span class="app-tab app-tab--active">Today</span>
                       <span class="app-tab">Pray</span>
                       <span class="app-tab">Groups</span>
@@ -446,17 +462,16 @@
                     </nav>
                   </div>
 
-                  <!-- Pray -->
                   <div class="iphone-screen app-screen showcase-screen" data-showcase-panel="pray" hidden>
                     <div class="app-status-bar"><span>9:41</span><span aria-hidden="true">●●●</span></div>
                     <div class="app-content app-content--pray">
                       <p class="app-screen-title">Create a prayer</p>
                       <div class="app-field">
-                        <span class="app-field-label">What's on your heart?</span>
+                        <span class="app-field-label">What&rsquo;s on your heart?</span>
                         <p class="app-field-value">My friend is waiting on test results…</p>
                       </div>
                       <div class="app-ai-card">
-                        <span class="app-ai-badge">✨ AI Prayer Assistant</span>
+                        <span class="app-ai-badge">AI Prayer Assistant</span>
                         <p class="app-ai-text">
                           Lord, we lift up our friend to You. Grant peace that surpasses understanding…
                         </p>
@@ -467,7 +482,7 @@
                         <span class="app-chip">Until answered</span>
                       </div>
                     </div>
-                    <nav class="app-tab-bar" aria-hidden="true">
+                    <nav class="app-tab-bar">
                       <span class="app-tab">Today</span>
                       <span class="app-tab app-tab--active">Pray</span>
                       <span class="app-tab">Groups</span>
@@ -475,13 +490,12 @@
                     </nav>
                   </div>
 
-                  <!-- Groups -->
                   <div class="iphone-screen app-screen showcase-screen" data-showcase-panel="groups" hidden>
                     <div class="app-status-bar"><span>9:41</span><span aria-hidden="true">●●●</span></div>
                     <div class="app-content app-content--groups">
                       <p class="app-screen-title">Prayer Circle</p>
                       <p class="app-subline">4 members · 2 prayers today</p>
-                      <div class="app-member-row" aria-hidden="true">
+                      <div class="app-member-row">
                         <span class="app-avatar">S</span>
                         <span class="app-avatar">M</span>
                         <span class="app-avatar">J</span>
@@ -490,14 +504,14 @@
                       <div class="app-prayer-card">
                         <h4 class="app-card-title">Meal for the Johnsons</h4>
                         <p class="app-card-meta">Care action · due tomorrow</p>
-                        <span class="app-chip app-chip--care">🍽 Bring dinner</span>
+                        <span class="app-chip app-chip--care">Bring dinner</span>
                       </div>
                       <div class="app-prayer-card">
                         <h4 class="app-card-title">Mission trip to Kenya</h4>
                         <p class="app-card-meta">6 people praying · updated 2h ago</p>
                       </div>
                     </div>
-                    <nav class="app-tab-bar" aria-hidden="true">
+                    <nav class="app-tab-bar">
                       <span class="app-tab">Today</span>
                       <span class="app-tab">Pray</span>
                       <span class="app-tab app-tab--active">Groups</span>
@@ -505,7 +519,7 @@
                     </nav>
                   </div>
 
-                  <div class="iphone-home-indicator" aria-hidden="true"></div>
+                  <div class="iphone-home-indicator"></div>
                 </div>
               </div>
 
@@ -513,32 +527,32 @@
                 <div class="showcase-panel is-active" data-showcase-copy="today">
                   <h3>Start every day with clarity</h3>
                   <p>
-                    See exactly who and what you're praying for today—personal prayers, group
+                    See exactly who and what you&rsquo;re praying for—personal prayers, group
                     requests, and schedules that remember when you forget.
                   </p>
                   <ul class="showcase-list">
                     <li>Daily, weekly &amp; until-answered schedules</li>
-                    <li>Prayer cards with Scripture attached</li>
-                    <li>Celebrate answered prayers in one tap</li>
+                    <li>Multiple reminder times per prayer</li>
+                    <li>Celebrate answered prayers in one place</li>
                   </ul>
                 </div>
                 <div class="showcase-panel" data-showcase-copy="pray" hidden>
                   <h3>Prayers rooted in Scripture</h3>
                   <p>
-                    Write what's on your heart—or let the AI assistant help you shape a Christ-centered
-                    prayer. Every word stays editable. Every prayer can carry a verse.
+                    Write what&rsquo;s on your heart—or let the AI assistant help you shape a
+                    Christ-centered prayer. Every word stays editable.
                   </p>
                   <ul class="showcase-list">
-                    <li>AI prayer assistant (optional)</li>
-                    <li>Bible verses built in</li>
+                    <li>Optional AI prayer assistant</li>
+                    <li>Bible verses from a trusted source</li>
                     <li>Schedule once, pray with peace</li>
                   </ul>
                 </div>
                 <div class="showcase-panel" data-showcase-copy="groups" hidden>
                   <h3>No one prays alone</h3>
                   <p>
-                    Families, small groups, and ministries stay united around the same prayer
-                    journey—with practical care actions when love needs hands and feet.
+                    Families, small groups, and ministries stay united—with practical care actions
+                    when love needs hands and feet.
                   </p>
                   <ul class="showcase-list">
                     <li>Shared prayer lists</li>
@@ -552,24 +566,77 @@
         </div>
       </section>
 
-      <!-- CTA -->
-      <section class="cta section" id="get-started" aria-labelledby="cta-heading">
+      <!-- Editorial features (not a boring 6-card grid) -->
+      <section class="features section-band section-band--sage" id="features" aria-labelledby="features-heading">
         <div class="container">
-          <div class="cta-card reveal">
+          <div class="section-intro reveal">
+            <p class="eyebrow">Built for faithful habits</p>
+            <h2 id="features-heading" class="section-title centered">Tools that serve the journey</h2>
+          </div>
+
+          <div class="feature-rows">
+            <article class="feature-row reveal">
+              <div class="feature-row-text">
+                <h3>Spiritual history</h3>
+                <p>
+                  Years later, open a day and see what you prayed—and what God answered. Faithfulness
+                  becomes visible across time.
+                </p>
+              </div>
+              <div class="feature-row-accent" aria-hidden="true">
+                <span>Journey</span>
+                <strong>Your calendar of grace</strong>
+              </div>
+            </article>
+            <article class="feature-row reveal">
+              <div class="feature-row-text">
+                <h3>Sermon notes</h3>
+                <p>
+                  Capture the Word on Sunday. Return during the week. Let Scripture keep shaping
+                  how you pray and care.
+                </p>
+              </div>
+              <div class="feature-row-accent feature-row-accent--gold" aria-hidden="true">
+                <span>Sunday → weekday</span>
+                <strong>Notes that linger</strong>
+              </div>
+            </article>
+            <article class="feature-row reveal">
+              <div class="feature-row-text">
+                <h3>Groups &amp; ministries</h3>
+                <p>
+                  From family circles to church teams—stay aligned around the same requests, care
+                  actions, and praise.
+                </p>
+              </div>
+              <div class="feature-row-accent feature-row-accent--forest" aria-hidden="true">
+                <span>Together</span>
+                <strong>United in prayer</strong>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="cta section-band section-band--forest" id="get-started" aria-labelledby="cta-heading">
+        <div class="container">
+          <div class="cta-panel reveal">
+            <p class="eyebrow eyebrow--on-dark">Begin today</p>
             <h2 id="cta-heading" class="cta-title">
               Prayer changes lives.<br />
-              Remembering to pray changes lives too.
+              Remembering to pray does too.
             </h2>
             <p class="cta-subtitle">
-              PrayerCare is free to use. Create your account and begin organizing prayers, care,
-              and praise in one peaceful place.
+              PrayerCare is free. Create your account and keep prayer, care, and praise in one
+              peaceful place.
             </p>
             <div class="cta-actions">
               <a
-                class="btn btn-primary btn-lg js-app-signup"
+                class="btn btn-gold btn-lg js-app-signup"
                 id="cta-create-account"
                 href="https://app.prayercare.online/sign-up">
-                Create Free Account
+                Create free account
               </a>
               <a class="cta-signin js-app-signin" id="cta-sign-in" href="https://app.prayercare.online/login">
                 Already have an account? Sign In
@@ -587,9 +654,9 @@
           <span>PrayerCare</span>
         </div>
         <nav class="footer-nav" aria-label="Footer">
-          <a href="#story">Our Story</a>
-          <a href="#journey">The Journey</a>
-          <a href="#features">Features</a>
+          <a href="#story">The Need</a>
+          <a href="#path">The Path</a>
+          <a href="#journey">How It Works</a>
           <a href="#demo">See the App</a>
           <a href="/privacy">Privacy</a>
           <a href="/terms">Terms</a>
