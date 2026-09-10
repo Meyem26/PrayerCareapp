@@ -1,7 +1,7 @@
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Modal, Platform, Pressable, StyleSheet, Switch, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
@@ -35,24 +35,31 @@ function dateFromTime(time: string): Date {
   return date;
 }
 
+function sortByTime(items: ReminderTimeDraft[]): ReminderTimeDraft[] {
+  return [...items].sort((a, b) => a.time.localeCompare(b.time));
+}
+
 export function ReminderTimesPicker({ value, onChange }: ReminderTimesPickerProps) {
-  const [picking, setPicking] = useState(false);
-  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [pickingCustom, setPickingCustom] = useState(false);
   const [draftTime, setDraftTime] = useState('08:00');
   const [androidOpen, setAndroidOpen] = useState(false);
 
-  function openAdd() {
-    setEditingKey(null);
-    setDraftTime('08:00');
-    setPicking(true);
-    if (Platform.OS === 'android') setAndroidOpen(true);
+  const selectedTimes = useMemo(
+    () => new Set(value.map((item) => normalizeReminderTime(item.time))),
+    [value],
+  );
+
+  function isSelected(time: string): boolean {
+    return selectedTimes.has(normalizeReminderTime(time));
   }
 
-  function openEdit(item: ReminderTimeDraft) {
-    setEditingKey(item.key);
-    setDraftTime(item.time);
-    setPicking(true);
-    if (Platform.OS === 'android') setAndroidOpen(true);
+  function togglePreset(time: string) {
+    const normalized = normalizeReminderTime(time);
+    if (isSelected(normalized)) {
+      onChange(value.filter((item) => normalizeReminderTime(item.time) !== normalized));
+      return;
+    }
+    onChange(sortByTime([...value, newDraft(normalized)]));
   }
 
   function remove(key: string) {
@@ -63,31 +70,29 @@ export function ReminderTimesPicker({ value, onChange }: ReminderTimesPickerProp
     onChange(value.map((item) => (item.key === key ? { ...item, enabled } : item)));
   }
 
-  function commitTime(time: string) {
-    const normalized = normalizeReminderTime(time);
-    if (value.some((item) => item.time === normalized && item.key !== editingKey)) {
-      // Duplicate — ignore silently by keeping picker open; user can pick another
-      return false;
-    }
+  function openCustom() {
+    setDraftTime('08:00');
+    setPickingCustom(true);
+    if (Platform.OS === 'android') setAndroidOpen(true);
+  }
 
-    if (editingKey) {
-      onChange(
-        value.map((item) => (item.key === editingKey ? { ...item, time: normalized } : item)),
-      );
-    } else {
-      onChange([...value, newDraft(normalized)]);
+  function commitCustom(time: string) {
+    const normalized = normalizeReminderTime(time);
+    if (isSelected(normalized)) {
+      setPickingCustom(false);
+      setAndroidOpen(false);
+      return;
     }
-    setPicking(false);
-    setEditingKey(null);
+    onChange(sortByTime([...value, newDraft(normalized)]));
+    setPickingCustom(false);
     setAndroidOpen(false);
-    return true;
   }
 
   function onPickerChange(event: DateTimePickerEvent, selected?: Date) {
     if (Platform.OS === 'android') {
       setAndroidOpen(false);
       if (event.type === 'dismissed') {
-        setPicking(false);
+        setPickingCustom(false);
         return;
       }
     }
@@ -97,7 +102,7 @@ export function ReminderTimesPicker({ value, onChange }: ReminderTimesPickerProp
     ).padStart(2, '0')}`;
     setDraftTime(next);
     if (Platform.OS === 'android') {
-      commitTime(next);
+      commitCustom(next);
     }
   }
 
@@ -105,28 +110,45 @@ export function ReminderTimesPicker({ value, onChange }: ReminderTimesPickerProp
     <View style={styles.wrapper}>
       <AppText variant="label">Prayer reminders</AppText>
       <AppText variant="bodySmall" muted>
-        Add one or more times for this same prayer. Each time sends a phone notification — even when
-        PrayerCare is closed.
+        Choose as many times as you like for this prayer. Each selected time sends a phone
+        notification — even when PrayerCare is closed.
       </AppText>
 
-      {value.length === 0 ? (
-        <AppText variant="bodySmall" muted style={styles.empty}>
-          No reminder times yet. Add morning, midday, evening — whatever helps you remember.
-        </AppText>
-      ) : (
+      <View style={styles.presets}>
+        {REMINDER_TIME_PRESETS.map((preset) => {
+          const selected = isSelected(preset.value);
+          return (
+            <Pressable
+              key={preset.value}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: selected }}
+              accessibilityLabel={`${preset.label} reminder`}
+              onPress={() => togglePreset(preset.value)}
+              style={[styles.presetChip, selected && styles.presetChipSelected]}>
+              <AppText
+                variant="bodySmall"
+                style={selected ? styles.presetTextSelected : undefined}>
+                {preset.label}
+              </AppText>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {value.length > 0 ? (
         <View style={styles.list}>
-          {value.map((item) => (
+          <AppText variant="bodySmall" muted>
+            {value.filter((item) => item.enabled).length} active reminder
+            {value.filter((item) => item.enabled).length === 1 ? '' : 's'}
+          </AppText>
+          {sortByTime(value).map((item) => (
             <View key={item.key} style={styles.row}>
-              <Pressable
-                style={styles.timePress}
-                onPress={() => openEdit(item)}
-                accessibilityRole="button"
-                accessibilityLabel={`Edit reminder ${formatReminderTimeLabel(item.time)}`}>
+              <View style={styles.timePress}>
                 <AppText style={styles.timeLabel}>{formatReminderTimeLabel(item.time)}</AppText>
                 <AppText variant="bodySmall" muted>
-                  Tap to edit
+                  {item.enabled ? 'Will notify' : 'Paused'}
                 </AppText>
-              </Pressable>
+              </View>
               <Switch
                 value={item.enabled}
                 onValueChange={(enabled) => toggleEnabled(item.key, enabled)}
@@ -144,9 +166,13 @@ export function ReminderTimesPicker({ value, onChange }: ReminderTimesPickerProp
             </View>
           ))}
         </View>
+      ) : (
+        <AppText variant="bodySmall" muted style={styles.empty}>
+          No times selected yet. Tap morning, midday, evening — or add a custom time.
+        </AppText>
       )}
 
-      <Button title="+ Add another reminder" variant="secondary" onPress={openAdd} />
+      <Button title="+ Custom time" variant="secondary" onPress={openCustom} />
 
       {Platform.OS === 'android' && androidOpen ? (
         <DateTimePicker
@@ -157,30 +183,15 @@ export function ReminderTimesPicker({ value, onChange }: ReminderTimesPickerProp
         />
       ) : null}
 
-      {Platform.OS === 'ios' && picking ? (
-        <Modal transparent animationType="slide" visible onRequestClose={() => setPicking(false)}>
+      {Platform.OS === 'ios' && pickingCustom ? (
+        <Modal
+          transparent
+          animationType="slide"
+          visible
+          onRequestClose={() => setPickingCustom(false)}>
           <View style={styles.modalBackdrop}>
             <View style={styles.modalCard}>
-              <AppText variant="title">
-                {editingKey ? 'Edit reminder time' : 'Add reminder time'}
-              </AppText>
-              <View style={styles.presets}>
-                {REMINDER_TIME_PRESETS.map((preset) => (
-                  <Pressable
-                    key={preset.value}
-                    style={[
-                      styles.presetChip,
-                      draftTime === preset.value && styles.presetChipSelected,
-                    ]}
-                    onPress={() => setDraftTime(preset.value)}>
-                    <AppText
-                      variant="bodySmall"
-                      style={draftTime === preset.value ? styles.presetTextSelected : undefined}>
-                      {preset.label}
-                    </AppText>
-                  </Pressable>
-                ))}
-              </View>
+              <AppText variant="title">Custom reminder time</AppText>
               <DateTimePicker
                 value={dateFromTime(draftTime)}
                 mode="time"
@@ -188,28 +199,23 @@ export function ReminderTimesPicker({ value, onChange }: ReminderTimesPickerProp
                 onChange={onPickerChange}
               />
               <View style={styles.modalActions}>
-                <Button title="Cancel" variant="ghost" onPress={() => setPicking(false)} />
-                <Button
-                  title={editingKey ? 'Save time' : 'Add time'}
-                  onPress={() => {
-                    if (!commitTime(draftTime)) {
-                      // duplicate
-                    }
-                  }}
-                />
+                <Button title="Cancel" variant="ghost" onPress={() => setPickingCustom(false)} />
+                <Button title="Add time" onPress={() => commitCustom(draftTime)} />
               </View>
             </View>
           </View>
         </Modal>
       ) : null}
 
-      {Platform.OS === 'web' && picking ? (
-        <Modal transparent animationType="fade" visible onRequestClose={() => setPicking(false)}>
+      {Platform.OS === 'web' && pickingCustom ? (
+        <Modal
+          transparent
+          animationType="fade"
+          visible
+          onRequestClose={() => setPickingCustom(false)}>
           <View style={styles.modalBackdrop}>
             <View style={styles.modalCard}>
-              <AppText variant="title">
-                {editingKey ? 'Edit reminder time' : 'Add reminder time'}
-              </AppText>
+              <AppText variant="title">Custom reminder time</AppText>
               <View style={styles.presets}>
                 {REMINDER_TIME_PRESETS.map((preset) => (
                   <Pressable
@@ -221,15 +227,17 @@ export function ReminderTimesPicker({ value, onChange }: ReminderTimesPickerProp
                     onPress={() => setDraftTime(preset.value)}>
                     <AppText
                       variant="bodySmall"
-                      style={draftTime === preset.value ? styles.presetTextSelected : undefined}>
+                      style={
+                        draftTime === preset.value ? styles.presetTextSelected : undefined
+                      }>
                       {preset.label}
                     </AppText>
                   </Pressable>
                 ))}
               </View>
               <View style={styles.modalActions}>
-                <Button title="Cancel" variant="ghost" onPress={() => setPicking(false)} />
-                <Button title={editingKey ? 'Save time' : 'Add time'} onPress={() => commitTime(draftTime)} />
+                <Button title="Cancel" variant="ghost" onPress={() => setPickingCustom(false)} />
+                <Button title="Add time" onPress={() => commitCustom(draftTime)} />
               </View>
             </View>
           </View>
@@ -273,22 +281,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontSize: 14,
   },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(42,42,42,0.35)',
-    justifyContent: 'flex-end',
-  },
-  modalCard: {
-    backgroundColor: theme.colors.background,
-    borderTopLeftRadius: theme.radius.xl,
-    borderTopRightRadius: theme.radius.xl,
-    padding: theme.spacing.lg,
-    gap: theme.spacing.md,
-  },
   presets: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
+    marginTop: theme.spacing.xs,
   },
   presetChip: {
     paddingHorizontal: theme.spacing.md,
@@ -305,6 +302,18 @@ const styles = StyleSheet.create({
   presetTextSelected: {
     color: theme.colors.white,
     fontWeight: '600',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(42,42,42,0.35)',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    backgroundColor: theme.colors.background,
+    borderTopLeftRadius: theme.radius.xl,
+    borderTopRightRadius: theme.radius.xl,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
   },
   modalActions: {
     gap: theme.spacing.sm,
