@@ -1,4 +1,4 @@
-import { StyleSheet, Text, type TextProps } from 'react-native';
+import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
 
 import { theme } from '@/constants/theme';
 
@@ -29,11 +29,16 @@ export function AppText({
   );
 }
 
+const webGreeting =
+  Platform.OS === 'web'
+    ? { fontSize: 24, lineHeight: 32, fontWeight: '600' as const }
+    : theme.typography.greeting;
+
 const styles = StyleSheet.create({
   base: {
     color: theme.colors.text,
   },
-  greeting: theme.typography.greeting,
+  greeting: webGreeting,
   title: theme.typography.title,
   body: theme.typography.body,
   bodySmall: theme.typography.bodySmall,

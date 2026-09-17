@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -288,13 +289,13 @@ function ViewModeToggle({
 
 const styles = StyleSheet.create({
   list: {
-    padding: theme.spacing.lg,
+    padding: Platform.OS === 'web' ? theme.spacing.md : theme.spacing.lg,
     gap: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
     flexGrow: 1,
   },
   calendarScroll: {
-    padding: theme.spacing.lg,
+    padding: Platform.OS === 'web' ? theme.spacing.md : theme.spacing.lg,
     gap: theme.spacing.lg,
     paddingBottom: theme.spacing.xxl,
   },

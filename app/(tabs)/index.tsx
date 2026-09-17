@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, Platform, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { PrayerCard } from '@/components/prayer/PrayerCard';
 import { AppText } from '@/components/ui/AppText';
@@ -131,7 +131,7 @@ export default function TodayScreen() {
 
 const styles = StyleSheet.create({
   list: {
-    padding: theme.spacing.lg,
+    padding: Platform.OS === 'web' ? theme.spacing.md : theme.spacing.lg,
     gap: theme.spacing.md,
     paddingBottom: BETA_MODE ? 100 : theme.spacing.xxl,
     flexGrow: 1,
@@ -150,8 +150,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.sm,
   },
   verseText: {
-    fontSize: 18,
-    lineHeight: 28,
+    fontSize: Platform.OS === 'web' ? 17 : 18,
+    lineHeight: Platform.OS === 'web' ? 26 : 28,
     fontStyle: 'italic',
     color: theme.colors.text,
   },
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: Platform.OS === 'web' ? 16 : 18,
     lineHeight: 26,
   },
   error: {

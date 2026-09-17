@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Platform,
   RefreshControl,
   StyleSheet,
   View,
@@ -170,7 +171,7 @@ export default function GroupsScreen() {
 
 const styles = StyleSheet.create({
   list: {
-    padding: theme.spacing.lg,
+    padding: Platform.OS === 'web' ? theme.spacing.md : theme.spacing.lg,
     gap: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
     flexGrow: 1,

@@ -87,7 +87,7 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <Screen>
+    <Screen safe>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.progress}>
           {STEPS.map((s, index) => (

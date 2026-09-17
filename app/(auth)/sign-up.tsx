@@ -43,7 +43,11 @@ export default function SignUpScreen() {
     setLoading(false);
 
     if (result.error) {
-      setError(friendlyAuthError(result.error));
+      console.warn('Sign up failed:', result.error);
+      // Waitlist / beta copy is already user-facing — show it as-is.
+      const isAppMessage =
+        /beta waitlist|beta access|join on our website|join on the website/i.test(result.error);
+      setError(isAppMessage ? result.error : friendlyAuthError(result.error));
       return;
     }
 
@@ -56,7 +60,7 @@ export default function SignUpScreen() {
   }
 
   return (
-    <Screen>
+    <Screen safe>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}>

@@ -73,7 +73,7 @@ export default function LoginScreen() {
   }
 
   return (
-    <Screen>
+    <Screen safe>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}>

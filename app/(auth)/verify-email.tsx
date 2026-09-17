@@ -64,7 +64,7 @@ export default function VerifyEmailScreen() {
   }
 
   return (
-    <Screen centered>
+    <Screen centered safe>
       <View style={styles.content}>
         <AppText variant="greeting" style={styles.title}>
           Verify your email

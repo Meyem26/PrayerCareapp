@@ -33,8 +33,13 @@ export default function TabLayout() {
     return <Redirect href="/(onboarding)" />;
   }
 
-  // Android edge-to-edge draws under the system nav; without this, labels clip in half.
-  const bottomInset = Math.max(insets.bottom, Platform.OS === 'android' ? 12 : 0);
+  // Android edge-to-edge and mobile web (Safari/Chrome) need a floor so tab labels aren't clipped.
+  const bottomInset = Math.max(
+    insets.bottom,
+    Platform.OS === 'android' || Platform.OS === 'web' ? 12 : 0,
+  );
+
+  const isWeb = Platform.OS === 'web';
 
   return (
     <>
@@ -43,7 +48,10 @@ export default function TabLayout() {
         safeAreaInsets={{ bottom: 0 }}
         screenOptions={{
           headerShown: true,
-          headerStyle: { backgroundColor: theme.colors.background },
+          headerStyle: {
+            backgroundColor: theme.colors.background,
+            ...(isWeb ? { height: 56 } : null),
+          },
           headerShadowVisible: false,
           headerTitle: () => null,
           headerLeftContainerStyle: {

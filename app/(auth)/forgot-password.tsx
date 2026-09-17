@@ -46,7 +46,7 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <Screen>
+    <Screen safe>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}>

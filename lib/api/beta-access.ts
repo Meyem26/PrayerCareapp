@@ -2,10 +2,10 @@ import { BETA_MODE, LANDING_URL } from '@/constants/beta';
 import { supabase } from '@/lib/supabase';
 
 const WAITLIST_HELP =
-  'This email is not on the beta waitlist yet. Join on our website first, then create your account with the same email.';
+  'This email is not on the beta waitlist yet. Join on the website first, then create your account with the same email.';
 
 const ACCESS_CHECK_UNAVAILABLE =
-  "We couldn't verify your beta access right now. Please try again in a few minutes, or join the beta on our website if you haven't yet.";
+  "We couldn't verify your beta access right now. Please try again in a few minutes.";
 
 export async function canCreateBetaAccount(email: string): Promise<{
   allowed: boolean;
@@ -33,7 +33,7 @@ export async function canCreateBetaAccount(email: string): Promise<{
     const siteHost = LANDING_URL.replace(/^https?:\/\//, '').replace(/\/$/, '');
     return {
       allowed: false,
-      error: `${WAITLIST_HELP} (${siteHost})`,
+      error: `${WAITLIST_HELP} Go to ${siteHost} to join.`,
     };
   }
 
