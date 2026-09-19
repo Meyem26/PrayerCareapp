@@ -41,10 +41,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: PHONE_MAX_WIDTH,
     backgroundColor: theme.colors.background,
-    overflow: 'hidden',
   },
   frameFramed: Platform.select({
     web: {
+      overflow: 'hidden',
       boxShadow: '0 0 0 1px rgba(42,42,42,0.06), 0 12px 40px rgba(42,42,42,0.08)',
     },
     default: {},

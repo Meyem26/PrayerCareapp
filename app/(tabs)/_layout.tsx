@@ -10,8 +10,12 @@ import { LoadingScreen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 
-/** Content height for icon + label (excludes system nav inset). */
-const TAB_BAR_CONTENT_HEIGHT = 60;
+/**
+ * Space for icon + label (excludes system / home-indicator inset).
+ * Tall enough that labels are not clipped on iOS, Android, or web.
+ */
+const TAB_BAR_CONTENT_HEIGHT = Platform.select({ web: 64, default: 56 }) ?? 56;
+const TAB_ICON_SIZE = 22;
 
 export default function TabLayout() {
   const { session, isLoading, isProfileLoading, isEmailVerified, needsOnboarding } = useAuth();
@@ -33,11 +37,8 @@ export default function TabLayout() {
     return <Redirect href="/(onboarding)" />;
   }
 
-  // Android edge-to-edge and mobile web (Safari/Chrome) need a floor so tab labels aren't clipped.
-  const bottomInset = Math.max(
-    insets.bottom,
-    Platform.OS === 'android' || Platform.OS === 'web' ? 12 : 0,
-  );
+  // Always leave room under the labels (home indicator, Android nav, mobile browser chrome).
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 8 : 12);
 
   const isWeb = Platform.OS === 'web';
 
@@ -62,30 +63,38 @@ export default function TabLayout() {
           headerRightContainerStyle: {
             paddingRight: theme.spacing.md,
           },
+          tabBarShowLabel: true,
           tabBarStyle: {
             backgroundColor: theme.colors.surface,
             borderTopColor: theme.colors.border,
             borderTopWidth: StyleSheet.hairlineWidth,
             height: TAB_BAR_CONTENT_HEIGHT + bottomInset,
-            paddingTop: 6,
+            paddingTop: 4,
             paddingBottom: bottomInset,
             elevation: 0,
             shadowOpacity: 0,
+            overflow: 'visible',
           },
           tabBarItemStyle: {
             paddingTop: 2,
+            paddingBottom: 0,
+            justifyContent: 'center',
           },
           tabBarIconStyle: {
+            marginTop: 0,
             marginBottom: 0,
           },
           tabBarActiveTintColor: theme.colors.accentDark,
           tabBarInactiveTintColor: theme.colors.textMuted,
           tabBarLabelStyle: {
             fontSize: 11,
+            lineHeight: 14,
             fontWeight: '600',
             letterSpacing: 0.2,
             marginTop: 2,
             marginBottom: 0,
+            // Android otherwise adds extra font padding that clips labels in a fixed-height bar.
+            includeFontPadding: false,
           },
         }}>
         <Tabs.Screen
@@ -94,7 +103,9 @@ export default function TabLayout() {
             title: 'Today',
             headerLeft: () => <BrandHeaderTitle title="Today" />,
             tabBarLabel: 'Today',
-            tabBarIcon: ({ focused }) => <BrandTabIcon name="today" focused={focused} />,
+            tabBarIcon: ({ focused }) => (
+              <BrandTabIcon name="today" focused={focused} size={TAB_ICON_SIZE} />
+            ),
           }}
         />
         <Tabs.Screen
@@ -102,7 +113,10 @@ export default function TabLayout() {
           options={{
             title: 'Pray',
             headerLeft: () => <BrandHeaderTitle title="Pray" />,
-            tabBarIcon: ({ focused }) => <BrandTabIcon name="pray" focused={focused} />,
+            tabBarLabel: 'Pray',
+            tabBarIcon: ({ focused }) => (
+              <BrandTabIcon name="pray" focused={focused} size={TAB_ICON_SIZE} />
+            ),
           }}
         />
         <Tabs.Screen
@@ -110,7 +124,10 @@ export default function TabLayout() {
           options={{
             title: 'Groups',
             headerLeft: () => <BrandHeaderTitle title="Groups" />,
-            tabBarIcon: ({ focused }) => <BrandTabIcon name="groups" focused={focused} />,
+            tabBarLabel: 'Groups',
+            tabBarIcon: ({ focused }) => (
+              <BrandTabIcon name="groups" focused={focused} size={TAB_ICON_SIZE} />
+            ),
           }}
         />
         <Tabs.Screen
@@ -118,7 +135,10 @@ export default function TabLayout() {
           options={{
             title: 'Journey',
             headerLeft: () => <BrandHeaderTitle title="Journey" />,
-            tabBarIcon: ({ focused }) => <BrandTabIcon name="journey" focused={focused} />,
+            tabBarLabel: 'Journey',
+            tabBarIcon: ({ focused }) => (
+              <BrandTabIcon name="journey" focused={focused} size={TAB_ICON_SIZE} />
+            ),
           }}
         />
       </Tabs>

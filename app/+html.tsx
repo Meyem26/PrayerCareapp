@@ -43,8 +43,11 @@ html, body {
   color: #2A2A2A;
 }
 body {
+  /* svh = visible viewport with browser chrome; avoids clipping the tab bar labels */
   min-height: 100%;
-  min-height: 100dvh;
+  min-height: 100svh;
+  height: 100%;
+  height: 100svh;
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
@@ -53,6 +56,6 @@ body {
 #root, [data-reactroot] {
   height: 100%;
   min-height: 100%;
-  min-height: 100dvh;
+  min-height: 100svh;
 }
 `;

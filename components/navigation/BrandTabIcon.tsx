@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 28,
-    height: 28,
+    width: 26,
+    height: 26,
   },
 });
