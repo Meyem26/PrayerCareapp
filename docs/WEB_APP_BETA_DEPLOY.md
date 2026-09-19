@@ -53,7 +53,7 @@ You already have a Vercel project for `website/`. Create **another** project:
 |------|--------|
 | `EXPO_PUBLIC_SUPABASE_URL` | your Supabase URL |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | your anon key |
-| `EXPO_PUBLIC_BETA_MODE` | `true` |
+| `EXPO_PUBLIC_BETA_MODE` | `false` (signup is open; no waitlist gate) |
 | `EXPO_PUBLIC_LANDING_URL` | `https://yourdomain.com` |
 | `EXPO_PUBLIC_WEB_APP_URL` | `https://app.yourdomain.com` |
 

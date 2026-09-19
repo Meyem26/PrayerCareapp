@@ -1,7 +1,8 @@
 import Constants from 'expo-constants';
 
 /**
- * Private beta gate (waitlist, welcome modal, feedback FAB).
+ * Private beta UI extras (welcome modal, feedback FAB, full-access tier).
+ * Signup is open to everyone — waitlist is not required for Create Account.
  * Opt-in only: set `extra.betaMode: true` or `EXPO_PUBLIC_BETA_MODE=true`.
  * Public launch keeps this false.
  */

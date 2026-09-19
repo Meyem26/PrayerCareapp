@@ -6,7 +6,6 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
-import { BETA_MODE } from '@/constants/beta';
 import { useAuth } from '@/contexts/AuthContext';
 import { theme } from '@/constants/theme';
 import { isSupabaseConfigured } from '@/lib/supabase';
@@ -44,10 +43,7 @@ export default function SignUpScreen() {
 
     if (result.error) {
       console.warn('Sign up failed:', result.error);
-      // Waitlist / beta copy is already user-facing — show it as-is.
-      const isAppMessage =
-        /beta waitlist|beta access|join on our website|join on the website/i.test(result.error);
-      setError(isAppMessage ? result.error : friendlyAuthError(result.error));
+      setError(friendlyAuthError(result.error));
       return;
     }
 
@@ -78,26 +74,9 @@ export default function SignUpScreen() {
             <AppText muted>
               Create a peaceful space to pray, care, and celebrate answered prayers.
             </AppText>
-            {BETA_MODE ? (
-              <View style={styles.betaSteps}>
-                <AppText variant="label" accent style={styles.betaStepsTitle}>
-                  Quick start
-                </AppText>
-                <AppText variant="bodySmall" style={styles.betaStep}>
-                  1. You were invited to try PrayerCare
-                </AppText>
-                <AppText variant="bodySmall" style={styles.betaStep}>
-                  2. Create your account here with your email
-                </AppText>
-                <AppText variant="bodySmall" style={styles.betaStep}>
-                  3. Sign in anytime after that
-                </AppText>
-              </View>
-            ) : (
-              <AppText variant="bodySmall" muted style={styles.freeNote}>
-                PrayerCare is free. Create your account to get started.
-              </AppText>
-            )}
+            <AppText variant="bodySmall" muted style={styles.freeNote}>
+              PrayerCare is free. Create your account to get started.
+            </AppText>
           </View>
 
           <View style={styles.form}>
@@ -158,20 +137,6 @@ const styles = StyleSheet.create({
   freeNote: {
     marginTop: theme.spacing.sm,
     lineHeight: 20,
-  },
-  betaSteps: {
-    marginTop: theme.spacing.md,
-    padding: theme.spacing.md,
-    backgroundColor: theme.colors.accentLight,
-    borderRadius: theme.radius.md,
-    gap: theme.spacing.xs,
-  },
-  betaStepsTitle: {
-    marginBottom: theme.spacing.xs,
-  },
-  betaStep: {
-    lineHeight: 20,
-    color: theme.colors.textSecondary,
   },
   greeting: {
     marginTop: theme.spacing.xs,
