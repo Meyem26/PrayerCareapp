@@ -47,12 +47,15 @@ export default function SignUpScreen() {
       return;
     }
 
-    if (result.session) {
-      router.replace('/');
+    if (result.needsEmailVerification) {
+      router.replace({
+        pathname: '/(auth)/verify-email',
+        params: { email: email.trim() },
+      });
       return;
     }
 
-    router.replace('/(auth)/verify-email');
+    router.replace('/');
   }
 
   return (

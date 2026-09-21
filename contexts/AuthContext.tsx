@@ -10,6 +10,7 @@ import {
 import type { Session, User } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 
+import { WEB_APP_URL } from '@/constants/beta';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import {
   canAccessFeature,
@@ -44,10 +45,14 @@ type AuthContextValue = {
     email: string,
     password: string,
     displayName: string,
-  ) => Promise<{ error: string | null; session: Session | null }>;
+  ) => Promise<{
+    error: string | null;
+    session: Session | null;
+    needsEmailVerification: boolean;
+  }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
-  resendVerificationEmail: () => Promise<{ error: string | null }>;
+  resendVerificationEmail: (email?: string) => Promise<{ error: string | null }>;
   refreshSession: () => Promise<{ error: string | null }>;
   updateProfile: (updates: ProfileUpdate) => Promise<{ error: string | null }>;
   refreshProfile: () => Promise<void>;
@@ -142,7 +147,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const emailRedirectTo =
       Platform.OS === 'web' && typeof window !== 'undefined'
         ? `${window.location.origin}/`
-        : undefined;
+        : `${WEB_APP_URL.replace(/\/$/, '')}/`;
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -152,7 +157,25 @@ export function AuthProvider({ children }: PropsWithChildren) {
         emailRedirectTo,
       },
     });
-    return { error: error?.message ?? null, session: data.session };
+
+    if (error) {
+      return { error: error.message, session: null, needsEmailVerification: false };
+    }
+
+    const confirmed = Boolean(data.user?.email_confirmed_at);
+    if (!confirmed) {
+      // Prevent access until the confirmation link is clicked.
+      if (data.session) {
+        await supabase.auth.signOut();
+      }
+      return { error: null, session: null, needsEmailVerification: true };
+    }
+
+    return {
+      error: null,
+      session: data.session,
+      needsEmailVerification: false,
+    };
   }, []);
 
   const signOut = useCallback(async () => {
@@ -172,14 +195,21 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return { error: error?.message ?? null };
   }, []);
 
-  const resendVerificationEmail = useCallback(async () => {
-    if (!session?.user?.email) {
+  const resendVerificationEmail = useCallback(async (email?: string) => {
+    const target = (email ?? session?.user?.email)?.trim();
+    if (!target) {
       return { error: 'No email address found for this account.' };
     }
 
+    const emailRedirectTo =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? `${window.location.origin}/`
+        : `${WEB_APP_URL.replace(/\/$/, '')}/`;
+
     const { error } = await supabase.auth.resend({
       type: 'signup',
-      email: session.user.email,
+      email: target,
+      options: { emailRedirectTo },
     });
 
     return { error: error?.message ?? null };

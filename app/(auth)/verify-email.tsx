@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
@@ -10,7 +10,15 @@ import { theme } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
 export default function VerifyEmailScreen() {
+  const params = useLocalSearchParams<{ email?: string | string[] }>();
+  const paramEmail = useMemo(() => {
+    const raw = params.email;
+    return (Array.isArray(raw) ? raw[0] : raw)?.trim() || null;
+  }, [params.email]);
+
   const { user, isEmailVerified, resendVerificationEmail, refreshSession, signOut } = useAuth();
+  const email = user?.email ?? paramEmail;
+
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -18,15 +26,21 @@ export default function VerifyEmailScreen() {
 
   useEffect(() => {
     if (isEmailVerified) {
-      router.replace('/(tabs)');
+      router.replace('/');
     }
   }, [isEmailVerified]);
 
   async function handleResend() {
     setMessage(null);
     setError(null);
+
+    if (!email) {
+      setError('Please go back and sign up again so we know which email to verify.');
+      return;
+    }
+
     setLoading(true);
-    const result = await resendVerificationEmail();
+    const result = await resendVerificationEmail(email);
     setLoading(false);
 
     if (result.error) {
@@ -34,28 +48,36 @@ export default function VerifyEmailScreen() {
       return;
     }
 
-    setMessage('Verification email sent. Please check your inbox.');
+    setMessage('Verification email sent. Please check your inbox and spam folder.');
   }
 
   async function handleCheckVerified() {
     setError(null);
     setMessage(null);
     setChecking(true);
-    const result = await refreshSession();
-    setChecking(false);
 
+    const result = await refreshSession();
     if (result.error) {
-      setError(result.error);
+      // No session yet is normal before the link is clicked — probe getUser/getSession.
+      const { data } = await supabase.auth.getSession();
+      setChecking(false);
+      if (data.session?.user?.email_confirmed_at) {
+        router.replace('/');
+        return;
+      }
+      setMessage('Email not verified yet. Open the link in your email, then tap this button again.');
       return;
     }
+
+    setChecking(false);
 
     const { data } = await supabase.auth.getSession();
     if (data.session?.user?.email_confirmed_at) {
-      router.replace('/(tabs)');
+      router.replace('/');
       return;
     }
 
-    setMessage('Email not verified yet. Check your inbox and try again in a moment.');
+    setMessage('Email not verified yet. Open the link in your email, then tap this button again.');
   }
 
   async function handleSignOut() {
@@ -71,12 +93,12 @@ export default function VerifyEmailScreen() {
         </AppText>
         <AppText muted style={styles.body}>
           We sent a confirmation link to{' '}
-          <AppText accent>{user?.email ?? 'your email'}</AppText>.
+          <AppText accent>{email ?? 'your email'}</AppText>.
           {'\n\n'}
-          Check your inbox and spam folder. If nothing arrives in a few minutes, tap Resend
-          Email below or contact the PrayerCare team for help.
+          Open that link to activate your account. Check spam if you do not see it within a few
+          minutes.
           {'\n\n'}
-          Once verified, you can begin your prayer journey.
+          After you confirm, return here and tap “I verified my email,” or open PrayerCare again.
         </AppText>
 
         {error ? <AppText style={styles.error}>{error}</AppText> : null}

@@ -27,7 +27,7 @@ If testers see **email is disabled** or account creation unavailable, check **al
 | Setting | Beta value |
 |---------|------------|
 | **Email provider enabled** | ON |
-| **Confirm email** | OFF (recommended for beta) |
+| **Confirm email** | **ON** (required so new users must click the email link) |
 
 **B) Same page — top of Providers / General**
 
@@ -43,14 +43,16 @@ After a failed signup, open **Logs** and note the exact error (`signup_disabled`
 
 Save after any change.
 
-### 1. Turn off email confirmation (recommended for beta)
+### 1. Require email confirmation
 
-So testers can use the app immediately without waiting for verification email.
+New accounts must click the link in their email before using the app.
 
 **Supabase → Authentication → Providers → Email**
 
-- Turn **Confirm email** **OFF**
+- Turn **Confirm email** **ON**
 - Save
+
+Without this, Supabase auto-confirms users and they enter the app immediately.
 
 ### 2. Send auth emails through Resend
 
@@ -127,7 +129,7 @@ Questions? Reply to this email.
 ## Checklist
 
 ```
-[ ] Confirm email OFF in Supabase (beta)
+[ ] Confirm email ON in Supabase (required for verify-email flow)
 [ ] Custom SMTP via Resend configured
 [ ] Redirect URLs include app.prayercare.online/**
 [ ] Web app redeployed
