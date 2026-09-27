@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -117,11 +117,10 @@ export default function CreateSermonNoteScreen() {
 
   return (
     <Screen padded={false}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.flex}>
         <ScrollView
+          style={styles.flex}
           contentContainerStyle={styles.scroll}
+          automaticallyAdjustKeyboardInsets
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <View style={styles.section}>
@@ -189,7 +188,6 @@ export default function CreateSermonNoteScreen() {
 
           <Button title="Save sermon note" loading={loading} onPress={handleSave} />
         </ScrollView>
-      </KeyboardAvoidingView>
     </Screen>
   );
 }

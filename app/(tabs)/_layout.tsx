@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandHeaderTitle } from '@/components/navigation/BrandHeaderTitle';
 import { BrandTabIcon } from '@/components/navigation/BrandTabIcon';
 import { ProfileMenuButton } from '@/components/navigation/ProfileMenuButton';
+import { TabScreenContext } from '@/components/navigation/TabScreenContext';
 import { NotificationBootstrap } from '@/components/notifications/NotificationBootstrap';
 import { LoadingScreen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
@@ -43,7 +44,7 @@ export default function TabLayout() {
   const isWeb = Platform.OS === 'web';
 
   return (
-    <>
+    <TabScreenContext.Provider value>
       <NotificationBootstrap />
       <Tabs
         safeAreaInsets={{ bottom: 0 }}
@@ -142,6 +143,6 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-    </>
+    </TabScreenContext.Provider>
   );
 }

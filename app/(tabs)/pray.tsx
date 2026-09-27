@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -59,53 +59,47 @@ export default function PrayScreen() {
 
   return (
     <Screen>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.flex}>
-        <ScrollView
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          <AppText variant="greeting">What&apos;s on your heart today?</AppText>
-          <AppText muted>
-            Share naturally. AI drafts a biblical prayer in Jesus&apos; name. Scripture text is
-            loaded from a trusted Bible source — everything remains fully editable.
-          </AppText>
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.content}
+        automaticallyAdjustKeyboardInsets
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <AppText variant="greeting">What&apos;s on your heart today?</AppText>
+        <AppText muted>
+          Share naturally. AI can draft a biblical prayer in Jesus&apos; name, or you can write
+          your own. Then PrayerCare walks you through a few quick choices — one at a time.
+        </AppText>
 
-          <TextArea
-            label="Your heart"
-            value={heart}
-            onChangeText={setHeart}
-            editable={!loading}
-            placeholder="Health, family, guidance, a loved one, a ministry need..."
-          />
+        <TextArea
+          label="Your heart"
+          value={heart}
+          onChangeText={setHeart}
+          editable={!loading}
+          placeholder="Health, family, guidance, a loved one, a ministry need..."
+        />
 
-          {loading ? (
-            <View style={styles.loadingBox}>
-              <ActivityIndicator color={theme.colors.accent} />
-              <AppText muted style={styles.loadingText}>
-                Preparing a prayer grounded in Scripture...
-              </AppText>
-            </View>
-          ) : null}
-
-          {error ? <AppText style={styles.error}>{error}</AppText> : null}
-
-          <View style={styles.actions}>
-            <Button
-              title="Generate with AI"
-              loading={loading}
-              onPress={handleGenerateAi}
-            />
-            <Button
-              title="Write my own prayer"
-              variant="secondary"
-              disabled={loading}
-              onPress={handleWriteOwn}
-            />
+        {loading ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator color={theme.colors.accent} />
+            <AppText muted style={styles.loadingText}>
+              Preparing a prayer grounded in Scripture...
+            </AppText>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        ) : null}
+
+        {error ? <AppText style={styles.error}>{error}</AppText> : null}
+
+        <View style={styles.actions}>
+          <Button title="Generate with AI" loading={loading} onPress={handleGenerateAi} />
+          <Button
+            title="Write my own prayer"
+            variant="secondary"
+            disabled={loading}
+            onPress={handleWriteOwn}
+          />
+        </View>
+      </ScrollView>
     </Screen>
   );
 }

@@ -8,15 +8,18 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useIsTabScreen } from '@/components/navigation/TabScreenContext';
 import { theme } from '@/constants/theme';
 
 type ScreenProps = ViewProps & {
   centered?: boolean;
   padded?: boolean;
   /**
-   * Apply device safe-area insets.
+   * Also apply the top safe-area inset.
    * Use on full-bleed screens without a nav header (auth, onboarding).
-   * Leave false under stack/tab headers so content matches the native app.
+   * Leave false under stack/tab headers — the header already clears the status bar.
+   * The bottom inset (home indicator / Android nav bar) is always handled, except inside
+   * tabs where the tab bar owns it.
    */
   safe?: boolean;
 };
@@ -30,6 +33,7 @@ export function Screen({
   ...props
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
+  const isTabScreen = useIsTabScreen();
   const { width } = useWindowDimensions();
 
   // Tighter side padding on phone-width web (and small phones) — closer to native density.
@@ -41,7 +45,10 @@ export function Screen({
       : 0;
 
   const paddingTop = safe ? insets.top + theme.spacing.md : 0;
-  const paddingBottom = safe ? insets.bottom + theme.spacing.md : padded ? theme.spacing.md : 0;
+  const bottomInset = isTabScreen ? 0 : insets.bottom;
+  const paddingBottom = safe
+    ? insets.bottom + theme.spacing.md
+    : bottomInset + (padded ? theme.spacing.md : 0);
 
   return (
     <View

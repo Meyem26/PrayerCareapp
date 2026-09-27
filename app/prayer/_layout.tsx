@@ -18,7 +18,15 @@ export default function PrayerLayout() {
         headerShadowVisible: false,
         contentStyle: { backgroundColor: theme.colors.background },
       }}>
-      <Stack.Screen name="create" options={{ title: 'New Prayer', presentation: 'modal' }} />
+      <Stack.Screen
+        name="create"
+        options={{
+          title: 'New Prayer',
+          presentation: 'fullScreenModal',
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
       <Stack.Screen name="[id]" options={{ title: 'Prayer' }} />
     </Stack>
     </AuthGate>

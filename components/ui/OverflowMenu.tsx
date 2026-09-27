@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/ui/AppText';
 import { theme } from '@/constants/theme';
@@ -17,6 +18,7 @@ type OverflowMenuProps = {
 
 export function OverflowMenu({ items, accessibilityLabel = 'More options' }: OverflowMenuProps) {
   const [visible, setVisible] = useState(false);
+  const insets = useSafeAreaInsets();
 
   if (items.length === 0) return null;
 
@@ -41,7 +43,9 @@ export function OverflowMenu({ items, accessibilityLabel = 'More options' }: Ove
         transparent
         animationType="fade"
         onRequestClose={() => setVisible(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setVisible(false)}>
+        <Pressable
+          style={[styles.backdrop, { paddingTop: insets.top + theme.spacing.xxl }]}
+          onPress={() => setVisible(false)}>
           <View style={styles.menu}>
             {items.map((item, index) => (
               <Pressable
@@ -88,7 +92,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(42, 42, 42, 0.25)',
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
-    paddingTop: theme.spacing.xl,
     paddingRight: theme.spacing.lg,
   },
   menu: {

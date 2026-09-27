@@ -1,11 +1,14 @@
 import DateTimePicker, {
+  DateTimePickerAndroid,
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
 import { useMemo, useState } from 'react';
-import { Modal, Platform, Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
+import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import {
   formatReminderTimeLabel,
   normalizeReminderTime,
@@ -18,7 +21,14 @@ import type { ReminderTimeDraft } from '@/types/reminder';
 type ReminderTimesPickerProps = {
   value: ReminderTimeDraft[];
   onChange: (next: ReminderTimeDraft[]) => void;
+  label?: string;
 };
+
+const PERIODS: { label: string; test: (hour: number) => boolean }[] = [
+  { label: 'Morning', test: (hour) => hour < 12 },
+  { label: 'Afternoon', test: (hour) => hour >= 12 && hour < 17 },
+  { label: 'Evening', test: (hour) => hour >= 17 },
+];
 
 function newDraft(time: string): ReminderTimeDraft {
   return {
@@ -35,215 +45,279 @@ function dateFromTime(time: string): Date {
   return date;
 }
 
+function timeFromDate(date: Date): string {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
 function sortByTime(items: ReminderTimeDraft[]): ReminderTimeDraft[] {
   return [...items].sort((a, b) => a.time.localeCompare(b.time));
 }
 
-export function ReminderTimesPicker({ value, onChange }: ReminderTimesPickerProps) {
-  const [pickingCustom, setPickingCustom] = useState(false);
+export function ReminderTimesPicker({ value, onChange, label = 'Remind me' }: ReminderTimesPickerProps) {
+  const [open, setOpen] = useState(false);
+  const [customMode, setCustomMode] = useState(false);
   const [draftTime, setDraftTime] = useState('08:00');
-  const [androidOpen, setAndroidOpen] = useState(false);
+  const [webTime, setWebTime] = useState('');
+  const [customError, setCustomError] = useState<string | null>(null);
 
+  const sorted = useMemo(() => sortByTime(value), [value]);
   const selectedTimes = useMemo(
     () => new Set(value.map((item) => normalizeReminderTime(item.time))),
     [value],
   );
+  const customTimes = sorted.filter(
+    (item) => !REMINDER_TIME_PRESETS.some((preset) => preset.value === normalizeReminderTime(item.time)),
+  );
 
-  function isSelected(time: string): boolean {
-    return selectedTimes.has(normalizeReminderTime(time));
+  function toggleTime(time: string) {
+    const normalized = normalizeReminderTime(time);
+    if (selectedTimes.has(normalized)) {
+      onChange(value.filter((item) => normalizeReminderTime(item.time) !== normalized));
+    } else {
+      onChange(sortByTime([...value, newDraft(normalized)]));
+    }
   }
 
-  function togglePreset(time: string) {
+  function addTime(time: string) {
     const normalized = normalizeReminderTime(time);
-    if (isSelected(normalized)) {
-      onChange(value.filter((item) => normalizeReminderTime(item.time) !== normalized));
-      return;
+    if (!selectedTimes.has(normalized)) {
+      onChange(sortByTime([...value, newDraft(normalized)]));
     }
-    onChange(sortByTime([...value, newDraft(normalized)]));
   }
 
   function remove(key: string) {
     onChange(value.filter((item) => item.key !== key));
   }
 
-  function toggleEnabled(key: string, enabled: boolean) {
-    onChange(value.map((item) => (item.key === key ? { ...item, enabled } : item)));
+  function toggleEnabled(key: string) {
+    onChange(value.map((item) => (item.key === key ? { ...item, enabled: !item.enabled } : item)));
   }
 
   function openCustom() {
-    setDraftTime('08:00');
-    setPickingCustom(true);
-    if (Platform.OS === 'android') setAndroidOpen(true);
-  }
-
-  function commitCustom(time: string) {
-    const normalized = normalizeReminderTime(time);
-    if (isSelected(normalized)) {
-      setPickingCustom(false);
-      setAndroidOpen(false);
+    setCustomError(null);
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value: dateFromTime('08:00'),
+        mode: 'time',
+        onChange: (event: DateTimePickerEvent, selected?: Date) => {
+          if (event.type === 'set' && selected) addTime(timeFromDate(selected));
+        },
+      });
       return;
     }
-    onChange(sortByTime([...value, newDraft(normalized)]));
-    setPickingCustom(false);
-    setAndroidOpen(false);
+    setDraftTime('08:00');
+    setWebTime('');
+    setCustomMode(true);
   }
 
-  function onPickerChange(event: DateTimePickerEvent, selected?: Date) {
-    if (Platform.OS === 'android') {
-      setAndroidOpen(false);
-      if (event.type === 'dismissed') {
-        setPickingCustom(false);
+  function commitCustom() {
+    if (Platform.OS === 'web') {
+      const match = /^(\d{1,2}):(\d{2})$/.exec(webTime.trim());
+      if (!match || Number(match[1]) > 23 || Number(match[2]) > 59) {
+        setCustomError('Use 24-hour time, e.g. 07:30 or 21:15.');
         return;
       }
+      addTime(webTime.trim());
+    } else {
+      addTime(draftTime);
     }
-    if (!selected) return;
-    const next = `${String(selected.getHours()).padStart(2, '0')}:${String(
-      selected.getMinutes(),
-    ).padStart(2, '0')}`;
-    setDraftTime(next);
-    if (Platform.OS === 'android') {
-      commitCustom(next);
-    }
+    setCustomMode(false);
   }
+
+  function closeSheet() {
+    setCustomMode(false);
+    setOpen(false);
+  }
+
+  const activeCount = value.filter((item) => item.enabled).length;
+  const summary =
+    sorted.length === 0
+      ? null
+      : sorted.length <= 3
+        ? sorted.map((item) => formatReminderTimeLabel(item.time)).join(' · ')
+        : `${sorted
+            .slice(0, 2)
+            .map((item) => formatReminderTimeLabel(item.time))
+            .join(' · ')} · +${sorted.length - 2} more`;
 
   return (
     <View style={styles.wrapper}>
-      <AppText variant="label">Prayer reminders</AppText>
-      <AppText variant="bodySmall" muted>
-        Choose as many times as you like for this prayer. Each selected time sends a phone
-        notification — even when PrayerCare is closed.
+      <AppText variant="label" style={styles.label}>
+        {label}
       </AppText>
-
-      <View style={styles.presets}>
-        {REMINDER_TIME_PRESETS.map((preset) => {
-          const selected = isSelected(preset.value);
-          return (
-            <Pressable
-              key={preset.value}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: selected }}
-              accessibilityLabel={`${preset.label} reminder`}
-              onPress={() => togglePreset(preset.value)}
-              style={[styles.presetChip, selected && styles.presetChipSelected]}>
-              <AppText
-                variant="bodySmall"
-                style={selected ? styles.presetTextSelected : undefined}>
-                {preset.label}
-              </AppText>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {value.length > 0 ? (
-        <View style={styles.list}>
-          <AppText variant="bodySmall" muted>
-            {value.filter((item) => item.enabled).length} active reminder
-            {value.filter((item) => item.enabled).length === 1 ? '' : 's'}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Reminders: ${summary ?? 'none'}`}
+        accessibilityHint="Opens reminder times"
+        onPress={() => setOpen(true)}
+        style={({ pressed }) => [
+          styles.field,
+          sorted.length > 0 && styles.fieldFilled,
+          pressed && styles.fieldPressed,
+        ]}>
+        <View style={styles.fieldText}>
+          <AppText style={summary ? styles.valueText : styles.placeholderText} numberOfLines={1}>
+            {summary ?? 'Add a reminder time'}
           </AppText>
-          {sortByTime(value).map((item) => (
-            <View key={item.key} style={styles.row}>
-              <View style={styles.timePress}>
-                <AppText style={styles.timeLabel}>{formatReminderTimeLabel(item.time)}</AppText>
-                <AppText variant="bodySmall" muted>
-                  {item.enabled ? 'Will notify' : 'Paused'}
-                </AppText>
-              </View>
-              <Switch
-                value={item.enabled}
-                onValueChange={(enabled) => toggleEnabled(item.key, enabled)}
-                trackColor={{ false: theme.colors.border, true: theme.colors.accentLight }}
-                thumbColor={item.enabled ? theme.colors.accent : theme.colors.surface}
-                accessibilityLabel="Enable this reminder"
-              />
+          <AppText variant="bodySmall" muted>
+            {sorted.length === 0
+              ? 'Optional — a gentle nudge on your phone'
+              : `${activeCount} active notification${activeCount === 1 ? '' : 's'} a day`}
+          </AppText>
+        </View>
+        <AppText style={styles.chevron}>⌄</AppText>
+      </Pressable>
+
+      {sorted.length > 0 ? (
+        <View style={styles.chips}>
+          {sorted.map((item) => (
+            <View key={item.key} style={[styles.chip, !item.enabled && styles.chipPaused]}>
               <Pressable
-                onPress={() => remove(item.key)}
-                hitSlop={8}
                 accessibilityRole="button"
-                accessibilityLabel="Remove reminder">
-                <AppText style={styles.remove}>Remove</AppText>
+                accessibilityLabel={`${formatReminderTimeLabel(item.time)}, ${item.enabled ? 'on' : 'paused'}. Tap to ${item.enabled ? 'pause' : 'resume'}`}
+                onPress={() => toggleEnabled(item.key)}
+                hitSlop={4}>
+                <AppText
+                  variant="bodySmall"
+                  style={item.enabled ? styles.chipText : styles.chipTextPaused}>
+                  {formatReminderTimeLabel(item.time)}
+                  {item.enabled ? '' : ' · paused'}
+                </AppText>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Remove ${formatReminderTimeLabel(item.time)} reminder`}
+                onPress={() => remove(item.key)}
+                hitSlop={8}>
+                <AppText style={styles.chipRemove}>×</AppText>
               </Pressable>
             </View>
           ))}
         </View>
-      ) : (
-        <AppText variant="bodySmall" muted style={styles.empty}>
-          No times selected yet. Tap morning, midday, evening — or add a custom time.
-        </AppText>
-      )}
-
-      <Button title="+ Custom time" variant="secondary" onPress={openCustom} />
-
-      {Platform.OS === 'android' && androidOpen ? (
-        <DateTimePicker
-          value={dateFromTime(draftTime)}
-          mode="time"
-          display="default"
-          onChange={onPickerChange}
-        />
       ) : null}
 
-      {Platform.OS === 'ios' && pickingCustom ? (
-        <Modal
-          transparent
-          animationType="slide"
-          visible
-          onRequestClose={() => setPickingCustom(false)}>
-          <View style={styles.modalBackdrop}>
-            <View style={styles.modalCard}>
-              <AppText variant="title">Custom reminder time</AppText>
-              <DateTimePicker
-                value={dateFromTime(draftTime)}
-                mode="time"
-                display="spinner"
-                onChange={onPickerChange}
+      <BottomSheet
+        visible={open}
+        onClose={closeSheet}
+        title={customMode ? 'Custom time' : 'Remind me to pray'}
+        subtitle={
+          customMode
+            ? 'Pick any time of day.'
+            : 'Choose as many times as you like. Each one sends a notification, even when PrayerCare is closed.'
+        }
+        footer={
+          customMode ? (
+            <View style={styles.footerRow}>
+              <Button
+                title="Back"
+                variant="secondary"
+                onPress={() => setCustomMode(false)}
+                style={styles.footerButton}
               />
-              <View style={styles.modalActions}>
-                <Button title="Cancel" variant="ghost" onPress={() => setPickingCustom(false)} />
-                <Button title="Add time" onPress={() => commitCustom(draftTime)} />
-              </View>
+              <Button title="Add time" onPress={commitCustom} style={styles.footerButton} />
             </View>
-          </View>
-        </Modal>
-      ) : null}
+          ) : (
+            <Button title={sorted.length > 0 ? 'Done' : 'Close'} onPress={closeSheet} />
+          )
+        }>
+        {customMode ? (
+          Platform.OS === 'web' ? (
+            <Input
+              label="Time (24-hour)"
+              value={webTime}
+              onChangeText={(text) => {
+                setWebTime(text);
+                setCustomError(null);
+              }}
+              placeholder="07:30"
+              error={customError}
+            />
+          ) : (
+            <DateTimePicker
+              value={dateFromTime(draftTime)}
+              mode="time"
+              display="spinner"
+              onChange={(_event, selected) => {
+                if (selected) setDraftTime(timeFromDate(selected));
+              }}
+            />
+          )
+        ) : (
+          <>
+            {PERIODS.map((period) => {
+              const presets = REMINDER_TIME_PRESETS.filter((preset) =>
+                period.test(parseReminderTime(preset.value).hour),
+              );
+              if (presets.length === 0) return null;
+              return (
+                <View key={period.label} style={styles.group}>
+                  <AppText variant="label" style={styles.groupLabel}>
+                    {period.label}
+                  </AppText>
+                  {presets.map((preset) => (
+                    <TimeRow
+                      key={preset.value}
+                      label={preset.label}
+                      selected={selectedTimes.has(preset.value)}
+                      onPress={() => toggleTime(preset.value)}
+                    />
+                  ))}
+                </View>
+              );
+            })}
 
-      {Platform.OS === 'web' && pickingCustom ? (
-        <Modal
-          transparent
-          animationType="fade"
-          visible
-          onRequestClose={() => setPickingCustom(false)}>
-          <View style={styles.modalBackdrop}>
-            <View style={styles.modalCard}>
-              <AppText variant="title">Custom reminder time</AppText>
-              <View style={styles.presets}>
-                {REMINDER_TIME_PRESETS.map((preset) => (
-                  <Pressable
-                    key={preset.value}
-                    style={[
-                      styles.presetChip,
-                      draftTime === preset.value && styles.presetChipSelected,
-                    ]}
-                    onPress={() => setDraftTime(preset.value)}>
-                    <AppText
-                      variant="bodySmall"
-                      style={
-                        draftTime === preset.value ? styles.presetTextSelected : undefined
-                      }>
-                      {preset.label}
-                    </AppText>
-                  </Pressable>
+            {customTimes.length > 0 ? (
+              <View style={styles.group}>
+                <AppText variant="label" style={styles.groupLabel}>
+                  Your custom times
+                </AppText>
+                {customTimes.map((item) => (
+                  <TimeRow
+                    key={item.key}
+                    label={formatReminderTimeLabel(item.time)}
+                    selected
+                    onPress={() => remove(item.key)}
+                  />
                 ))}
               </View>
-              <View style={styles.modalActions}>
-                <Button title="Cancel" variant="ghost" onPress={() => setPickingCustom(false)} />
-                <Button title="Add time" onPress={() => commitCustom(draftTime)} />
-              </View>
-            </View>
-          </View>
-        </Modal>
-      ) : null}
+            ) : null}
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={openCustom}
+              style={({ pressed }) => [styles.customRow, pressed && styles.rowPressed]}>
+              <AppText accent style={styles.customLabel}>
+                ＋ Add a custom time
+              </AppText>
+            </Pressable>
+          </>
+        )}
+      </BottomSheet>
     </View>
+  );
+}
+
+function TimeRow({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: selected }}
+      accessibilityLabel={`${label} reminder`}
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, selected && styles.rowSelected, pressed && styles.rowPressed]}>
+      <AppText style={selected ? styles.rowLabelSelected : undefined}>{label}</AppText>
+      <View style={[styles.checkbox, selected && styles.checkboxSelected]}>
+        {selected ? <AppText style={styles.checkmark}>✓</AppText> : null}
+      </View>
+    </Pressable>
   );
 }
 
@@ -251,71 +325,142 @@ const styles = StyleSheet.create({
   wrapper: {
     gap: theme.spacing.sm,
   },
-  empty: {
-    marginTop: theme.spacing.xs,
+  label: {
+    marginLeft: theme.spacing.xs,
   },
-  list: {
+  field: {
+    minHeight: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  fieldFilled: {
+    borderColor: theme.colors.accent,
+  },
+  fieldPressed: {
+    backgroundColor: theme.colors.accentLight,
+  },
+  fieldText: {
+    flex: 1,
+    gap: 2,
+  },
+  valueText: {
+    fontWeight: '600',
+  },
+  placeholderText: {
+    color: theme.colors.textMuted,
+  },
+  chevron: {
+    fontSize: 22,
+    lineHeight: 22,
+    color: theme.colors.textSecondary,
+    marginTop: -8,
+  },
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: theme.spacing.sm,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    paddingLeft: theme.spacing.md,
+    paddingRight: theme.spacing.sm + 2,
+    paddingVertical: 6,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.accentLight,
+    borderWidth: 1,
+    borderColor: theme.colors.accentLight,
+  },
+  chipPaused: {
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+  },
+  chipText: {
+    color: theme.colors.accentDark,
+    fontWeight: '600',
+  },
+  chipTextPaused: {
+    color: theme.colors.textMuted,
+  },
+  chipRemove: {
+    fontSize: 18,
+    lineHeight: 20,
+    color: theme.colors.textSecondary,
+  },
+  group: {
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
+  },
+  groupLabel: {
+    marginLeft: theme.spacing.xs,
+    marginTop: theme.spacing.xs,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
-    paddingVertical: theme.spacing.sm,
+    justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.surface,
+    paddingVertical: theme.spacing.md,
     borderRadius: theme.radius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  timePress: {
-    flex: 1,
-    gap: 2,
-  },
-  timeLabel: {
-    fontWeight: '600',
-    fontSize: 17,
-  },
-  remove: {
-    color: theme.colors.error,
-    fontWeight: '500',
-    fontSize: 14,
-  },
-  presets: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.sm,
-    marginTop: theme.spacing.xs,
-  },
-  presetChip: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radius.full,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
     backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
-  presetChipSelected: {
+  rowSelected: {
+    borderColor: theme.colors.accent,
+    backgroundColor: theme.colors.accentLight,
+  },
+  rowPressed: {
+    opacity: 0.85,
+  },
+  rowLabelSelected: {
+    color: theme.colors.accentDark,
+    fontWeight: '600',
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxSelected: {
     backgroundColor: theme.colors.accent,
     borderColor: theme.colors.accent,
   },
-  presetTextSelected: {
+  checkmark: {
     color: theme.colors.white,
+    fontSize: 13,
+    lineHeight: 16,
+    fontWeight: '700',
+  },
+  customRow: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: theme.colors.accent,
+    alignItems: 'center',
+  },
+  customLabel: {
     fontWeight: '600',
   },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(42,42,42,0.35)',
-    justifyContent: 'flex-end',
-  },
-  modalCard: {
-    backgroundColor: theme.colors.background,
-    borderTopLeftRadius: theme.radius.xl,
-    borderTopRightRadius: theme.radius.xl,
-    padding: theme.spacing.lg,
-    gap: theme.spacing.md,
-  },
-  modalActions: {
+  footerRow: {
+    flexDirection: 'row',
     gap: theme.spacing.sm,
+  },
+  footerButton: {
+    flex: 1,
   },
 });

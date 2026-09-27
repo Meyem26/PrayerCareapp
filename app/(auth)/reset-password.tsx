@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -202,10 +202,11 @@ export default function ResetPasswordScreen() {
 
   return (
     <Screen>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.flex}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.scroll}
+          automaticallyAdjustKeyboardInsets
+          keyboardShouldPersistTaps="handled">
           <AppText variant="greeting">Set a new password</AppText>
           <AppText muted>Choose a secure password for your PrayerCare account.</AppText>
 
@@ -241,7 +242,6 @@ export default function ResetPasswordScreen() {
             </View>
           )}
         </ScrollView>
-      </KeyboardAvoidingView>
     </Screen>
   );
 }

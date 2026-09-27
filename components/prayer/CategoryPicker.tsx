@@ -1,40 +1,30 @@
-import { StyleSheet, View } from 'react-native';
-
-import { AppText } from '@/components/ui/AppText';
-import { OptionCard } from '@/components/ui/OptionCard';
-import { theme } from '@/constants/theme';
+import { SelectField, type SelectOption } from '@/components/ui/SelectField';
 import type { PrayerCategory } from '@/types/prayer';
+
+const NO_CATEGORY = '__none__';
 
 type CategoryPickerProps = {
   categories: PrayerCategory[];
   value: string | null;
   onChange: (categoryId: string | null) => void;
+  label?: string;
 };
 
-export function CategoryPicker({ categories, value, onChange }: CategoryPickerProps) {
+export function CategoryPicker({ categories, value, onChange, label }: CategoryPickerProps) {
+  const options: SelectOption<string>[] = [
+    ...categories.map((category) => ({ value: category.id, label: category.label })),
+    { value: NO_CATEGORY, label: 'No specific category' },
+  ];
+
   return (
-    <View style={styles.wrapper}>
-      <AppText variant="label">Category</AppText>
-      <View style={styles.options}>
-        <OptionCard label="None" selected={value === null} onPress={() => onChange(null)} />
-        {categories.map((category) => (
-          <OptionCard
-            key={category.id}
-            label={category.label}
-            selected={value === category.id}
-            onPress={() => onChange(category.id)}
-          />
-        ))}
-      </View>
-    </View>
+    <SelectField
+      label={label}
+      placeholder="Choose a category"
+      sheetTitle="What is this prayer about?"
+      sheetSubtitle="Categories help you find and reflect on prayers later."
+      options={options}
+      value={value}
+      onChange={(next) => onChange(next === NO_CATEGORY ? null : next)}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    gap: theme.spacing.sm,
-  },
-  options: {
-    gap: theme.spacing.sm,
-  },
-});
