@@ -1,12 +1,11 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   Platform,
-  Pressable,
   RefreshControl,
   ScrollView,
+  SectionList,
   StyleSheet,
   View,
 } from 'react-native';
@@ -14,49 +13,62 @@ import {
 import { DayHistoryPanel } from '@/components/history/DayHistoryPanel';
 import { DateNavigator } from '@/components/history/DateNavigator';
 import { MonthCalendar } from '@/components/history/MonthCalendar';
-import { PrayerCard } from '@/components/prayer/PrayerCard';
+import { JourneyFilterButton } from '@/components/journey/JourneyFilterButton';
+import { JourneySummary } from '@/components/journey/JourneySummary';
+import { TimelineEntry } from '@/components/journey/TimelineEntry';
+import {
+  groupByMonth,
+  JOURNEY_FILTERS,
+  matchesJourneyFilter,
+  type JourneyFilter,
+} from '@/components/journey/journey-utils';
 import { AppText } from '@/components/ui/AppText';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
-import { fetchHistoryActivityDates, fetchHistoryForDate } from '@/lib/api/history';
+import {
+  fetchHistoryActivityDates,
+  fetchHistoryForDate,
+  fetchPrayerAnalytics,
+} from '@/lib/api/history';
 import { fetchJourneyPrayers } from '@/lib/api/prayers';
 import { getTodayDateString, parseDateString } from '@/lib/utils/date';
-import { getCategoryLabel, getScheduleFromPrayer } from '@/lib/prayer-utils';
 import type { DayHistory } from '@/types/history';
 import type { PrayerWithRelations } from '@/types/prayer';
 
-type ViewMode = 'list' | 'calendar';
-type Filter = 'all' | 'active' | 'answered' | 'praise' | 'hidden';
+type ViewMode = 'timeline' | 'calendar';
 
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'active', label: 'Active' },
-  { key: 'praise', label: 'Praise' },
-  { key: 'answered', label: 'Answered' },
-  { key: 'hidden', label: 'Hidden' },
+const VIEW_SEGMENTS: { value: ViewMode; label: string }[] = [
+  { value: 'timeline', label: 'Timeline' },
+  { value: 'calendar', label: 'Calendar' },
 ];
 
-function isInPraiseWindow(prayer: PrayerWithRelations): boolean {
-  if (prayer.status !== 'answered' || !prayer.praise_visible_until) return false;
-  return prayer.praise_visible_until >= new Date().toISOString().slice(0, 10);
-}
-
-function matchesFilter(prayer: PrayerWithRelations, filter: Filter): boolean {
-  if (filter === 'all') return true;
-  if (filter === 'hidden') return prayer.is_hidden;
-  if (filter === 'praise') return isInPraiseWindow(prayer);
-  if (filter === 'answered') return prayer.status === 'answered';
-  if (filter === 'active') return prayer.status === 'active' && !prayer.is_hidden;
-  return true;
-}
+const EMPTY_COPY: Record<Exclude<JourneyFilter, 'all'>, { title: string; body: string }> = {
+  active: {
+    title: 'Nothing on your heart right now',
+    body: 'When you start a new prayer, it will appear here while you carry it.',
+  },
+  answered: {
+    title: 'No answered prayers yet',
+    body: 'When God answers, mark the prayer as answered and it will be remembered here.',
+  },
+  praise: {
+    title: 'No praise right now',
+    body: 'Answered prayers appear here while they are in your praise season.',
+  },
+  hidden: {
+    title: 'Nothing set aside',
+    body: 'Prayers you hide will rest here until you bring them back.',
+  },
+};
 
 export default function JourneyScreen() {
   const { profile } = useAuth();
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>('timeline');
   const [prayers, setPrayers] = useState<PrayerWithRelations[]>([]);
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<JourneyFilter>('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +84,9 @@ export default function JourneyScreen() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
 
+  const [daysThisMonth, setDaysThisMonth] = useState<number | null>(null);
+  const [streak, setStreak] = useState<number | null>(null);
+
   const loadPrayers = useCallback(async () => {
     const { data, error: fetchError } = await fetchJourneyPrayers();
     setPrayers(data);
@@ -79,6 +94,17 @@ export default function JourneyScreen() {
     setLoading(false);
     setRefreshing(false);
   }, []);
+
+  const loadSummary = useCallback(async () => {
+    if (!profile?.id) return;
+    const now = parseDateString(getTodayDateString(timezone));
+    const [activity, analytics] = await Promise.all([
+      fetchHistoryActivityDates(profile.id, now.year, now.month),
+      fetchPrayerAnalytics(profile.id),
+    ]);
+    setDaysThisMonth(activity.error ? null : activity.data.length);
+    setStreak(analytics.data?.prayer_streak ?? null);
+  }, [profile?.id, timezone]);
 
   const loadActivityDates = useCallback(async () => {
     if (!profile?.id) return;
@@ -100,7 +126,8 @@ export default function JourneyScreen() {
     useCallback(() => {
       setLoading(true);
       loadPrayers();
-    }, [loadPrayers]),
+      loadSummary();
+    }, [loadPrayers, loadSummary]),
   );
 
   useEffect(() => {
@@ -119,9 +146,55 @@ export default function JourneyScreen() {
     setCalendarMonth(next.month);
   }, [selectedDate]);
 
-  const filtered = prayers.filter((p) => matchesFilter(p, filter));
+  const counts = useMemo(() => {
+    const result = {} as Record<JourneyFilter, number>;
+    for (const item of JOURNEY_FILTERS) {
+      result[item.value] = prayers.filter((p) => matchesJourneyFilter(p, item.value)).length;
+    }
+    return result;
+  }, [prayers]);
 
-  if (loading && prayers.length === 0 && viewMode === 'list' && !error) {
+  const sections = useMemo(
+    () => groupByMonth(prayers.filter((p) => matchesJourneyFilter(p, filter))),
+    [prayers, filter],
+  );
+
+  function refreshAll() {
+    setRefreshing(true);
+    const tasks: Promise<unknown>[] = [loadPrayers(), loadSummary()];
+    if (viewMode === 'calendar') tasks.push(loadActivityDates(), loadDayHistory());
+    Promise.all(tasks).finally(() => setRefreshing(false));
+  }
+
+  const header = (
+    <View style={styles.header}>
+      <AppText variant="greeting">Your journey</AppText>
+      <AppText muted>
+        {viewMode === 'timeline'
+          ? 'Every prayer tells a story of faithfulness.'
+          : 'Look back on any day — prayers, praise, and care remembered.'}
+      </AppText>
+
+      <JourneySummary
+        daysThisMonth={daysThisMonth}
+        carrying={counts.active ?? 0}
+        answered={counts.answered ?? 0}
+        streak={streak}
+      />
+
+      <View style={styles.segmented}>
+        <SegmentedControl segments={VIEW_SEGMENTS} value={viewMode} onChange={setViewMode} />
+      </View>
+
+      {error ? (
+        <AppText style={styles.error}>
+          We couldn't load your journey. Pull to refresh, or try again in a moment.
+        </AppText>
+      ) : null}
+    </View>
+  );
+
+  if (loading && prayers.length === 0 && viewMode === 'timeline' && !error) {
     return (
       <Screen centered>
         <ActivityIndicator size="large" color={theme.colors.accent} />
@@ -134,24 +207,8 @@ export default function JourneyScreen() {
       <Screen padded={false}>
         <ScrollView
           contentContainerStyle={styles.calendarScroll}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => {
-                setRefreshing(true);
-                Promise.all([loadActivityDates(), loadDayHistory()]).finally(() =>
-                  setRefreshing(false),
-                );
-              }}
-            />
-          }>
-          <View style={styles.header}>
-            <AppText variant="greeting">Your journey</AppText>
-            <AppText muted>
-              Browse any day — prayers, praise, and care remembered.
-            </AppText>
-            <ViewModeToggle value={viewMode} onChange={setViewMode} />
-          </View>
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAll} />}>
+          {header}
 
           <MonthCalendar
             year={calendarYear}
@@ -174,81 +231,60 @@ export default function JourneyScreen() {
     );
   }
 
+  const hasPrayers = prayers.length > 0;
+
   return (
     <Screen padded={false}>
-      <FlatList
-        data={filtered}
+      <SectionList
+        sections={sections}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => {
-              setRefreshing(true);
-              loadPrayers();
-            }}
-          />
-        }
+        stickySectionHeadersEnabled={false}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAll} />}
         ListHeaderComponent={
-          <View style={styles.header}>
-            <AppText variant="greeting">Your journey</AppText>
-            <AppText muted>
-              Every prayer tells a story — created, prayed, cared for, answered.
-            </AppText>
-            {error ? (
-              <AppText style={styles.error}>
-                We couldn't load your journey. Pull to refresh, or try again in a moment.
-              </AppText>
+          <>
+            {header}
+            {hasPrayers ? (
+              <View style={styles.toolbar}>
+                <AppText variant="bodySmall" muted>
+                  {filter === 'all'
+                    ? `${prayers.length} ${prayers.length === 1 ? 'prayer' : 'prayers'} so far`
+                    : `${counts[filter]} of ${prayers.length}`}
+                </AppText>
+                <JourneyFilterButton value={filter} counts={counts} onChange={setFilter} />
+              </View>
             ) : null}
-            <ViewModeToggle value={viewMode} onChange={setViewMode} />
-            <View style={styles.filters}>
-              {FILTERS.map((item) => (
-                <Pressable
-                  key={item.key}
-                  onPress={() => setFilter(item.key)}
-                  style={[styles.filterChip, filter === item.key && styles.filterChipActive]}>
-                  <AppText
-                    variant="bodySmall"
-                    style={filter === item.key ? styles.filterTextActive : undefined}>
-                    {item.label}
-                  </AppText>
-                </Pressable>
-              ))}
-            </View>
-          </View>
+          </>
         }
-        renderItem={({ item }) => {
-          const schedule = getScheduleFromPrayer(item);
-          return (
-            <PrayerCard
-              prayer={item}
-              categoryLabel={getCategoryLabel(item)}
-              scheduleType={schedule?.schedule_type}
-              onPress={() => router.push({ pathname: '/prayer/[id]', params: { id: item.id } })}
-            />
-          );
-        }}
+        renderSectionHeader={({ section }) => (
+          <AppText variant="label" style={styles.sectionTitle}>
+            {section.title}
+          </AppText>
+        )}
+        renderItem={({ item, index, section }) => (
+          <TimelineEntry
+            prayer={item}
+            isFirst={index === 0}
+            isLast={index === section.data.length - 1}
+            onPress={() => router.push({ pathname: '/prayer/[id]', params: { id: item.id } })}
+          />
+        )}
         ListEmptyComponent={
           !loading && !error ? (
             filter === 'all' ? (
               <EmptyState
-                title="No prayers yet"
-                body="Your journey starts with one prayer. Add it with a schedule and it will show up on Today when it's due."
+                title="Your journey begins with one prayer"
+                body="Bring what's on your heart. Each prayer, and each answer, will be remembered here."
                 actionLabel="Start a prayer"
                 onAction={() => router.push('/(tabs)/pray')}
               />
             ) : (
               <EmptyState
-                title={
-                  filter === 'praise'
-                    ? 'No praise right now'
-                    : `No ${filter} prayers`
-                }
-                body={
-                  filter === 'praise'
-                    ? 'Answered prayers appear here while they are in your praise window.'
-                    : 'Try another filter, or start a new prayer from Pray.'
-                }
+                title={EMPTY_COPY[filter].title}
+                body={EMPTY_COPY[filter].body}
+                actionLabel="Show all prayers"
+                onAction={() => setFilter('all')}
               />
             )
           ) : null
@@ -258,39 +294,9 @@ export default function JourneyScreen() {
   );
 }
 
-function ViewModeToggle({
-  value,
-  onChange,
-}: {
-  value: ViewMode;
-  onChange: (mode: ViewMode) => void;
-}) {
-  return (
-    <View style={styles.viewToggle}>
-      <Pressable
-        style={[styles.viewChip, value === 'list' && styles.viewChipActive]}
-        onPress={() => onChange('list')}>
-        <AppText variant="bodySmall" style={value === 'list' ? styles.viewTextActive : undefined}>
-          List
-        </AppText>
-      </Pressable>
-      <Pressable
-        style={[styles.viewChip, value === 'calendar' && styles.viewChipActive]}
-        onPress={() => onChange('calendar')}>
-        <AppText
-          variant="bodySmall"
-          style={value === 'calendar' ? styles.viewTextActive : undefined}>
-          Calendar
-        </AppText>
-      </Pressable>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   list: {
     padding: Platform.OS === 'web' ? theme.spacing.md : theme.spacing.lg,
-    gap: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
     flexGrow: 1,
   },
@@ -300,55 +306,29 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.xxl,
   },
   header: {
-    gap: theme.spacing.sm,
-    marginBottom: theme.spacing.md,
+    gap: theme.spacing.xs,
   },
-  viewToggle: {
+  segmented: {
+    marginTop: theme.spacing.lg,
+  },
+  toolbar: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
-    marginTop: theme.spacing.sm,
-  },
-  viewChip: {
-    flex: 1,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radius.full,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    backgroundColor: theme.colors.surface,
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.xs,
   },
-  viewChipActive: {
-    backgroundColor: theme.colors.accent,
-    borderColor: theme.colors.accent,
-  },
-  viewTextActive: {
-    color: theme.colors.white,
-    fontWeight: '600',
-  },
-  filters: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.sm,
-    marginTop: theme.spacing.md,
-  },
-  filterChip: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radius.full,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    backgroundColor: theme.colors.surface,
-  },
-  filterChipActive: {
-    backgroundColor: theme.colors.accent,
-    borderColor: theme.colors.accent,
-  },
-  filterTextActive: {
-    color: theme.colors.white,
-    fontWeight: '600',
+  sectionTitle: {
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.xs,
+    marginLeft: 4,
   },
   error: {
     color: theme.colors.error,
     lineHeight: 24,
+    marginTop: theme.spacing.md,
   },
 });
