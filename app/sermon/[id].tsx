@@ -220,6 +220,7 @@ export default function SermonNoteDetailScreen() {
           <AppText variant="title">Meditation</AppText>
           {editing ? (
             <TextArea
+              label="Your notes"
               value={meditation}
               onChangeText={setMeditation}
               placeholder="Your personal notes..."

@@ -1,5 +1,6 @@
-import { useEffect, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import {
+  Dimensions,
   Keyboard,
   LayoutAnimation,
   Platform,
@@ -7,8 +8,8 @@ import {
   type View,
 } from 'react-native';
 
-function animateWithKeyboard(event: KeyboardEvent) {
-  if (!event.duration) return;
+function animateWithKeyboard(event?: KeyboardEvent) {
+  if (Platform.OS !== 'ios' || !event?.duration) return;
   LayoutAnimation.configureNext({
     duration: event.duration,
     update: { duration: event.duration, type: LayoutAnimation.Types.keyboard },
@@ -16,44 +17,78 @@ function animateWithKeyboard(event: KeyboardEvent) {
 }
 
 /**
- * How many points of `ref`'s view the iOS keyboard (including the QuickType / clipboard bar)
- * covers. Measured in window coordinates, so it stays correct under headers and inside
- * page-sheet modals where KeyboardAvoidingView's parent-relative math falls short.
- * Android resizes the window itself, so this is always 0 there.
+ * How many points of `ref`'s view the keyboard (including the iOS QuickType / clipboard bar)
+ * covers, measured in window coordinates so it stays correct under headers and inside modals.
+ *
+ * On Android the window may or may not shrink for the keyboard (edge-to-edge on Android 15+
+ * no longer resizes). Pass `onLayout` to the measured view so the overlap is re-measured after
+ * any resize — it then settles at 0 when the system already made room, avoiding double spacing.
  */
-export function useKeyboardOverlap(ref: RefObject<View | null>): number {
+export function useKeyboardOverlap(ref: RefObject<View | null>): {
+  overlap: number;
+  onLayout: () => void;
+} {
   const [overlap, setOverlap] = useState(0);
+  const keyboardTop = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (Platform.OS !== 'ios') return;
-
-    function handleFrame(event: KeyboardEvent) {
-      const keyboardTop = event.endCoordinates.screenY;
+  const measure = useCallback(
+    (event?: KeyboardEvent) => {
+      const top = keyboardTop.current;
       const node = ref.current;
-      if (!node) {
+      if (top === null || !node) {
         animateWithKeyboard(event);
         setOverlap(0);
         return;
       }
       node.measureInWindow((_x, y, _width, height) => {
+        const next = Math.max(0, Math.round(y + height - top));
         animateWithKeyboard(event);
-        setOverlap(Math.max(0, y + height - keyboardTop));
+        setOverlap((current) => (current === next ? current : next));
       });
+    },
+    [ref],
+  );
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+
+    function handleShow(event: KeyboardEvent) {
+      keyboardTop.current = event.endCoordinates.screenY;
+      measure(event);
     }
 
     function handleHide(event: KeyboardEvent) {
+      keyboardTop.current = null;
       animateWithKeyboard(event);
       setOverlap(0);
     }
 
-    const subscriptions = [
-      Keyboard.addListener('keyboardWillChangeFrame', handleFrame),
-      Keyboard.addListener('keyboardWillHide', handleHide),
-    ];
-    return () => subscriptions.forEach((subscription) => subscription.remove());
-  }, [ref]);
+    const subscriptions =
+      Platform.OS === 'ios'
+        ? [
+            Keyboard.addListener('keyboardWillChangeFrame', (event) => {
+              const screenHeight = Dimensions.get('screen').height;
+              if (event.endCoordinates.screenY >= screenHeight) {
+                handleHide(event);
+              } else {
+                handleShow(event);
+              }
+            }),
+            Keyboard.addListener('keyboardWillHide', handleHide),
+          ]
+        : [
+            Keyboard.addListener('keyboardDidShow', handleShow),
+            Keyboard.addListener('keyboardDidHide', handleHide),
+          ];
 
-  return overlap;
+    return () => subscriptions.forEach((subscription) => subscription.remove());
+  }, [measure]);
+
+  const onLayout = useCallback(() => {
+    if (keyboardTop.current !== null) measure();
+  }, [measure]);
+
+  return { overlap, onLayout };
 }
 
 /** Full iOS keyboard height, for views pinned to the bottom of a full-screen window (sheets). */

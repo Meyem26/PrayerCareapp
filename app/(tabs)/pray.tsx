@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
@@ -9,13 +9,22 @@ import { TextArea } from '@/components/ui/TextArea';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { generatePrayerWithAi } from '@/lib/api/ai';
-import { setAiPrayerDraft } from '@/lib/ai-draft-store';
+import { consumePrayerSaved, setAiPrayerDraft } from '@/lib/ai-draft-store';
 
 export default function PrayScreen() {
   const { profile } = useAuth();
   const [heart, setHeart] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (consumePrayerSaved()) {
+        setHeart('');
+        setError(null);
+      }
+    }, []),
+  );
 
   function handleWriteOwn() {
     router.push({

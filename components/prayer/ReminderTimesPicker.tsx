@@ -9,6 +9,7 @@ import { AppText } from '@/components/ui/AppText';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { SettingRow } from '@/components/ui/SettingRow';
 import {
   formatReminderTimeLabel,
   normalizeReminderTime,
@@ -22,6 +23,7 @@ type ReminderTimesPickerProps = {
   value: ReminderTimeDraft[];
   onChange: (next: ReminderTimeDraft[]) => void;
   label?: string;
+  last?: boolean;
 };
 
 const PERIODS: { label: string; test: (hour: number) => boolean }[] = [
@@ -53,7 +55,12 @@ function sortByTime(items: ReminderTimeDraft[]): ReminderTimeDraft[] {
   return [...items].sort((a, b) => a.time.localeCompare(b.time));
 }
 
-export function ReminderTimesPicker({ value, onChange, label = 'Remind me' }: ReminderTimesPickerProps) {
+export function ReminderTimesPicker({
+  value,
+  onChange,
+  label = 'Reminder',
+  last,
+}: ReminderTimesPickerProps) {
   const [open, setOpen] = useState(false);
   const [customMode, setCustomMode] = useState(false);
   const [draftTime, setDraftTime] = useState('08:00');
@@ -130,44 +137,27 @@ export function ReminderTimesPicker({ value, onChange, label = 'Remind me' }: Re
   }
 
   const activeCount = value.filter((item) => item.enabled).length;
-  const summary =
-    sorted.length === 0
-      ? null
-      : sorted.length <= 3
-        ? sorted.map((item) => formatReminderTimeLabel(item.time)).join(' · ')
-        : `${sorted
-            .slice(0, 2)
-            .map((item) => formatReminderTimeLabel(item.time))
-            .join(' · ')} · +${sorted.length - 2} more`;
+  const pausedCount = sorted.length - activeCount;
 
   return (
-    <View style={styles.wrapper}>
-      <AppText variant="label" style={styles.label}>
-        {label}
-      </AppText>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Reminders: ${summary ?? 'none'}`}
-        accessibilityHint="Opens reminder times"
-        onPress={() => setOpen(true)}
-        style={({ pressed }) => [
-          styles.field,
-          sorted.length > 0 && styles.fieldFilled,
-          pressed && styles.fieldPressed,
-        ]}>
-        <View style={styles.fieldText}>
-          <AppText style={summary ? styles.valueText : styles.placeholderText} numberOfLines={1}>
-            {summary ?? 'Add a reminder time'}
-          </AppText>
-          <AppText variant="bodySmall" muted>
-            {sorted.length === 0
-              ? 'Optional — a gentle nudge on your phone'
-              : `${activeCount} active notification${activeCount === 1 ? '' : 's'} a day`}
-          </AppText>
-        </View>
-        <AppText style={styles.chevron}>⌄</AppText>
-      </Pressable>
-
+    <SettingRow
+      label={label}
+      value={
+        sorted.length === 0
+          ? null
+          : `${sorted.length} reminder${sorted.length === 1 ? '' : 's'} a day`
+      }
+      placeholder="Add a reminder"
+      description={
+        sorted.length === 0
+          ? 'Optional · a gentle nudge on your phone'
+          : pausedCount > 0
+            ? `${pausedCount} paused · tap a time to pause or resume`
+            : 'Tap a time to pause it'
+      }
+      actionLabel="Edit"
+      onPress={() => setOpen(true)}
+      last={last}>
       {sorted.length > 0 ? (
         <View style={styles.chips}>
           {sorted.map((item) => (
@@ -293,7 +283,7 @@ export function ReminderTimesPicker({ value, onChange, label = 'Remind me' }: Re
           </>
         )}
       </BottomSheet>
-    </View>
+    </SettingRow>
   );
 }
 
@@ -322,50 +312,11 @@ function TimeRow({
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    gap: theme.spacing.sm,
-  },
-  label: {
-    marginLeft: theme.spacing.xs,
-  },
-  field: {
-    minHeight: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  fieldFilled: {
-    borderColor: theme.colors.accent,
-  },
-  fieldPressed: {
-    backgroundColor: theme.colors.accentLight,
-  },
-  fieldText: {
-    flex: 1,
-    gap: 2,
-  },
-  valueText: {
-    fontWeight: '600',
-  },
-  placeholderText: {
-    color: theme.colors.textMuted,
-  },
-  chevron: {
-    fontSize: 22,
-    lineHeight: 22,
-    color: theme.colors.textSecondary,
-    marginTop: -8,
-  },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
+    paddingBottom: theme.spacing.md,
   },
   chip: {
     flexDirection: 'row',

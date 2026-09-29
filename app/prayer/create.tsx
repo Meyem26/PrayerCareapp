@@ -34,11 +34,11 @@ import {
   toGroupVisibility,
 } from '@/constants/prayer-visibility';
 import { formatReminderTimeLabel, normalizeReminderTime } from '@/constants/reminders';
-import { getScheduleLabel, SCHEDULE_OPTIONS, WEEKDAY_LABELS } from '@/constants/schedule';
+import { describeRepeat, REPEAT_CHOICES } from '@/constants/schedule';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { useKeyboardOverlap } from '@/hooks/useKeyboard';
-import { consumeAiPrayerDraft } from '@/lib/ai-draft-store';
+import { consumeAiPrayerDraft, markPrayerSaved } from '@/lib/ai-draft-store';
 import { generatePrayerWithAi, generateVerseWithAi } from '@/lib/api/ai';
 import { fetchScriptureFromApi } from '@/lib/api/bible';
 import { fetchMyGroups } from '@/lib/api/groups';
@@ -76,11 +76,11 @@ const STEP_COPY: Record<StepId, { title: string; subtitle: string }> = {
   },
   schedule: {
     title: 'When would you like to pray?',
-    subtitle: 'PrayerCare brings it back on the right days, with a gentle reminder if you like.',
+    subtitle: 'We’ve chosen a gentle default. Change it only if you want to.',
   },
   review: {
     title: 'Review your prayer',
-    subtitle: 'Take a breath. You can change anything before saving.',
+    subtitle: 'Everything look right? Tap Save prayer below, or Edit anything first.',
   },
 };
 
@@ -115,8 +115,10 @@ export default function CreatePrayerScreen() {
   const isEditing = Boolean(id);
 
   const rootRef = useRef<View>(null);
-  const keyboardOverlap = useKeyboardOverlap(rootRef);
+  const { overlap: keyboardOverlap, onLayout: onRootLayout } = useKeyboardOverlap(rootRef);
   const initialSnapshot = useRef<string | null>(null);
+  const savingRef = useRef(false);
+  const [savedPrayerId, setSavedPrayerId] = useState<string | null>(null);
 
   const [step, setStep] = useState<StepId>('prayer');
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
@@ -230,7 +232,9 @@ export default function CreatePrayerScreen() {
     });
   }, [id, isEditing]);
 
-  const hasUnsavedWork = isEditing
+  const hasUnsavedWork = savedPrayerId
+    ? false
+    : isEditing
     ? initialSnapshot.current !== null &&
       initialSnapshot.current !==
         snapshotKey({
@@ -266,9 +270,19 @@ export default function CreatePrayerScreen() {
     }
   }
 
+  function finishToToday() {
+    router.dismissTo('/(tabs)');
+  }
+
+  function viewSavedPrayer() {
+    if (!savedPrayerId) return;
+    router.replace({ pathname: '/prayer/[id]', params: { id: savedPrayerId } });
+  }
+
   function requestClose() {
     Keyboard.dismiss();
-    if (hasUnsavedWork && !loading) {
+    if (loading) return;
+    if (hasUnsavedWork) {
       setConfirmDiscard(true);
       return;
     }
@@ -320,6 +334,10 @@ export default function CreatePrayerScreen() {
   }
 
   function goBack() {
+    if (savedPrayerId) {
+      finishToToday();
+      return;
+    }
     if (returnToReview) {
       setReturnToReview(false);
       goTo('review', 'back');
@@ -438,7 +456,9 @@ export default function CreatePrayerScreen() {
   }
 
   async function handleSave() {
+    if (savingRef.current || savedPrayerId) return;
     setError(null);
+    Keyboard.dismiss();
 
     for (const target of steps) {
       const problem = validateStep(target);
@@ -454,10 +474,21 @@ export default function CreatePrayerScreen() {
       return;
     }
 
+    savingRef.current = true;
+    try {
+      await persist(user.id, profile);
+    } finally {
+      savingRef.current = false;
+    }
+  }
+
+  async function persist(userId: string, account: NonNullable<typeof profile>) {
     if (reminders.some((item) => item.enabled) && Platform.OS !== 'web') {
       const granted = await ensureNotificationPermissions();
       if (!granted) {
-        setError('Please allow notifications so PrayerCare can remind you at the times you chose.');
+        setError(
+          'Please allow notifications so PrayerCare can remind you, or remove the reminder to save without one.',
+        );
         return;
       }
     }
@@ -467,7 +498,7 @@ export default function CreatePrayerScreen() {
     if (isEditing && id) {
       const result = await updatePrayer(
         id,
-        user.id,
+        userId,
         {
           title,
           prayer_point: prayerPoint,
@@ -477,10 +508,10 @@ export default function CreatePrayerScreen() {
           weekdays,
           scriptureReference: scriptureRef,
           scriptureText,
-          translationId: profile.bible_translation_id,
+          translationId: account.bible_translation_id,
           reminders,
         },
-        profile.timezone,
+        account.timezone,
       );
 
       setLoading(false);
@@ -490,14 +521,18 @@ export default function CreatePrayerScreen() {
         return;
       }
 
-      showToast({ message: 'Prayer updated.', tone: 'success' });
-      router.replace({ pathname: '/prayer/[id]', params: { id } });
+      showToast({ message: 'Your changes are saved.', tone: 'success' });
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace({ pathname: '/prayer/[id]', params: { id } });
+      }
       return;
     }
 
     const result = await createPrayer({
-      creatorId: user.id,
-      timezone: profile.timezone,
+      creatorId: userId,
+      timezone: account.timezone,
       title,
       prayerPoint,
       body,
@@ -506,7 +541,7 @@ export default function CreatePrayerScreen() {
       weekdays,
       scriptureReference: scriptureRef,
       scriptureText,
-      translationId: profile.bible_translation_id,
+      translationId: account.bible_translation_id,
       aiGenerated,
       aiPromptSnapshot,
       groupId: shareMode === 'group' ? selectedGroupId : null,
@@ -521,24 +556,44 @@ export default function CreatePrayerScreen() {
       return;
     }
 
-    showToast({ message: 'Your prayer is saved. May God meet you here.', tone: 'success' });
-    router.replace({ pathname: '/prayer/[id]', params: { id: result.data.id } });
+    markPrayerSaved();
+    setSavedPrayerId(result.data.id);
   }
 
   const categoryLabel = categories.find((category) => category.id === categoryId)?.label ?? null;
-  const scheduleOption = SCHEDULE_OPTIONS.find((option) => option.type === scheduleType);
-  const scheduleValue =
-    scheduleType === 'specific_weekdays' && weekdays.length > 0
-      ? `${getScheduleLabel(scheduleType)} · ${weekdays.map((day) => WEEKDAY_LABELS[day]).join(', ')}`
-      : getScheduleLabel(scheduleType);
+  const repeatValue = describeRepeat(scheduleType, weekdays);
+  const repeatHint =
+    scheduleType === 'once'
+      ? 'On your Today list for today only.'
+      : REPEAT_CHOICES.find((choice) => choice.type === scheduleType)?.hint;
   const sortedReminders = [...reminders].sort((a, b) => a.time.localeCompare(b.time));
   const activeReminders = sortedReminders.filter((item) => item.enabled);
   const pausedCount = sortedReminders.length - activeReminders.length;
+  const reminderValue =
+    activeReminders.length > 0
+      ? activeReminders.map((item) => formatReminderTimeLabel(item.time)).join(', ')
+      : 'No reminder';
+
+  const showsOnTodayNow =
+    scheduleType !== 'specific_weekdays' || weekdays.includes(new Date().getDay());
+  const savedWhere =
+    shareMode === 'group'
+      ? `Shared with ${selectedGroup?.name ?? 'your group'}. Members will see it on their Today list.`
+      : showsOnTodayNow
+        ? 'It’s on your Today list and saved in your Journey.'
+        : `It will appear on your Today list on ${repeatValue}, and it’s saved in your Journey.`;
+  const savedReminder =
+    activeReminders.length > 0 ? `We’ll gently remind you at ${reminderValue}.` : null;
 
   const copy =
     step === 'prayer' && isEditing
       ? { title: 'Edit your prayer', subtitle: 'Change anything, then step through to save.' }
-      : STEP_COPY[step];
+      : step === 'review' && isEditing
+        ? {
+            title: 'Review your changes',
+            subtitle: 'Everything look right? Tap Save changes below, or Edit anything first.',
+          }
+        : STEP_COPY[step];
 
   const primaryLabel =
     step === 'review'
@@ -715,7 +770,7 @@ export default function CreatePrayerScreen() {
 
       case 'schedule':
         return (
-          <View style={styles.stepBody}>
+          <View style={styles.settingsCard}>
             <SchedulePicker
               value={scheduleType}
               weekdays={weekdays}
@@ -728,7 +783,7 @@ export default function CreatePrayerScreen() {
                 setError(null);
               }}
             />
-            <ReminderTimesPicker value={reminders} onChange={setReminders} />
+            <ReminderTimesPicker value={reminders} onChange={setReminders} last />
           </View>
         );
 
@@ -737,7 +792,7 @@ export default function CreatePrayerScreen() {
           <View style={styles.stepBody}>
             <View style={styles.prayerCard}>
               <View style={styles.prayerCardHeader}>
-                <AppText variant="label">Prayer</AppText>
+                <AppText variant="label">Your prayer</AppText>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Edit prayer"
@@ -767,7 +822,7 @@ export default function CreatePrayerScreen() {
                 onEdit={() => editFromReview('category')}
               />
               <ReviewRow
-                label="Prayer location"
+                label="For"
                 value={shareMode === 'group' ? (selectedGroup?.name ?? 'Group') : 'Personal'}
                 onEdit={isEditing ? undefined : () => editFromReview('location')}
                 note={
@@ -790,18 +845,14 @@ export default function CreatePrayerScreen() {
                 }
               />
               <ReviewRow
-                label="Recurrence"
-                value={scheduleValue}
-                note={scheduleOption?.description}
+                label="Repeat"
+                value={repeatValue}
+                note={repeatHint}
                 onEdit={() => editFromReview('schedule')}
               />
               <ReviewRow
-                label="Reminders"
-                value={
-                  activeReminders.length > 0
-                    ? activeReminders.map((item) => formatReminderTimeLabel(item.time)).join(', ')
-                    : 'No reminders'
-                }
+                label="Reminder"
+                value={reminderValue}
                 note={pausedCount > 0 ? `${pausedCount} paused` : undefined}
                 onEdit={() => editFromReview('schedule')}
                 last
@@ -821,11 +872,53 @@ export default function CreatePrayerScreen() {
     );
   }
 
+  if (savedPrayerId) {
+    return (
+      <View
+        style={[
+          styles.root,
+          { paddingTop: Math.max(insets.top, theme.spacing.sm) },
+        ]}>
+        <ScrollView contentContainerStyle={styles.savedScroll} showsVerticalScrollIndicator={false}>
+          <Animated.View entering={FadeIn.duration(260)} style={styles.savedContent}>
+            <View style={styles.savedBadge} accessibilityElementsHidden>
+              <AppText style={styles.savedCheck}>✓</AppText>
+            </View>
+            <AppText variant="greeting" style={styles.savedTitle} accessibilityRole="header">
+              Prayer saved
+            </AppText>
+            <AppText style={styles.savedPrayerTitle}>“{title.trim()}”</AppText>
+            <AppText muted style={styles.savedText}>
+              {savedWhere}
+            </AppText>
+            {savedReminder ? (
+              <AppText muted style={styles.savedText}>
+                {savedReminder}
+              </AppText>
+            ) : null}
+          </Animated.View>
+        </ScrollView>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, theme.spacing.md) }]}>
+          <View style={styles.footerRow}>
+            <Button
+              title="View prayer"
+              variant="secondary"
+              onPress={viewSavedPrayer}
+              style={styles.primaryButton}
+            />
+            <Button title="Done" onPress={finishToToday} style={styles.primaryButton} />
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   const EnterAnimation = direction === 'forward' ? FadeInRight : FadeInLeft;
 
   return (
     <View
       ref={rootRef}
+      onLayout={onRootLayout}
       style={[styles.root, { paddingTop: Math.max(insets.top, theme.spacing.sm) }]}>
       <View style={styles.topBar}>
         <Pressable
@@ -1231,6 +1324,55 @@ const styles = StyleSheet.create({
   },
   verseRef: {
     fontWeight: '600',
+  },
+  settingsCard: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.xl,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  savedScroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.xl,
+  },
+  savedContent: {
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+  },
+  savedBadge: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.accentLight,
+    marginBottom: theme.spacing.sm,
+  },
+  savedCheck: {
+    fontSize: 34,
+    lineHeight: 40,
+    fontWeight: '700',
+    color: theme.colors.accent,
+  },
+  savedTitle: {
+    textAlign: 'center',
+  },
+  savedPrayerTitle: {
+    textAlign: 'center',
+    fontWeight: '600',
+    fontSize: 18,
+    lineHeight: 26,
+  },
+  savedText: {
+    textAlign: 'center',
+    lineHeight: 24,
   },
   summaryCard: {
     paddingHorizontal: theme.spacing.lg,
