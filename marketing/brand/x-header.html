@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>PrayerCare — X header</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Inter:wght@500;600&display=block"
+  rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #0D1F17; }
+  .header {
+    position: relative; width: 1500px; height: 500px; overflow: hidden;
+    background:
+      radial-gradient(ellipse 620px 300px at 860px 170px, rgba(247,242,231,0.075), transparent 70%),
+      radial-gradient(ellipse 900px 520px at 1405px 330px, rgba(214,179,106,0.10), transparent 65%),
+      linear-gradient(100deg, #0B1B14 0%, #12291F 38%, #1A3529 72%, #13281E 100%);
+    -webkit-font-smoothing: antialiased;
+  }
+  svg.art { position: absolute; inset: 0; }
+
+  .block {
+    position: absolute; left: 860px; top: 88px; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+  }
+  .lockup { display: flex; align-items: center; gap: 22px; }
+  .lockup img { height: 92px; width: auto; display: block; }
+  .wordmark {
+    font: 600 74px/1 'Inter', sans-serif; letter-spacing: -0.035em; color: #F7F2E7;
+    padding-bottom: 4px;
+  }
+  .message {
+    margin-top: 34px; white-space: nowrap;
+    font: 600 58px/1.05 'Cormorant Garamond', Georgia, serif; letter-spacing: -0.003em; color: #F7F2E7;
+  }
+  .message .dot { color: #D6B36A; margin-right: 0.18em; }
+  .secondary {
+    margin-top: 20px; display: flex; align-items: center; gap: 20px;
+    font: italic 600 36px/1 'Cormorant Garamond', Georgia, serif; color: #D6B36A; letter-spacing: 0.005em;
+  }
+  .secondary::before, .secondary::after { content: ''; width: 54px; height: 1.5px; background: rgba(214,179,106,0.55); }
+
+  /* Safe-zone preview (?guides=1) */
+  .guide { position: absolute; pointer-events: none; z-index: 10; }
+</style>
+</head>
+<body>
+<div class="header" id="header">
+  <svg class="art" id="art" width="1500" height="500" viewBox="0 0 1500 500"></svg>
+  <div class="block">
+    <div class="lockup">
+      <img src="mark-light.png" alt="" />
+      <div class="wordmark">PrayerCare</div>
+    </div>
+    <div class="message">Pray Scripture<span class="dot">.</span> Remember people<span class="dot">.</span> Care well<span class="dot">.</span></div>
+    <div class="secondary">Celebrate answered prayers.</div>
+  </div>
+</div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const art = document.getElementById('art');
+const STAR = { x: 1405, y: 322 };
+const NODES = [480, 712, 944, 1176];
+const SPACING = 232;
+
+/* Gentle rising path: low behind the profile photo, lifting toward the star. */
+function base(x) {
+  const t = Math.min(1, Math.max(0, x / STAR.x));
+  return 418 - 26 * t - 70 * Math.pow(t, 6);
+}
+function amp(x) {
+  const fadeIn = Math.min(1, Math.max(0.35, x / 480));
+  const fadeOut = Math.min(1, Math.max(0, (STAR.x - x) / 210));
+  return 15 * fadeIn * fadeOut;
+}
+function strand(sign) {
+  const pts = [];
+  for (let x = -20; x <= STAR.x; x += 4) {
+    const y = base(x) + sign * amp(x) * Math.sin((Math.PI * (x - NODES[0])) / SPACING);
+    pts.push(`${x.toFixed(1)},${y.toFixed(2)}`);
+  }
+  pts.push(`${STAR.x},${STAR.y}`);
+  return 'M' + pts.join(' L');
+}
+
+const verseOffset = [];
+for (let x = 520; x <= 1150; x += 10) verseOffset.push(`${x},${(base(x) - 30).toFixed(2)}`);
+
+function star(cx, cy, r, inner) {
+  const p = [];
+  for (let i = 0; i < 8; i++) {
+    const ang = (Math.PI / 4) * i - Math.PI / 2;
+    const rad = i % 2 === 0 ? r : inner;
+    p.push(`${(cx + rad * Math.cos(ang)).toFixed(2)},${(cy + rad * Math.sin(ang)).toFixed(2)}`);
+  }
+  return p.join(' ');
+}
+
+art.innerHTML = `
+  <defs>
+    <linearGradient id="goldLine" x1="0" y1="0" x2="1500" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D6B36A" stop-opacity="0"/>
+      <stop offset="0.22" stop-color="#D6B36A" stop-opacity="0.45"/>
+      <stop offset="0.7" stop-color="#D6B36A" stop-opacity="0.8"/>
+      <stop offset="0.94" stop-color="#E9CF91" stop-opacity="1"/>
+    </linearGradient>
+    <linearGradient id="creamLine" x1="0" y1="0" x2="1500" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F7F2E7" stop-opacity="0"/>
+      <stop offset="0.25" stop-color="#F7F2E7" stop-opacity="0.22"/>
+      <stop offset="0.93" stop-color="#F7F2E7" stop-opacity="0.5"/>
+    </linearGradient>
+    <radialGradient id="starGlow">
+      <stop offset="0" stop-color="#F3DFA8" stop-opacity="0.55"/>
+      <stop offset="0.35" stop-color="#D6B36A" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#D6B36A" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0"/>
+    </filter>
+    <path id="versePath" d="M${verseOffset.join(' L')}"/>
+  </defs>
+
+  <g fill="none" stroke="#D6B36A">
+    <circle cx="${STAR.x}" cy="${STAR.y}" r="120" stroke-opacity="0.10" stroke-width="1"/>
+    <circle cx="${STAR.x}" cy="${STAR.y}" r="210" stroke-opacity="0.07" stroke-width="1"/>
+    <circle cx="${STAR.x}" cy="${STAR.y}" r="320" stroke-opacity="0.045" stroke-width="1"/>
+  </g>
+
+  <path d="${strand(-1)}" fill="none" stroke="url(#creamLine)" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="${strand(1)}" fill="none" stroke="url(#goldLine)" stroke-width="1.8" stroke-linecap="round"/>
+
+  <text font-family="Inter, sans-serif" font-size="11.5" font-weight="500" letter-spacing="3.6" fill="#D6B36A" fill-opacity="0.42">
+    <textPath href="#versePath" startOffset="50%" text-anchor="middle">BEAR ONE ANOTHER’S BURDENS  ·  GALATIANS 6:2</textPath>
+  </text>
+
+  ${NODES.map((x, i) => {
+    const y = base(x);
+    const filled = i >= 2;
+    return `<circle cx="${x}" cy="${y.toFixed(2)}" r="${i === 3 ? 13 : 0}" fill="#D6B36A" fill-opacity="0.12"/>
+      <circle cx="${x}" cy="${y.toFixed(2)}" r="5.2" fill="${filled ? '#D6B36A' : '#13291F'}" stroke="#D6B36A" stroke-width="1.6" stroke-opacity="${0.55 + i * 0.12}"/>`;
+  }).join('')}
+
+  <circle cx="${STAR.x}" cy="${STAR.y}" r="70" fill="url(#starGlow)"/>
+  <polygon points="${star(STAR.x, STAR.y, 19, 5.2)}" fill="#E9CF91"/>
+  <circle cx="${STAR.x}" cy="${STAR.y}" r="2.6" fill="#FFF6DE"/>
+
+  <rect width="1500" height="500" filter="url(#grain)"/>
+`;
+
+if (new URLSearchParams(location.search).get('guides')) {
+  const header = document.getElementById('header');
+  header.insertAdjacentHTML('beforeend', `
+    <div class="guide" style="left:0;right:0;top:0;height:60px;background:rgba(255,60,60,0.18)"></div>
+    <div class="guide" style="left:0;right:0;bottom:0;height:60px;background:rgba(255,60,60,0.18)"></div>
+    <div class="guide" style="left:40px;top:333px;width:334px;height:334px;border-radius:50%;background:rgba(255,255,255,0.22);border:3px dashed #fff"></div>
+    <div class="guide" style="left:300px;right:100px;top:60px;bottom:60px;border:2px dashed rgba(120,220,255,0.9)"></div>
+    <div class="guide" style="left:48px;top:20px;font:600 16px Inter;color:#fff">red = may crop on desktop · white = profile photo · blue = safe zone</div>`);
+}
+</script>
+</body>
+</html>

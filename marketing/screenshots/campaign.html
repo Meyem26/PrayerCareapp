@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>PrayerCare store screenshots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=Inter:wght@400;500;600;700&display=block"
+  rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { width: var(--W); height: var(--H); overflow: hidden; -webkit-font-smoothing: antialiased; }
+
+  /* ───────────── Campaign canvas ───────────── */
+  .canvas {
+    position: relative; width: var(--W); height: var(--H); overflow: hidden;
+    background:
+      radial-gradient(ellipse 70% 38% at 50% -6%, rgba(255,255,255,0.10), transparent 70%),
+      linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 58%, var(--bg3) 100%);
+  }
+  .glow {
+    position: absolute; left: 50%; transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(closest-side, var(--glow), transparent);
+    pointer-events: none;
+  }
+  .arc {
+    position: absolute; left: 50%; transform: translate(-50%, -50%);
+    border-radius: 50%; border: 2px solid var(--arc); pointer-events: none;
+  }
+  .floor {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(0,0,0,0.55), transparent);
+    filter: blur(6px);
+  }
+
+  .copy { position: absolute; left: 0; right: 0; text-align: center; padding: 0 var(--padX); }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: calc(var(--eye) * 0.9);
+    font: 600 var(--eye)/1 'Inter', sans-serif; letter-spacing: 0.32em; text-transform: uppercase;
+    color: var(--gold); padding-left: 0.32em;
+  }
+  .eyebrow::before, .eyebrow::after {
+    content: ''; width: calc(var(--eye) * 2.4); height: 2px; background: var(--gold); opacity: 0.55;
+  }
+  h1 {
+    margin: var(--g1) 0 0; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700;
+    font-size: var(--h1); line-height: 1.02; letter-spacing: -0.005em; color: var(--ink);
+  }
+  h1 .ln { display: block; white-space: nowrap; }
+  h1 em { font-style: italic; font-weight: 700; color: var(--gold); }
+  .sub {
+    margin: var(--g2) auto 0; max-width: calc(var(--W) * 0.8);
+    font: 400 var(--sub)/1.42 'Inter', sans-serif; color: var(--subInk); letter-spacing: -0.005em;
+    text-wrap: balance;
+  }
+
+  .features { display: flex; justify-content: center; gap: var(--fgap); margin-top: var(--g2); }
+  .feat { display: flex; flex-direction: column; align-items: center; gap: calc(var(--fi) * 0.2); width: var(--fw); }
+  .ficon {
+    width: var(--fi); height: var(--fi); border-radius: 50%;
+    border: 2px solid rgba(214,179,106,0.6); background: rgba(255,255,255,0.05);
+    display: grid; place-items: center;
+  }
+  .ficon svg { width: 46%; height: 46%; stroke: var(--gold); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .feat span { font: 500 var(--fl)/1.2 'Inter', sans-serif; color: var(--ink); opacity: 0.9; white-space: nowrap; }
+
+  /* ───────────── Device ───────────── */
+  .rig { position: absolute; width: 421px; height: 880px; transform-origin: top left; }
+  .phone {
+    position: absolute; inset: 0; border-radius: 70px; padding: 14px;
+    background: linear-gradient(150deg, #4a4d53 0%, #17181b 22%, #0d0e10 60%, #34373c 100%);
+    box-shadow:
+      0 0 0 1.5px rgba(255,255,255,0.10) inset,
+      0 0 0 4px #0b0c0e inset,
+      0 50px 90px rgba(0,0,0,0.45),
+      0 18px 36px rgba(0,0,0,0.30);
+  }
+  .btn-side { position: absolute; width: 4px; border-radius: 2px; background: #2a2c30; }
+  .screen {
+    position: relative; width: 393px; height: 852px; border-radius: 56px; overflow: hidden;
+    background: #FAF9F7; font-family: 'Inter', sans-serif; color: #2A2A2A; letter-spacing: -0.012em;
+  }
+  .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 124px; height: 36px; border-radius: 20px; background: #000; z-index: 50; }
+  .status {
+    position: absolute; top: 0; left: 0; right: 0; height: 54px; z-index: 40;
+    display: flex; align-items: center; justify-content: space-between; padding: 4px 30px 0 50px;
+    font: 600 17px/1 'Inter', sans-serif; color: #111;
+  }
+  .status .icons { display: flex; align-items: center; gap: 6px; }
+  .homebar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 136px; height: 5px; border-radius: 3px; background: #121212; z-index: 60; }
+
+  /* ───────────── PrayerCare UI (mirrors constants/theme.ts) ───────────── */
+  .t-greet { font-size: 28px; line-height: 36px; font-weight: 600; letter-spacing: -0.022em; }
+  .t-title { font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.018em; }
+  .t-body { font-size: 17px; line-height: 26px; }
+  .t-small { font-size: 15px; line-height: 22px; }
+  .t-label { font-size: 13px; line-height: 18px; font-weight: 500; letter-spacing: 0.3px; text-transform: uppercase; color: #6E6E6E; }
+  .muted { color: #6E6E6E; }
+  .faint { color: #9A9A9A; }
+  .accent { color: #5B7B6A; }
+  .b600 { font-weight: 600; }
+
+  .navtab { position: absolute; top: 54px; left: 0; right: 0; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #FAF9F7; z-index: 30; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand img { width: 36px; height: 36px; }
+  .brand .bn { font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: -0.2px; }
+  .brand .bt { font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.4px; color: #466556; }
+  .avatar { width: 36px; height: 36px; border-radius: 18px; background: #E8F0EC; color: #466556; display: grid; place-items: center; font-size: 14px; font-weight: 600; }
+
+  .navstack { position: absolute; top: 54px; left: 0; right: 0; height: 44px; display: flex; align-items: center; justify-content: center; background: #FAF9F7; z-index: 30; }
+  .navstack .back { position: absolute; left: 10px; display: flex; align-items: center; gap: 4px; color: #466556; font-size: 17px; }
+  .navstack .ttl { font-size: 17px; font-weight: 600; }
+
+  .content { position: absolute; left: 0; right: 0; bottom: 0; overflow: hidden; }
+  .pad { padding: 24px; display: flex; flex-direction: column; }
+
+  .tabbar {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: #fff; z-index: 30;
+    border-top: 0.5px solid #E8E6E3; display: flex; padding-top: 7px;
+  }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; line-height: 14px; font-weight: 600; color: #9A9A9A; letter-spacing: 0; }
+  .tab.on { color: #466556; }
+  .tab .ic { width: 26px; height: 26px; display: grid; place-items: center; }
+  .tab .ic svg { width: 24px; height: 24px; fill: #9A9A9A; }
+  .tab .ic img { width: 24px; height: 24px; }
+
+  .btn { min-height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 600; padding: 0 24px; box-sizing: border-box; }
+  .btn.primary { background: #5B7B6A; color: #fff; }
+  .btn.secondary { background: #fff; border: 1px solid #E8E6E3; color: #2A2A2A; }
+  .btn.ghost { color: #5B7B6A; }
+
+  .card { background: #fff; border: 1px solid #E8E6E3; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px; }
+  .pc-head { display: flex; align-items: flex-start; gap: 8px; }
+  .pc-title { flex: 1; font-size: 18px; line-height: 26px; font-weight: 600; letter-spacing: -0.015em; }
+  .badge { background: #E8F0EC; color: #466556; font-size: 15px; line-height: 22px; font-weight: 500; padding: 4px 8px; border-radius: 999px; }
+  .badge.gold { background: #F5EFDF; color: #B8954A; }
+  .pc-meta { display: flex; gap: 16px; margin-top: 4px; }
+
+  .verse { background: #F5EFDF; border-left: 3px solid #B8954A; border-radius: 8px; padding: 8px 16px; display: flex; flex-direction: column; gap: 4px; }
+  .verse .vt { font-size: 18px; line-height: 28px; font-style: italic; }
+  .verse .vr { font-size: 13px; letter-spacing: 0.3px; }
+
+  .block { background: #fff; border: 1px solid #E8E6E3; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px; }
+  .block.gold { background: #F5EFDF; border-color: #B8954A; }
+
+  .care-item { background: #FAF9F7; border: 1px solid #E8E6E3; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+  .care-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .care-actions { display: flex; gap: 8px; margin-top: 4px; }
+  .care-actions .btn { flex: 1; min-height: 44px; padding: 0; white-space: nowrap; }
+
+  .settings { background: #fff; border: 1px solid #E8E6E3; border-radius: 24px; padding: 4px 24px; }
+  .srow { padding: 4px 0; }
+  .srow + .srow { border-top: 0.5px solid #E8E6E3; }
+  .srow-main { display: flex; align-items: center; gap: 16px; min-height: 64px; padding: 8px 0; box-sizing: border-box; }
+  .srow-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 16px; }
+  .chip { display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 16px; border-radius: 999px; background: #E8F0EC; color: #466556; font-size: 15px; line-height: 22px; font-weight: 600; }
+  .chip i { font-style: normal; font-size: 18px; line-height: 20px; color: #6E6E6E; font-weight: 400; }
+
+  .topbar { position: absolute; top: 54px; left: 0; right: 0; height: 56px; display: flex; align-items: center; gap: 16px; padding: 0 16px; }
+  .closebtn { width: 40px; height: 40px; border-radius: 20px; background: #fff; border: 1px solid #E8E6E3; display: grid; place-items: center; color: #6E6E6E; font-size: 16px; box-sizing: border-box; }
+  .progress { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .track { display: flex; gap: 6px; width: 100%; max-width: 240px; }
+  .seg { flex: 1; height: 4px; border-radius: 2px; background: #E8E6E3; }
+  .seg.done { background: #5B7B6A; opacity: 0.55; }
+  .seg.cur { background: #5B7B6A; }
+  .footer { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 24px 34px; border-top: 0.5px solid #E8E6E3; background: #FAF9F7; display: flex; gap: 8px; }
+
+  .summary { margin-top: 16px; padding: 16px 8px; border-radius: 16px; background: #fff; border: 1px solid #E8E6E3; display: flex; flex-direction: column; gap: 8px; }
+  .stats { display: flex; align-items: stretch; }
+  .stat { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .stat .v { font-size: 24px; line-height: 30px; font-weight: 600; color: #466556; }
+  .stat .v.gold { color: #B8954A; }
+  .stat .l { font-size: 13px; line-height: 17px; color: #6E6E6E; text-align: center; }
+  .vdiv { width: 0.5px; background: #E8E6E3; margin: 4px 0; }
+  .streak { text-align: center; color: #466556; font-size: 15px; line-height: 22px; padding-top: 8px; border-top: 0.5px solid #E8E6E3; margin: 0 16px; }
+  .segctl { display: flex; padding: 3px; border-radius: 999px; background: #EFEDE9; margin-top: 16px; }
+  .segctl div { flex: 1; min-height: 38px; border-radius: 999px; display: grid; place-items: center; font-size: 15px; font-weight: 500; color: #6E6E6E; }
+  .segctl .sel { background: #fff; color: #2A2A2A; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+  .fpill { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border: 1px solid #E8E6E3; background: #fff; font-size: 15px; font-weight: 500; }
+  .tl-row { display: flex; gap: 8px; }
+  .rail { width: 30px; position: relative; display: flex; justify-content: center; }
+  .rail .line { position: absolute; width: 2px; background: #E8E6E3; }
+  .dot { margin-top: 16px; width: 22px; height: 22px; border-radius: 11px; border: 2px solid #B8954A; background: #F5EFDF; box-sizing: border-box; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #B8954A; position: relative; z-index: 1; }
+  .dot.praise { background: #B8954A; color: #fff; }
+  .dot.active { border-color: #5B7B6A; background: #E8F0EC; }
+  .tl-card { flex: 1; margin-bottom: 16px; padding: 16px; border-radius: 16px; border: 1px solid #E7DCC0; background: #fff; display: flex; flex-direction: column; gap: 4px; }
+  .tl-card.praise { background: #FBF7EC; }
+  .tl-card.plain { border-color: #E8E6E3; }
+  .tl-moment { font-size: 13px; line-height: 18px; letter-spacing: 0.3px; text-transform: uppercase; color: #B8954A; font-weight: 600; white-space: nowrap; }
+  .tl-moment.plain { color: #9A9A9A; font-weight: 500; }
+  .tl-title { font-size: 17px; line-height: 24px; font-weight: 600; }
+
+  .codebox { background: #fff; border: 1px solid #E8E6E3; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .code { font-size: 28px; line-height: 36px; font-weight: 700; letter-spacing: 4px; color: #466556; }
+
+  /* ───────────── Floating moments ───────────── */
+  .float { position: absolute; z-index: 80; font-family: 'Inter', sans-serif; }
+  .toast {
+    background: #fff; border-radius: 18px; padding: 16px 22px; border: 1px solid #E8F0EC;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 24px 48px rgba(6,14,30,0.35), 0 6px 14px rgba(6,14,30,0.18);
+  }
+  .toast .tick { flex: none; width: 30px; height: 30px; border-radius: 15px; background: #E8F0EC; color: #466556; display: grid; place-items: center; font-size: 16px; font-weight: 700; }
+  .toast .tick.gold { background: #F5EFDF; color: #B8954A; }
+  .toast .msg { font-size: 16px; line-height: 22px; color: #2A2A2A; font-weight: 500; letter-spacing: -0.01em; }
+  .notif {
+    background: rgba(246,245,243,0.97); border-radius: 26px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start;
+    box-shadow: 0 24px 48px rgba(6,14,30,0.38), 0 6px 14px rgba(6,14,30,0.2);
+    font-family: 'Inter', sans-serif; letter-spacing: -0.01em;
+  }
+  .notif img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
+  .notif .nt { display: flex; justify-content: space-between; font-size: 15px; line-height: 20px; font-weight: 600; color: #111; }
+  .notif .nt span { font-weight: 400; color: #8a8a8a; font-size: 14px; }
+  .notif .nb { font-size: 15px; line-height: 20px; color: #222; margin-top: 1px; }
+</style>
+</head>
+<body>
+<div class="canvas" id="canvas"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const SHOT = Number(params.get('shot') || 1);
+const PALETTE = params.get('theme') || 'navy';
+const SIZE = params.get('size') || 'apple';
+
+const PALETTES = {
+  navy: { bg1: '#081530', bg2: '#12294F', bg3: '#0A1834', glow: 'rgba(214,179,106,0.22)', arc: 'rgba(214,179,106,0.13)' },
+  evergreen: { bg1: '#0D1F17', bg2: '#1D3A2E', bg3: '#0E2219', glow: 'rgba(214,179,106,0.20)', arc: 'rgba(214,179,106,0.13)' },
+};
+const SIZES = {
+  apple: { W: 1290, H: 2796, padTop: 150, padX: 90, eye: 30, h1: 128, g1: 40, sub: 44, g2: 36, stageTop: 800, bottomPad: 110, fi: 104, fl: 30, fgap: 18, fw: 200, maxPhone: 0.72 },
+  play: { W: 1080, H: 1920, padTop: 80, padX: 70, eye: 23, h1: 92, g1: 26, sub: 33, g2: 24, stageTop: 545, bottomPad: 60, fi: 76, fl: 23, fgap: 14, fw: 168, maxPhone: 0.62 },
+};
+
+const pal = PALETTES[PALETTE];
+const sz = SIZES[SIZE];
+const root = document.documentElement.style;
+root.setProperty('--W', sz.W + 'px');
+root.setProperty('--H', sz.H + 'px');
+root.setProperty('--padX', sz.padX + 'px');
+root.setProperty('--eye', sz.eye + 'px');
+root.setProperty('--h1', sz.h1 + 'px');
+root.setProperty('--g1', sz.g1 + 'px');
+root.setProperty('--sub', sz.sub + 'px');
+root.setProperty('--g2', sz.g2 + 'px');
+root.setProperty('--fi', sz.fi + 'px');
+root.setProperty('--fl', sz.fl + 'px');
+root.setProperty('--fgap', sz.fgap + 'px');
+root.setProperty('--fw', sz.fw + 'px');
+root.setProperty('--bg1', pal.bg1);
+root.setProperty('--bg2', pal.bg2);
+root.setProperty('--bg3', pal.bg3);
+root.setProperty('--glow', pal.glow);
+root.setProperty('--arc', pal.arc);
+root.setProperty('--gold', '#D6B36A');
+root.setProperty('--ink', '#F7F2E7');
+root.setProperty('--subInk', 'rgba(247,242,231,0.76)');
+
+/* ───────────── Shared UI pieces ───────────── */
+const ICONS = {
+  sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.6"/><g stroke="#9A9A9A" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1.8" x2="12" y2="4.4"/><line x1="12" y1="19.6" x2="12" y2="22.2"/><line x1="1.8" y1="12" x2="4.4" y2="12"/><line x1="19.6" y1="12" x2="22.2" y2="12"/><line x1="4.8" y1="4.8" x2="6.6" y2="6.6"/><line x1="17.4" y1="17.4" x2="19.2" y2="19.2"/><line x1="4.8" y1="19.2" x2="6.6" y2="17.4"/><line x1="17.4" y1="6.6" x2="19.2" y2="4.8"/></g></svg>',
+  hands: '<svg viewBox="0 0 24 24"><path d="M11.2 3.2c.5-.6 1.3-.3 1.3.5v8.6c0 .5-.4.9-.9.9s-.9-.4-.9-.9V6.9l-3 5.4c-.6 1.1-.8 2.3-.6 3.5l.3 1.7-2.9 3.3-1.4-1.3 2.3-2.6-.2-1.4c-.2-1.6.1-3.2.9-4.6l5.1-7.7zM12.8 3.2c-.5-.6-1.3-.3-1.3.5v8.6c0 .5.4.9.9.9s.9-.4.9-.9V6.9l3 5.4c.6 1.1.8 2.3.6 3.5l-.3 1.7 2.9 3.3 1.4-1.3-2.3-2.6.2-1.4c.2-1.6-.1-3.2-.9-4.6l-5.1-7.7z"/></svg>',
+  people: '<svg viewBox="0 0 24 24"><circle cx="8.5" cy="8" r="3.6"/><path d="M1.5 19.5c0-3.6 3.1-6 7-6s7 2.4 7 6v.5h-14z"/><circle cx="17" cy="8.6" r="3"/><path d="M16.8 13.6c3.3 0 5.7 2.1 5.7 5.2v1.2h-5.3c0-2.6-.9-4.6-2.6-6 .7-.3 1.4-.4 2.2-.4z"/></svg>',
+  book: '<svg viewBox="0 0 24 24"><path d="M2 4.6c2.9-.9 6.1-.7 9 .9v14.6c-2.9-1.5-6.1-1.7-9-.8zM22 4.6c-2.9-.9-6.1-.7-9 .9v14.6c2.9-1.5 6.1-1.7 9-.8z"/></svg>',
+};
+
+function statusBar() {
+  return `<div class="status"><span>9:41</span><span class="icons">
+    <svg width="19" height="12" viewBox="0 0 19 12"><rect x="0" y="8" width="3.2" height="4" rx="1" fill="#111"/><rect x="5" y="5.5" width="3.2" height="6.5" rx="1" fill="#111"/><rect x="10" y="3" width="3.2" height="9" rx="1" fill="#111"/><rect x="15" y="0" width="3.2" height="12" rx="1" fill="#111"/></svg>
+    <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.4c2.3 0 4.4.9 6 2.4l1.3-1.3C13.9 1.6 11.3.6 8.5.6S3.1 1.6 1.2 3.5l1.3 1.3c1.6-1.5 3.7-2.4 6-2.4zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.3-1.3C11.9 4.9 10.3 4.2 8.5 4.2S5.1 4.9 3.8 6l1.3 1.3C6 6.5 7.2 6 8.5 6zm0 3.4L10.4 11 8.5 12.4 6.6 11z" fill="#111"/></svg>
+    <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="23" height="12" rx="3.8" fill="none" stroke="#111" opacity="0.4"/><rect x="2.5" y="2.5" width="19" height="8" rx="2.2" fill="#111"/><path d="M25 4.3v4.4c.9-.3 1.5-1.2 1.5-2.2s-.6-1.9-1.5-2.2z" fill="#111" opacity="0.45"/></svg>
+  </span></div>`;
+}
+
+function navTab(title) {
+  return `<div class="navtab"><div class="brand"><img src="brand-mark.png"/><div><div class="bn">PrayerCare</div><div class="bt">${title}</div></div></div><div class="avatar">G</div></div>`;
+}
+
+function navStack(title) {
+  return `<div class="navstack"><div class="back"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2 2 10l8 8" fill="none" stroke="#466556" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Back</div><div class="ttl">${title}</div></div>`;
+}
+
+function tabBar(active) {
+  const tabs = [['today', 'Today', 'sun'], ['pray', 'Pray', 'hands'], ['groups', 'Groups', 'people'], ['journey', 'Journey', 'book']];
+  return `<div class="tabbar">${tabs.map(([key, label, icon]) => `
+    <div class="tab ${key === active ? 'on' : ''}"><div class="ic">${key === active ? '<img src="brand-mark.png"/>' : ICONS[icon]}</div>${label}</div>`).join('')}</div>`;
+}
+
+function prayerCard({ title, point, badge = 'Active', gold = false, meta = [] }) {
+  return `<div class="card">
+    <div class="pc-head"><div class="pc-title">${title}</div><div class="badge ${gold ? 'gold' : ''}">${badge}</div></div>
+    ${point ? `<div class="t-body muted" style="line-height:22px">${point}</div>` : ''}
+    ${meta.length ? `<div class="pc-meta">${meta.map((m) => `<span class="t-small muted">${m}</span>`).join('')}</div>` : ''}
+  </div>`;
+}
+
+function toast(message, { gold = false, mark = '✓' } = {}) {
+  return `<div class="toast"><div class="tick ${gold ? 'gold' : ''}">${mark}</div><div class="msg">${message}</div></div>`;
+}
+
+const SARAH = { title: 'Sarah’s recovery', point: 'Sarah, as she heals from surgery.' };
+
+/* ───────────── Six shots ───────────── */
+const SHOTS = {
+  1: {
+    eyebrow: 'PrayerCare',
+    lines: ['Everything you need,', '<em>in one place.</em>'],
+    features: [
+      ['Prayer', '<path d="M12 3c2.5 3 5 5.6 5 9a5 5 0 0 1-10 0c0-1.8.8-3.3 2-4.6.2 1.7 1 2.8 2 3.3-.4-2.6.2-5.2 1-7.7z"/>'],
+      ['Care', '<path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z"/>'],
+      ['Scripture', '<path d="M3 5.5c2.8-1 5.8-.8 9 .9 3.2-1.7 6.2-1.9 9-.9v13c-2.8-1-5.8-.8-9 .9-3.2-1.7-6.2-1.9-9-.9zM12 6.4v13"/>'],
+      ['Reminders', '<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15zM10 20.5a2.2 2.2 0 0 0 4 0"/>'],
+      ['Answered', '<path d="M12 3.5l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.5l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/>'],
+    ],
+    screen: () => `
+      ${navTab('Today')}
+      <div class="content" style="top:108px;bottom:90px"><div class="pad" style="gap:16px">
+        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:0">
+          <div class="t-greet">Welcome back, Grace.</div>
+          <div class="verse"><div class="vt">Pray without ceasing.</div><div class="vr muted">— 1 Thessalonians 5:17 · WEB (public domain)</div></div>
+          <div class="muted" style="font-size:18px;line-height:26px">You have 3 prayers to lift up today.</div>
+          <div class="btn primary" style="margin-top:8px">Add another prayer</div>
+        </div>
+        ${prayerCard(SARAH)}
+        ${prayerCard({ title: 'Guidance at work', point: 'Wisdom for the decision ahead.' })}
+        ${prayerCard({ title: 'The Okafor family', point: 'Comfort in a season of grief.' })}
+      </div></div>
+      ${tabBar('today')}`,
+  },
+
+  2: {
+    eyebrow: 'Daily reminders',
+    lines: ['Never forget who', '<em>you said you’d pray for.</em>'],
+    sub: 'Gentle reminders bring each person back to mind, right when it’s time to pray.',
+    float: { html: `<div class="notif"><img src="icon.png"/><div style="flex:1"><div class="nt">PrayerCare<span>now</span></div><div class="nb">Time to pray for Sarah, as she heals from surgery. (7:00 AM)</div></div></div>`, top: 548, left: -22, right: -22 },
+    screen: () => `
+      <div class="topbar"><div class="closebtn">✕</div>
+        <div class="progress"><div class="track"><div class="seg done"></div><div class="seg done"></div><div class="seg done"></div><div class="seg cur"></div><div class="seg"></div></div>
+        <div class="muted" style="font-size:12px;line-height:16px;letter-spacing:0.3px">Step 4 of 5</div></div>
+        <div style="width:40px"></div></div>
+      <div class="content" style="top:110px;bottom:98px"><div class="pad" style="padding-top:16px;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="t-greet">When would you like to pray?</div>
+          <div class="t-body muted" style="line-height:24px">We’ve chosen a gentle default. Change it only if you want to.</div>
+        </div>
+        <div class="settings">
+          <div class="srow"><div class="srow-main"><div class="srow-text"><div class="t-label">Repeat</div><div class="t-body b600">Until answered</div></div><div class="accent b600" style="font-size:15px">Change</div></div></div>
+          <div class="srow"><div class="srow-main"><div class="srow-text"><div class="t-label">Reminder</div><div class="t-body b600">2 reminders a day</div><div class="t-small muted">Tap a time to pause it</div></div><div class="accent b600" style="font-size:15px">Edit</div></div>
+            <div class="chips"><div class="chip">7:00 AM <i>×</i></div><div class="chip">7:00 PM <i>×</i></div></div></div>
+        </div>
+      </div></div>
+      <div class="footer"><div class="btn secondary" style="width:110px;padding:0">Back</div><div class="btn primary" style="flex:1">Next</div></div>`,
+  },
+
+  3: {
+    eyebrow: 'Scripture-led prayer',
+    lines: ['Don’t just read Scripture.', '<em>Pray it.</em>'],
+    sub: 'Anchor every prayer in God’s Word — then come back to it day after day.',
+    float: { html: toast('Amen. Your prayer is recorded for today.'), top: 50, left: -18, right: -18 },
+    screen: () => `
+      ${navStack('Prayer')}
+      <div class="content" style="top:98px"><div class="pad" style="gap:24px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:8px;align-items:flex-start"><div class="t-greet" style="flex:1">${SARAH.title}</div><div class="muted" style="font-size:22px;line-height:36px;letter-spacing:1px">•••</div></div>
+          <div class="t-body muted">${SARAH.point}</div>
+          <div style="display:flex;flex-wrap:wrap;column-gap:16px;margin-top:4px" class="t-small muted"><span>Health &amp; Healing</span><span>Until answered</span><span>Reminders: 7:00 AM · 7:00 PM</span></div>
+        </div>
+        <div class="block"><div class="t-label">Prayer</div><div class="t-body">Father, I lift Sarah up to You. Ease her pain, guide her doctors, and restore her strength day by day. In Jesus’ name, amen.</div></div>
+        <div class="block gold"><div class="t-label">Scripture</div><div class="t-body b600" style="color:#B8954A">Jeremiah 30:17</div><div class="t-body">“For I will restore health to you, and I will heal you of your wounds,” says Yahweh.</div><div class="t-small muted">WEB · World English Bible (public domain)</div></div>
+        <div class="btn primary">I prayed today</div>
+      </div></div>`,
+  },
+
+  4: {
+    eyebrow: 'Care actions',
+    lines: ['Prayer doesn’t stop at', '<em>“I’ll pray for you.”</em>'],
+    sub: 'Turn prayer into real care — calls, visits, meals, rides, and follow-up.',
+    float: { html: toast('Care completed. Well done.'), top: 50, left: -18, right: -18 },
+    screen: () => `
+      ${navStack('Prayer')}
+      <div class="content" style="top:98px"><div class="pad" style="padding-top:20px;gap:24px">
+        <div class="btn primary">I prayed today</div>
+        <div class="block">
+          <div class="t-title">Care actions</div>
+          <div class="t-small muted">Turn prayer into intentional care — calls, visits, meals, and follow-up.</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="care-item"><div class="care-head"><div class="t-body b600">Phone call</div><div class="t-small muted">Done</div></div><div class="t-small muted">For: Grace</div><div class="t-small">She’s in good spirits and so grateful.</div></div>
+            <div class="care-item"><div class="care-head"><div class="t-body b600">Meal</div><div class="t-small muted">Pending</div></div><div class="t-small muted">For: Hope Small Group</div><div class="t-small">Dinner drop-off Thursday at 6 PM.</div>
+              <div class="care-actions"><div class="btn secondary">Mark done</div><div class="btn ghost">Cancel</div></div></div>
+            <div class="care-item"><div class="care-head"><div class="t-body b600">Visit</div><div class="t-small muted">In progress</div></div><div class="t-small muted">For: Pastor John</div><div class="t-small">Home visit once she’s settled.</div>
+              <div class="care-actions"><div class="btn secondary">Mark done</div><div class="btn ghost">Cancel</div></div></div>
+          </div>
+        </div>
+      </div></div>`,
+  },
+
+  5: {
+    eyebrow: 'Answered prayer',
+    lines: ['Remember what', '<em>God has done.</em>'],
+    sub: 'Mark prayers answered, write a praise report, and look back on His faithfulness.',
+    float: { html: toast('Praise God — this prayer is marked answered.', { gold: true, mark: '✦' }), top: 50, left: -18, right: -18 },
+    screen: () => `
+      ${navTab('Journey')}
+      <div class="content" style="top:108px;bottom:90px"><div class="pad" style="padding-top:16px;gap:0">
+        <div class="t-greet">Your journey</div>
+        <div class="t-body muted" style="margin-top:8px">Every prayer tells a story of faithfulness.</div>
+        <div class="summary">
+          <div class="stats">
+            <div class="stat"><div class="v">18</div><div class="l">days of prayer<br>this month</div></div><div class="vdiv"></div>
+            <div class="stat"><div class="v">6</div><div class="l">prayers<br>carried</div></div><div class="vdiv"></div>
+            <div class="stat"><div class="v gold">9</div><div class="l">prayers<br>answered</div></div>
+          </div>
+          <div class="streak">7 days in a row — keep walking with Him.</div>
+        </div>
+        <div class="segctl"><div class="sel">Timeline</div><div>Calendar</div></div>
+        <div class="toolbar"><div class="t-small muted">15 prayers so far</div><div class="fpill"><span style="font-size:14px">☰</span>Filter</div></div>
+        <div class="t-label" style="margin:18px 0 6px">September 2026</div>
+        <div class="tl-row"><div class="rail"><div class="line" style="top:27px;bottom:0"></div><div class="dot praise">✦</div></div>
+          <div class="tl-card praise"><div class="tl-moment">Praise · Sep 18 · after 23 days of prayer</div><div class="tl-title">Mum’s healing</div><div class="t-small faint" style="margin-top:2px">Health &amp; Healing</div></div></div>
+        <div class="tl-row"><div class="rail"><div class="line" style="top:0;height:27px"></div><div class="dot">✓</div></div>
+          <div class="tl-card"><div class="tl-moment">Answered · Sep 9 · after 41 days</div><div class="tl-title">A new job for David</div><div class="t-small faint" style="margin-top:2px">Guidance  ·  Shared</div></div></div>
+      </div></div>
+      ${tabBar('journey')}`,
+  },
+
+  6: {
+    eyebrow: 'Private prayer groups',
+    lines: ['Pray together.', '<em>Care together.</em>'],
+    sub: 'Private groups for your small group, ministry, or care team — invite only.',
+    float: { html: toast('Shared with your group.'), top: 50, left: -18, right: -18 },
+    screen: () => `
+      ${navStack('Group')}
+      <div class="content" style="top:98px"><div class="pad" style="gap:30px">
+        <div style="display:flex;flex-direction:column;gap:8px"><div class="t-greet">Hope Small Group</div><div class="t-body muted">Praying and caring for one another.</div></div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="t-label">Invite</div>
+          <div class="codebox"><div class="code">K7Q2MX</div><div class="t-small muted">Share the link or code. Email invites can require a code or allow the link alone.</div></div>
+          <div class="btn secondary">Share invite link</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="t-label">Shared prayers (4)</div>
+          ${prayerCard({ ...SARAH, meta: ['Health & Healing', 'Until answered'] })}
+          ${prayerCard({ title: 'Kenya mission trip', point: 'Safety and open hearts in Nairobi.', meta: ['Missionary', 'Daily'] })}
+        </div>
+      </div></div>`,
+  },
+};
+
+/* ───────────── Compose ───────────── */
+const shot = SHOTS[SHOT];
+const canvas = document.getElementById('canvas');
+
+const copyHtml = `
+  <div class="copy" id="copy">
+    <div class="eyebrow">${shot.eyebrow}</div>
+    <h1 id="h1">${shot.lines.map((l) => `<span class="ln">${l}</span>`).join('')}</h1>
+    ${shot.features
+      ? `<div class="features">${shot.features.map(([label, path]) => `<div class="feat"><div class="ficon"><svg viewBox="0 0 24 24">${path}</svg></div><span>${label}</span></div>`).join('')}</div>`
+      : `<div class="sub">${shot.sub}</div>`}
+  </div>`;
+
+const rigHtml = `
+  <div class="rig" id="rig">
+    <div class="phone">
+      <div class="btn-side" style="left:-3px;top:178px;height:34px"></div>
+      <div class="btn-side" style="left:-3px;top:232px;height:64px"></div>
+      <div class="btn-side" style="left:-3px;top:310px;height:64px"></div>
+      <div class="btn-side" style="right:-3px;top:262px;height:100px"></div>
+      <div class="screen">${statusBar()}<div class="island"></div>${shot.screen()}<div class="homebar"></div></div>
+    </div>
+    ${shot.float ? `<div class="float" style="top:${shot.float.top}px;left:${shot.float.left}px;right:${shot.float.right}px">${shot.float.html}</div>` : ''}
+  </div>`;
+
+canvas.innerHTML = `<div class="glow" id="glow"></div><div class="arc" id="arc1"></div><div class="arc" id="arc2"></div><div class="floor" id="floor"></div>${copyHtml}${rigHtml}`;
+
+function layout() {
+  const h1 = document.getElementById('h1');
+  const maxWidth = sz.W - sz.padX * 2;
+  let size = sz.h1;
+  h1.style.fontSize = size + 'px';
+  while ([...h1.querySelectorAll('.ln')].some((ln) => ln.scrollWidth > maxWidth) && size > 40) {
+    size -= 2;
+    h1.style.fontSize = size + 'px';
+  }
+
+  const copy = document.getElementById('copy');
+  const regionBottom = sz.stageTop - sz.g2;
+  const copyH = copy.offsetHeight;
+  copy.style.top = Math.max(sz.padTop, sz.padTop + (regionBottom - sz.padTop - copyH) / 2) + 'px';
+
+  const stageH = sz.H - sz.stageTop - sz.bottomPad;
+  const scale = Math.min(stageH / 880, (sz.W * sz.maxPhone) / 421);
+  const rig = document.getElementById('rig');
+  const rigW = 421 * scale;
+  const rigH = 880 * scale;
+  const left = (sz.W - rigW) / 2;
+  const top = sz.stageTop + (stageH - rigH) / 2;
+  rig.style.left = left + 'px';
+  rig.style.top = top + 'px';
+  rig.style.transform = `scale(${scale})`;
+
+  const cy = top + rigH * 0.42;
+  const glow = document.getElementById('glow');
+  glow.style.width = sz.W * 1.5 + 'px';
+  glow.style.height = rigH * 1.15 + 'px';
+  glow.style.top = cy + 'px';
+  const arc1 = document.getElementById('arc1');
+  const arc2 = document.getElementById('arc2');
+  arc1.style.width = arc1.style.height = sz.W * 1.08 + 'px';
+  arc1.style.top = cy + 'px';
+  arc2.style.width = arc2.style.height = sz.W * 1.62 + 'px';
+  arc2.style.top = cy + 'px';
+  arc2.style.opacity = '0.6';
+  const floor = document.getElementById('floor');
+  floor.style.width = rigW * 1.05 + 'px';
+  floor.style.height = rigW * 0.12 + 'px';
+  floor.style.top = top + rigH - rigW * 0.05 + 'px';
+
+  document.body.setAttribute('data-ready', '1');
+}
+
+document.fonts.ready.then(() => requestAnimationFrame(layout));
+</script>
+</body>
+</html>
