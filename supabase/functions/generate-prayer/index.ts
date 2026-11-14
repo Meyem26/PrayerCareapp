@@ -23,6 +23,7 @@ type RequestBody = {
   title?: string;
   prayerPoint?: string;
   translationId?: string;
+  locale?: string;
 };
 
 function jsonResponse(body: unknown, status = 200) {
@@ -107,6 +108,7 @@ Deno.serve(async (req) => {
 
     const body = (await req.json()) as RequestBody;
     const translationId = body.translationId ?? 'WEB';
+    const locale = body.locale ?? 'en';
 
     const { count, error: countError } = await supabase
       .from('ai_generation_logs')
@@ -131,15 +133,15 @@ Deno.serve(async (req) => {
       if (!body.title?.trim() || !body.prayerPoint?.trim()) {
         return jsonResponse({ error: 'Title and prayer point are required for verse generation.' }, 400);
       }
-      systemPrompt = AI_VERSE_SYSTEM_PROMPT;
-      userPrompt = AI_VERSE_USER_PROMPT(body.title, body.prayerPoint, translationId);
+      systemPrompt = AI_VERSE_SYSTEM_PROMPT(locale);
+      userPrompt = AI_VERSE_USER_PROMPT(body.title, body.prayerPoint, translationId, locale);
       generationType = 'verse';
     } else {
       if (!body.heart?.trim()) {
         return jsonResponse({ error: 'Please share what is on your heart.' }, 400);
       }
-      systemPrompt = AI_PRAYER_SYSTEM_PROMPT;
-      userPrompt = AI_PRAYER_USER_PROMPT(body.heart, translationId);
+      systemPrompt = AI_PRAYER_SYSTEM_PROMPT(locale);
+      userPrompt = AI_PRAYER_USER_PROMPT(body.heart, translationId, locale);
       generationType = 'prayer';
     }
 

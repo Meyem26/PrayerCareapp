@@ -8,11 +8,13 @@ import { Screen } from '@/components/ui/Screen';
 import { TextArea } from '@/components/ui/TextArea';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { generatePrayerWithAi } from '@/lib/api/ai';
 import { consumePrayerSaved, setAiPrayerDraft } from '@/lib/ai-draft-store';
 
 export default function PrayScreen() {
   const { profile } = useAuth();
+  const { t, locale } = useI18n();
   const [heart, setHeart] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export default function PrayScreen() {
     setError(null);
 
     if (!heart.trim()) {
-      setError('Please share what is on your heart first.');
+      setError(t('pray.needHeart'));
       return;
     }
 
@@ -46,12 +48,13 @@ export default function PrayScreen() {
     const { data, error: aiError } = await generatePrayerWithAi(
       heart.trim(),
       profile?.bible_translation_id,
+      locale,
     );
 
     setLoading(false);
 
     if (aiError || !data) {
-      setError(aiError ?? 'Could not generate prayer. Please try again.');
+      setError(aiError ?? t('pray.generateFailed'));
       return;
     }
 
@@ -74,25 +77,22 @@ export default function PrayScreen() {
         automaticallyAdjustKeyboardInsets
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
-        <AppText variant="greeting">What&apos;s on your heart today?</AppText>
-        <AppText muted>
-          Share naturally. AI can draft a biblical prayer in Jesus&apos; name, or you can write
-          your own. Then PrayerCare walks you through a few quick choices — one at a time.
-        </AppText>
+        <AppText variant="greeting">{t('pray.title')}</AppText>
+        <AppText muted>{t('pray.subtitle')}</AppText>
 
         <TextArea
-          label="Your heart"
+          label={t('pray.heartLabel')}
           value={heart}
           onChangeText={setHeart}
           editable={!loading}
-          placeholder="Health, family, guidance, a loved one, a ministry need..."
+          placeholder={t('pray.heartPlaceholder')}
         />
 
         {loading ? (
           <View style={styles.loadingBox}>
             <ActivityIndicator color={theme.colors.accent} />
             <AppText muted style={styles.loadingText}>
-              Preparing a prayer grounded in Scripture...
+              {t('pray.preparing')}
             </AppText>
           </View>
         ) : null}
@@ -100,9 +100,9 @@ export default function PrayScreen() {
         {error ? <AppText style={styles.error}>{error}</AppText> : null}
 
         <View style={styles.actions}>
-          <Button title="Generate with AI" loading={loading} onPress={handleGenerateAi} />
+          <Button title={t('pray.generateAi')} loading={loading} onPress={handleGenerateAi} />
           <Button
-            title="Write my own prayer"
+            title={t('pray.writeOwn')}
             variant="secondary"
             disabled={loading}
             onPress={handleWriteOwn}

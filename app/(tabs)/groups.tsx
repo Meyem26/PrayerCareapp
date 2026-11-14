@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
+import { useI18n } from '@/contexts/I18nContext';
 import {
   acceptGroupInviteByToken,
   fetchMyGroups,
@@ -24,6 +25,7 @@ import {
 import type { GroupWithMeta, PendingGroupInvite } from '@/types/group';
 
 export default function GroupsScreen() {
+  const { t } = useI18n();
   const [groups, setGroups] = useState<GroupWithMeta[]>([]);
   const [invites, setInvites] = useState<PendingGroupInvite[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +69,7 @@ export default function GroupsScreen() {
     setInviteActionId(null);
 
     if (result.error || !result.data) {
-      setInviteError(result.error ?? 'Could not accept invitation.');
+      setInviteError(result.error ?? t('groups.acceptFailed'));
       return;
     }
 
@@ -100,21 +102,15 @@ export default function GroupsScreen() {
         }
         ListHeaderComponent={
           <View style={styles.header}>
-            <AppText variant="greeting">Your prayer groups</AppText>
-            <AppText muted>
-              Private communities for shared prayer and care. Only invited members can join.
-            </AppText>
-            {error ? (
-              <AppText style={styles.error}>
-                We couldn't load your groups. Pull to refresh, or try again in a moment.
-              </AppText>
-            ) : null}
+            <AppText variant="greeting">{t('groups.title')}</AppText>
+            <AppText muted>{t('groups.subtitle')}</AppText>
+            {error ? <AppText style={styles.error}>{t('groups.loadError')}</AppText> : null}
 
             {invites.length > 0 ? (
               <View style={styles.invitesSection}>
-                <AppText variant="label">Invitations</AppText>
+                <AppText variant="label">{t('groups.invitations')}</AppText>
                 <AppText variant="bodySmall" muted>
-                  People invited you to these groups. Accept to join.
+                  {t('groups.invitationsHint')}
                 </AppText>
                 {inviteError ? <AppText style={styles.error}>{inviteError}</AppText> : null}
                 {invites.map((invite) => (
@@ -122,13 +118,11 @@ export default function GroupsScreen() {
                     <View style={styles.inviteText}>
                       <AppText style={styles.inviteTitle}>{invite.group_name}</AppText>
                       <AppText variant="bodySmall" muted>
-                        {invite.require_code
-                          ? 'Requires invite code (we’ll use the shared code for you).'
-                          : 'Invite link — no code needed.'}
+                        {invite.require_code ? t('groups.requiresCode') : t('groups.inviteLink')}
                       </AppText>
                     </View>
                     <Button
-                      title="Accept"
+                      title={t('groups.accept')}
                       loading={inviteActionId === invite.invite_id}
                       onPress={() => handleAcceptInvite(invite)}
                       style={styles.acceptButton}
@@ -139,9 +133,9 @@ export default function GroupsScreen() {
             ) : null}
 
             <View style={styles.actions}>
-              <Button title="Create group" onPress={() => router.push('/groups/create')} />
+              <Button title={t('groups.create')} onPress={() => router.push('/groups/create')} />
               <Button
-                title="Join with code"
+                title={t('groups.joinWithCode')}
                 variant="secondary"
                 onPress={() => router.push('/groups/join')}
               />
@@ -157,9 +151,9 @@ export default function GroupsScreen() {
         ListEmptyComponent={
           !loading && !error ? (
             <EmptyState
-              title="No groups yet"
-              body="Create a private group for your small group, ministry, or care team — or join with an invite code."
-              actionLabel="Create group"
+              title={t('empty.groupsTitle')}
+              body={t('empty.groupsBody')}
+              actionLabel={t('groups.create')}
               onAction={() => router.push('/groups/create')}
             />
           ) : null

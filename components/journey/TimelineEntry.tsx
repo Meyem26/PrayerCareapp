@@ -10,6 +10,7 @@ import {
 import { AppText } from '@/components/ui/AppText';
 import { getScheduleLabel } from '@/constants/schedule';
 import { theme } from '@/constants/theme';
+import { useI18n } from '@/contexts/I18nContext';
 import { getCategoryLabel, getScheduleFromPrayer } from '@/lib/prayer-utils';
 import type { PrayerWithRelations } from '@/types/prayer';
 
@@ -28,21 +29,35 @@ const MARKER: Record<JourneyMoment, string | null> = {
   active: null,
 };
 
-function describeMoment(prayer: PrayerWithRelations, moment: JourneyMoment): string {
-  const date = formatShortDate(getMomentDate(prayer));
+function describeMoment(
+  prayer: PrayerWithRelations,
+  moment: JourneyMoment,
+  locale: string,
+  t: (key: string, options?: Record<string, unknown>) => string,
+): string {
+  const date = formatShortDate(getMomentDate(prayer), locale);
 
   if (moment === 'praise' || moment === 'answered') {
     const days = prayer.answered_at ? daysBetween(prayer.created_at, prayer.answered_at) : 0;
     const carried =
-      days > 1 ? ` · after ${days} days of prayer` : days === 1 ? ' · after a day of prayer' : '';
-    return `${moment === 'praise' ? 'Praise' : 'Answered'} · ${date}${carried}`;
+      days > 1
+        ? t('journey.afterDays', { count: days })
+        : days === 1
+          ? t('journey.afterOneDay')
+          : '';
+    const base =
+      moment === 'praise'
+        ? t('journey.momentPraise', { date })
+        : t('journey.momentAnswered', { date });
+    return `${base}${carried}`;
   }
-  if (moment === 'hidden') return `Set aside · began ${date}`;
-  if (moment === 'archived') return `Archived · began ${date}`;
-  return `Began ${date}`;
+  if (moment === 'hidden') return t('journey.setAside', { date });
+  if (moment === 'archived') return t('journey.archived', { date });
+  return t('journey.began', { date });
 }
 
 export function TimelineEntry({ prayer, isFirst, isLast, onPress }: TimelineEntryProps) {
+  const { t, locale } = useI18n();
   const moment = getJourneyMoment(prayer);
   const isAnswered = moment === 'praise' || moment === 'answered';
   const isQuiet = moment === 'hidden' || moment === 'archived';
@@ -53,7 +68,7 @@ export function TimelineEntry({ prayer, isFirst, isLast, onPress }: TimelineEntr
   const meta = [
     category,
     moment === 'active' && schedule?.schedule_type ? getScheduleLabel(schedule.schedule_type) : null,
-    prayer.visibility === 'group' ? 'Shared' : null,
+    prayer.visibility === 'group' ? t('journey.shared') : null,
   ].filter(Boolean);
 
   return (
@@ -86,7 +101,7 @@ export function TimelineEntry({ prayer, isFirst, isLast, onPress }: TimelineEntr
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${prayer.title}. ${describeMoment(prayer, moment)}`}
+        accessibilityLabel={`${prayer.title}. ${describeMoment(prayer, moment, locale, t)}`}
         onPress={onPress}
         style={({ pressed }) => [
           styles.card,
@@ -99,7 +114,7 @@ export function TimelineEntry({ prayer, isFirst, isLast, onPress }: TimelineEntr
           variant="label"
           style={[styles.moment, isAnswered && styles.momentAnswered]}
           numberOfLines={1}>
-          {describeMoment(prayer, moment)}
+          {describeMoment(prayer, moment, locale, t)}
         </AppText>
         <AppText style={styles.title} numberOfLines={2}>
           {prayer.title}

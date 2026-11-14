@@ -2,17 +2,21 @@ import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { LanguagePicker } from '@/components/i18n/LanguagePicker';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
-import { useAuth } from '@/contexts/AuthContext';
+import { getDefaultBibleTranslationId, type AppLocale } from '@/constants/languages';
 import { theme } from '@/constants/theme';
-import { isSupabaseConfigured } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { friendlyAuthError } from '@/lib/auth-errors';
+import { isSupabaseConfigured } from '@/lib/supabase';
 
 export default function SignUpScreen() {
-  const { signUp } = useAuth();
+  const { signUp, updateProfile } = useAuth();
+  const { t, locale, setGuestLocale } = useI18n();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,22 +27,22 @@ export default function SignUpScreen() {
     setError(null);
 
     if (!displayName.trim() || !email.trim() || !password) {
-      setError('Please complete all fields.');
+      setError(t('auth.completeAllFields'));
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
+      setError(t('auth.passwordTooShort'));
       return;
     }
 
     if (!isSupabaseConfigured) {
-      setError('Supabase is not configured yet. Add your keys to .env.');
+      setError(t('auth.supabaseMissing'));
       return;
     }
 
     setLoading(true);
-    const result = await signUp(email.trim(), password, displayName.trim());
+    const result = await signUp(email.trim(), password, displayName.trim(), locale as AppLocale);
     setLoading(false);
 
     if (result.error) {
@@ -55,6 +59,12 @@ export default function SignUpScreen() {
       return;
     }
 
+    // Immediate session (e.g. local/dev): ensure locale + matching Bible preference stick.
+    await updateProfile({
+      locale: locale as AppLocale,
+      bible_translation_id: getDefaultBibleTranslationId(locale as AppLocale),
+    });
+
     router.replace('/');
   }
 
@@ -69,29 +79,34 @@ export default function SignUpScreen() {
           showsVerticalScrollIndicator={false}>
           <View style={styles.hero}>
             <AppText variant="label" accent>
-              PrayerCare
+              {t('brand.name')}
             </AppText>
             <AppText variant="greeting" style={styles.greeting}>
-              Begin your journey.
+              {t('auth.beginJourney')}
             </AppText>
-            <AppText muted>
-              Create a peaceful space to pray, care, and celebrate answered prayers.
-            </AppText>
+            <AppText muted>{t('auth.createPeaceful')}</AppText>
             <AppText variant="bodySmall" muted style={styles.freeNote}>
-              PrayerCare is free. Create your account to get started.
+              {t('auth.freeNote')}
             </AppText>
           </View>
 
+          <LanguagePicker
+            value={locale as AppLocale}
+            onChange={setGuestLocale}
+            title={t('language.title')}
+            subtitle={t('language.subtitle')}
+          />
+
           <View style={styles.form}>
             <Input
-              label="Your name"
+              label={t('auth.yourName')}
               autoComplete="name"
               textContentType="name"
               value={displayName}
               onChangeText={setDisplayName}
             />
             <Input
-              label="Email"
+              label={t('auth.email')}
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
@@ -100,7 +115,7 @@ export default function SignUpScreen() {
               onChangeText={setEmail}
             />
             <Input
-              label="Password"
+              label={t('auth.password')}
               secureTextEntry
               autoComplete="new-password"
               textContentType="newPassword"
@@ -108,13 +123,13 @@ export default function SignUpScreen() {
               onChangeText={setPassword}
             />
             {error ? <AppText style={styles.error}>{error}</AppText> : null}
-            <Button title="Create Account" loading={loading} onPress={handleSignUp} />
+            <Button title={t('auth.signUp')} loading={loading} onPress={handleSignUp} />
           </View>
 
           <Link href="/(auth)/login" asChild>
             <Pressable style={styles.link}>
               <AppText muted>
-                Already have an account? <AppText accent>Sign in</AppText>
+                {t('auth.alreadyHaveAccount')} <AppText accent>{t('auth.signIn')}</AppText>
               </AppText>
             </Pressable>
           </Link>

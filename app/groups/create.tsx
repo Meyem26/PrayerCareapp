@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -8,9 +8,11 @@ import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
 import { TextArea } from '@/components/ui/TextArea';
 import { theme } from '@/constants/theme';
+import { useI18n } from '@/contexts/I18nContext';
 import { createGroup } from '@/lib/api/groups';
 
 export default function CreateGroupScreen() {
+  const { t } = useI18n();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,7 +22,7 @@ export default function CreateGroupScreen() {
     setError(null);
 
     if (!name.trim()) {
-      setError('Please enter a group name.');
+      setError(t('groups.needName'));
       return;
     }
 
@@ -29,7 +31,7 @@ export default function CreateGroupScreen() {
     setLoading(false);
 
     if (createError || !data) {
-      setError(createError ?? 'Could not create group.');
+      setError(createError ?? t('groups.createFailed'));
       return;
     }
 
@@ -39,19 +41,22 @@ export default function CreateGroupScreen() {
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <AppText muted>
-          Groups are private. Only people you invite can join and see shared prayers.
-        </AppText>
-        <Input label="Group name" value={name} onChangeText={setName} placeholder="Women's Ministry, Care Team..." />
+        <AppText muted>{t('groups.createHint')}</AppText>
+        <Input
+          label={t('groups.nameLabel')}
+          value={name}
+          onChangeText={setName}
+          placeholder={t('groups.namePlaceholder')}
+        />
         <TextArea
-          label="Description (optional)"
+          label={t('groups.descLabel')}
           value={description}
           onChangeText={setDescription}
-          placeholder="What is this group for?"
+          placeholder={t('groups.descPlaceholder')}
           style={styles.shortArea}
         />
         {error ? <AppText style={styles.error}>{error}</AppText> : null}
-        <Button title="Create Group" loading={loading} onPress={handleCreate} />
+        <Button title={t('groups.createAction')} loading={loading} onPress={handleCreate} />
       </ScrollView>
     </Screen>
   );

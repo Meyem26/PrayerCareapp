@@ -17,6 +17,7 @@ import { formatReminderTimeLabel, normalizeReminderTime } from '@/constants/remi
 import { formatScriptureAttribution } from '@/constants/bible-translations';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import {
   deletePrayer,
   fetchPrayerDetail,
@@ -35,6 +36,7 @@ import type { PrayerTimelineEvent, PrayerWithRelations } from '@/types/prayer';
 export default function PrayerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const { showToast } = useToast();
   const [prayer, setPrayer] = useState<PrayerWithRelations | null>(null);
   const [timeline, setTimeline] = useState<PrayerTimelineEvent[]>([]);
@@ -95,7 +97,7 @@ export default function PrayerDetailScreen() {
       showToast({ message: result.error, tone: 'info' });
       return;
     }
-    showToast({ message: 'Prayer removed.', tone: 'gentle' });
+    showToast({ message: t('prayer.removed'), tone: 'gentle' });
     router.replace('/(tabs)/journey');
   }
 
@@ -112,7 +114,7 @@ export default function PrayerDetailScreen() {
     }
 
     setShareModalVisible(false);
-    showToast({ message: 'Shared with your group.', tone: 'success' });
+    showToast({ message: t('prayer.shared'), tone: 'success' });
     await loadPrayer();
   }
 
@@ -121,7 +123,7 @@ export default function PrayerDetailScreen() {
     setConfirmKind(null);
     await runAction(
       () => markPrayerAnswered(id, user.id),
-      'Praise God — this prayer is marked answered.',
+      t('prayer.markedAnswered'),
     );
   }
 
@@ -140,20 +142,20 @@ export default function PrayerDetailScreen() {
         onPress: () => router.push({ pathname: '/prayer/create', params: { id } }),
       });
       items.push({
-        label: prayer.is_hidden ? 'Show on Today' : 'Hide from Today',
+        label: prayer.is_hidden ? t('prayer.showOnToday') : t('prayer.hideFromToday'),
         onPress: () => runAction(() => setPrayerHidden(id, user.id, !prayer.is_hidden)),
       });
       items.push({
-        label: 'Mark answered',
+        label: t('prayer.markAnswered'),
         onPress: () => setConfirmKind('answered'),
       });
       items.push({
-        label: 'Care action',
+        label: t('prayer.careAction'),
         onPress: () => setCareFormOpen(true),
       });
       if (isPersonal && isOwner) {
         items.push({
-          label: 'Share with group',
+          label: t('prayer.shareWithGroup'),
           onPress: () => setShareModalVisible(true),
         });
       }
@@ -161,7 +163,7 @@ export default function PrayerDetailScreen() {
 
     if (isAnswered) {
       items.push({
-        label: 'Restart prayer',
+        label: t('prayer.restart'),
         onPress: () => runAction(() => restartPrayer(id, user.id)),
       });
     }
@@ -182,7 +184,7 @@ export default function PrayerDetailScreen() {
   if (!prayer) {
     return (
       <Screen centered>
-        <AppText muted>{error ?? 'Prayer not found.'}</AppText>
+        <AppText muted>{error ?? t('prayer.notFound')}</AppText>
         <Button title="Go back" variant="ghost" onPress={() => router.back()} />
       </Screen>
     );
@@ -255,13 +257,13 @@ export default function PrayerDetailScreen() {
 
         {isActive && !prayer.is_hidden ? (
           <Button
-            title="I prayed today"
+            title={t('prayer.iPrayed')}
             loading={actionLoading}
             onPress={() => {
               if (!id || !user?.id || !profile) return;
               runAction(
                 () => logPrayerActivity(id, user.id, profile.timezone),
-                'Amen. Your prayer is recorded for today.',
+                t('prayer.amenRecorded'),
               );
             }}
           />
@@ -300,10 +302,10 @@ export default function PrayerDetailScreen() {
 
       <ConfirmDialog
         visible={confirmKind === 'delete'}
-        title="Delete prayer?"
-        message="This cannot be undone. Your timeline history for this prayer will be removed."
+        title={t('prayer.deleteTitle')}
+        message={t('prayer.deleteBody')}
         confirmLabel="Delete"
-        cancelLabel="Keep prayer"
+        cancelLabel={t('prayer.keepPrayer')}
         destructive
         loading={actionLoading}
         onCancel={() => setConfirmKind(null)}
@@ -312,9 +314,9 @@ export default function PrayerDetailScreen() {
 
       <ConfirmDialog
         visible={confirmKind === 'answered'}
-        title="Mark as answered?"
-        message="This prayer will leave your Today list. You can write a praise report to celebrate what God has done."
-        confirmLabel="Yes, answered"
+        title={t('prayer.answeredTitle')}
+        message={t('prayer.answeredBody')}
+        confirmLabel={t('prayer.answeredConfirm')}
         cancelLabel="Not yet"
         loading={actionLoading}
         onCancel={() => setConfirmKind(null)}

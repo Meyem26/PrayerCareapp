@@ -75,7 +75,7 @@ export async function fetchGroupPrayers(groupId: string): Promise<{
 }> {
   const { data, error } = await supabase
     .from('prayers')
-    .select('*, prayer_schedules(*), prayer_categories(label)')
+    .select('*, prayer_schedules(*), prayer_categories(label, slug)')
     .eq('group_id', groupId)
     .eq('visibility', 'group')
     .order('updated_at', { ascending: false });

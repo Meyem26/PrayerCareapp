@@ -10,6 +10,7 @@ import { NotificationBootstrap } from '@/components/notifications/NotificationBo
 import { LoadingScreen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 
 /**
  * Space for icon + label (excludes system / home-indicator inset).
@@ -20,6 +21,7 @@ const TAB_ICON_SIZE = 22;
 
 export default function TabLayout() {
   const { session, isLoading, isProfileLoading, isEmailVerified, needsOnboarding } = useAuth();
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
   if (isLoading || isProfileLoading) {
@@ -101,9 +103,9 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Today',
-            headerLeft: () => <BrandHeaderTitle title="Today" />,
-            tabBarLabel: 'Today',
+            title: t('tabs.today'),
+            headerLeft: () => <BrandHeaderTitle title={t('tabs.today')} />,
+            tabBarLabel: t('tabs.today'),
             tabBarIcon: ({ focused }) => (
               <BrandTabIcon name="today" focused={focused} size={TAB_ICON_SIZE} />
             ),
@@ -112,9 +114,9 @@ export default function TabLayout() {
         <Tabs.Screen
           name="pray"
           options={{
-            title: 'Pray',
-            headerLeft: () => <BrandHeaderTitle title="Pray" />,
-            tabBarLabel: 'Pray',
+            title: t('tabs.pray'),
+            headerLeft: () => <BrandHeaderTitle title={t('tabs.pray')} />,
+            tabBarLabel: t('tabs.pray'),
             tabBarIcon: ({ focused }) => (
               <BrandTabIcon name="pray" focused={focused} size={TAB_ICON_SIZE} />
             ),
@@ -123,9 +125,9 @@ export default function TabLayout() {
         <Tabs.Screen
           name="groups"
           options={{
-            title: 'Groups',
-            headerLeft: () => <BrandHeaderTitle title="Groups" />,
-            tabBarLabel: 'Groups',
+            title: t('tabs.groups'),
+            headerLeft: () => <BrandHeaderTitle title={t('tabs.groups')} />,
+            tabBarLabel: t('tabs.groups'),
             tabBarIcon: ({ focused }) => (
               <BrandTabIcon name="groups" focused={focused} size={TAB_ICON_SIZE} />
             ),
@@ -134,9 +136,9 @@ export default function TabLayout() {
         <Tabs.Screen
           name="journey"
           options={{
-            title: 'Journey',
-            headerLeft: () => <BrandHeaderTitle title="Journey" />,
-            tabBarLabel: 'Journey',
+            title: t('tabs.journey'),
+            headerLeft: () => <BrandHeaderTitle title={t('tabs.journey')} />,
+            tabBarLabel: t('tabs.journey'),
             tabBarIcon: ({ focused }) => (
               <BrandTabIcon name="journey" focused={focused} size={TAB_ICON_SIZE} />
             ),

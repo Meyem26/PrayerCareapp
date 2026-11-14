@@ -7,8 +7,13 @@ import { Input } from '@/components/ui/Input';
 import { OptionCard } from '@/components/ui/OptionCard';
 import { TextArea } from '@/components/ui/TextArea';
 import { useToast } from '@/components/ui/Toast';
-import { CARE_ACTION_TYPES, CARE_STATUS_LABELS, getCareActionLabel } from '@/constants/care';
+import {
+  CARE_ACTION_TYPES,
+  getCareActionLabel,
+  getCareStatusLabel,
+} from '@/constants/care';
 import { theme } from '@/constants/theme';
+import { useI18n } from '@/contexts/I18nContext';
 import { createCareAction, fetchCareActions, updateCareActionStatus } from '@/lib/api/care';
 import type { CareAction, CareActionType } from '@/types/care';
 
@@ -25,6 +30,7 @@ export function CareActionsSection({
   showForm: showFormProp,
   onShowFormChange,
 }: CareActionsSectionProps) {
+  const { t } = useI18n();
   const { showToast } = useToast();
   const [internalShowForm, setInternalShowForm] = useState(false);
   const showForm = showFormProp ?? internalShowForm;
@@ -61,7 +67,7 @@ export function CareActionsSection({
     setError(null);
 
     if (actionType === 'custom' && !customLabel.trim()) {
-      setError('Please describe the care action.');
+      setError(t('care.needDescribe'));
       return;
     }
 
@@ -84,7 +90,7 @@ export function CareActionsSection({
     setCustomLabel('');
     setAssigneeName('');
     setNotes('');
-    showToast({ message: 'Care action added. Love becomes practical.', tone: 'success' });
+    showToast({ message: t('care.added'), tone: 'success' });
     await loadActions();
   }
 
@@ -95,7 +101,7 @@ export function CareActionsSection({
       return;
     }
     if (status === 'completed') {
-      showToast({ message: 'Care completed. Well done.', tone: 'success' });
+      showToast({ message: t('care.completed'), tone: 'success' });
     }
     await loadActions();
   }
@@ -103,19 +109,19 @@ export function CareActionsSection({
   function getAssigneeLabel(action: CareAction): string | null {
     const assignee = action.care_action_assignees?.[0];
     if (!assignee) return null;
-    return assignee.external_name ?? 'Assigned';
+    return assignee.external_name ?? t('care.assigned');
   }
 
   return (
     <View style={styles.block}>
-      <AppText variant="title">Care actions</AppText>
+      <AppText variant="title">{t('care.title')}</AppText>
       <AppText variant="bodySmall" muted>
-        Turn prayer into intentional care — calls, visits, meals, and follow-up.
+        {t('care.subtitle')}
       </AppText>
 
       {actions.length === 0 && !showForm ? (
         <AppText muted style={styles.empty}>
-          No care actions yet. Tap ⋯ above to add one.
+          {t('care.empty')}
         </AppText>
       ) : (
         <View style={styles.list}>
@@ -130,12 +136,12 @@ export function CareActionsSection({
                     {getCareActionLabel(action.action_type, action.custom_label)}
                   </AppText>
                   <AppText variant="bodySmall" muted>
-                    {CARE_STATUS_LABELS[action.status]}
+                    {getCareStatusLabel(action.status)}
                   </AppText>
                 </View>
                 {assignee ? (
                   <AppText variant="bodySmall" muted>
-                    For: {assignee}
+                    {t('care.forAssignee', { name: assignee })}
                   </AppText>
                 ) : null}
                 {action.notes ? (
@@ -144,13 +150,13 @@ export function CareActionsSection({
                 {canEdit && !isDone ? (
                   <View style={styles.itemActions}>
                     <Button
-                      title="Mark done"
+                      title={t('care.markDone')}
                       variant="secondary"
                       style={styles.smallButton}
                       onPress={() => handleStatusChange(action, 'completed')}
                     />
                     <Button
-                      title="Cancel"
+                      title={t('common.cancel')}
                       variant="ghost"
                       style={styles.smallButton}
                       onPress={() => handleStatusChange(action, 'cancelled')}
@@ -164,52 +170,52 @@ export function CareActionsSection({
       )}
 
       {canEdit && showForm ? (
-          <View style={styles.form}>
-            <AppText variant="label">Type of care</AppText>
-            <View style={styles.typeGrid}>
-              {CARE_ACTION_TYPES.map((item) => (
-                <OptionCard
-                  key={item.value}
-                  label={item.label}
-                  selected={actionType === item.value}
-                  onPress={() => setActionType(item.value)}
-                />
-              ))}
-            </View>
-            {actionType === 'custom' ? (
-              <Input
-                label="Describe"
-                value={customLabel}
-                onChangeText={setCustomLabel}
-                placeholder="What kind of care?"
+        <View style={styles.form}>
+          <AppText variant="label">{t('care.typeOfCare')}</AppText>
+          <View style={styles.typeGrid}>
+            {CARE_ACTION_TYPES.map((item) => (
+              <OptionCard
+                key={item.value}
+                label={t(item.labelKey)}
+                selected={actionType === item.value}
+                onPress={() => setActionType(item.value)}
               />
-            ) : null}
-            <Input
-              label="Assign to (optional)"
-              value={assigneeName}
-              onChangeText={setAssigneeName}
-              placeholder="Mom, Pastor John, or a team name"
-            />
-            <TextArea
-              label="Notes (optional)"
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Details for whoever is caring..."
-              style={styles.notesArea}
-            />
-            {error ? <AppText style={styles.error}>{error}</AppText> : null}
-            <View style={styles.formActions}>
-              <Button
-                title="Cancel"
-                variant="ghost"
-                onPress={() => {
-                  setShowForm(false);
-                  setError(null);
-                }}
-              />
-              <Button title="Add care action" loading={saving} onPress={handleCreate} />
-            </View>
+            ))}
           </View>
+          {actionType === 'custom' ? (
+            <Input
+              label={t('care.describe')}
+              value={customLabel}
+              onChangeText={setCustomLabel}
+              placeholder={t('care.describePlaceholder')}
+            />
+          ) : null}
+          <Input
+            label={t('care.assignTo')}
+            value={assigneeName}
+            onChangeText={setAssigneeName}
+            placeholder={t('care.assignPlaceholder')}
+          />
+          <TextArea
+            label={t('care.notes')}
+            value={notes}
+            onChangeText={setNotes}
+            placeholder={t('care.notesPlaceholder')}
+            style={styles.notesArea}
+          />
+          {error ? <AppText style={styles.error}>{error}</AppText> : null}
+          <View style={styles.formActions}>
+            <Button
+              title={t('common.cancel')}
+              variant="ghost"
+              onPress={() => {
+                setShowForm(false);
+                setError(null);
+              }}
+            />
+            <Button title={t('care.add')} loading={saving} onPress={handleCreate} />
+          </View>
+        </View>
       ) : null}
     </View>
   );

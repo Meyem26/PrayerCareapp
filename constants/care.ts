@@ -1,19 +1,20 @@
+import { t } from '@/lib/i18n';
 import type { CareActionStatus, CareActionType } from '@/types/care';
 
-export const CARE_ACTION_TYPES: { value: CareActionType; label: string }[] = [
-  { value: 'call', label: 'Phone call' },
-  { value: 'visit', label: 'Visit' },
-  { value: 'meal', label: 'Meal' },
-  { value: 'financial_help', label: 'Financial help' },
-  { value: 'transportation', label: 'Transportation' },
-  { value: 'custom', label: 'Other' },
+export const CARE_ACTION_TYPES: { value: CareActionType; labelKey: string }[] = [
+  { value: 'call', labelKey: 'care.typeCall' },
+  { value: 'visit', labelKey: 'care.typeVisit' },
+  { value: 'meal', labelKey: 'care.typeMeal' },
+  { value: 'financial_help', labelKey: 'care.typeFinancial' },
+  { value: 'transportation', labelKey: 'care.typeTransport' },
+  { value: 'custom', labelKey: 'care.typeOther' },
 ];
 
-export const CARE_STATUS_LABELS: Record<CareActionStatus, string> = {
-  pending: 'Pending',
-  in_progress: 'In progress',
-  completed: 'Done',
-  cancelled: 'Cancelled',
+export const CARE_STATUS_KEYS: Record<CareActionStatus, string> = {
+  pending: 'care.statusPending',
+  in_progress: 'care.statusInProgress',
+  completed: 'care.statusDone',
+  cancelled: 'care.statusCancelled',
 };
 
 export function getCareActionLabel(
@@ -21,5 +22,10 @@ export function getCareActionLabel(
   customLabel?: string | null,
 ): string {
   if (actionType === 'custom' && customLabel) return customLabel;
-  return CARE_ACTION_TYPES.find((item) => item.value === actionType)?.label ?? actionType;
+  const item = CARE_ACTION_TYPES.find((entry) => entry.value === actionType);
+  return item ? t(item.labelKey) : actionType;
+}
+
+export function getCareStatusLabel(status: CareActionStatus): string {
+  return t(CARE_STATUS_KEYS[status]);
 }

@@ -77,7 +77,7 @@ export async function fetchJourneyPrayers(): Promise<{
       `
       *,
       prayer_schedules (*),
-      prayer_categories (label)
+      prayer_categories (label, slug)
     `,
     )
     .order('updated_at', { ascending: false });
@@ -112,7 +112,7 @@ export async function fetchPrayerDetail(prayerId: string): Promise<{
         `
         *,
         prayer_schedules (*),
-        prayer_categories (label),
+        prayer_categories (label, slug),
         scripture_snapshots (*),
         prayer_reminders (*)
       `,
@@ -133,7 +133,7 @@ export async function fetchPrayerDetail(prayerId: string): Promise<{
         `
         *,
         prayer_schedules (*),
-        prayer_categories (label),
+        prayer_categories (label, slug),
         scripture_snapshots (*)
       `,
       )

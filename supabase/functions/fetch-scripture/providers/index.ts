@@ -1,5 +1,6 @@
 import { ApiBibleProvider } from './api-bible.ts';
 import { BibleApiComProvider } from './bible-api-com.ts';
+import { BibleDataProvider } from './bible-data.ts';
 import type { ScriptureProvider } from '../catalog.ts';
 
 export function getScriptureProvider(
@@ -11,6 +12,10 @@ export function getScriptureProvider(
       throw new Error('API_BIBLE_KEY is not configured for licensed translations.');
     }
     return new ApiBibleProvider(apiBibleKey);
+  }
+
+  if (providerId === 'bible-data') {
+    return new BibleDataProvider();
   }
 
   return new BibleApiComProvider();

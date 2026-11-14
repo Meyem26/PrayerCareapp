@@ -9,6 +9,7 @@ import { BetaOverlay } from '@/components/beta/BetaOverlay';
 import { WebPhoneShell } from '@/components/layout/WebPhoneShell';
 import { ToastProvider } from '@/components/ui/Toast';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { I18nProvider } from '@/contexts/I18nContext';
 import { theme } from '@/constants/theme';
 
 export { ErrorBoundary } from 'expo-router';
@@ -42,24 +43,26 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <WebPhoneShell>
         <AuthProvider>
-          <ToastProvider>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: theme.colors.background },
-                animation: 'fade',
-              }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="(onboarding)" />
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="prayer" options={{ headerShown: false }} />
-              <Stack.Screen name="groups" options={{ headerShown: false }} />
-              <Stack.Screen name="sermon" options={{ headerShown: false }} />
-              <Stack.Screen name="(more)" options={{ headerShown: false }} />
-            </Stack>
-            <BetaOverlay />
-          </ToastProvider>
+          <I18nProvider>
+            <ToastProvider>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: theme.colors.background },
+                  animation: 'fade',
+                }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(onboarding)" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="prayer" options={{ headerShown: false }} />
+                <Stack.Screen name="groups" options={{ headerShown: false }} />
+                <Stack.Screen name="sermon" options={{ headerShown: false }} />
+                <Stack.Screen name="(more)" options={{ headerShown: false }} />
+              </Stack>
+              <BetaOverlay />
+            </ToastProvider>
+          </I18nProvider>
         </AuthProvider>
       </WebPhoneShell>
     </SafeAreaProvider>

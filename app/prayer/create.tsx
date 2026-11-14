@@ -37,7 +37,9 @@ import { formatReminderTimeLabel, normalizeReminderTime } from '@/constants/remi
 import { describeRepeat, REPEAT_CHOICES } from '@/constants/schedule';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { useKeyboardOverlap } from '@/hooks/useKeyboard';
+import { translateCategorySlug } from '@/lib/i18n';
 import { consumeAiPrayerDraft, markPrayerSaved } from '@/lib/ai-draft-store';
 import { generatePrayerWithAi, generateVerseWithAi } from '@/lib/api/ai';
 import { fetchScriptureFromApi } from '@/lib/api/bible';
@@ -57,30 +59,30 @@ import type { ReminderTimeDraft } from '@/types/reminder';
 
 type StepId = 'prayer' | 'category' | 'location' | 'visibility' | 'schedule' | 'review';
 
-const STEP_COPY: Record<StepId, { title: string; subtitle: string }> = {
+const STEP_KEYS: Record<StepId, { titleKey: string; subtitleKey: string }> = {
   prayer: {
-    title: 'What are you praying about?',
-    subtitle: 'Write it in your own words, or let AI help. Everything stays editable.',
+    titleKey: 'prayer.stepPrayerTitle',
+    subtitleKey: 'prayer.stepPrayerSubtitle',
   },
   category: {
-    title: 'What is this prayer about?',
-    subtitle: 'Pick the theme that fits best. It helps you look back on how God answered.',
+    titleKey: 'prayer.stepCategoryTitle',
+    subtitleKey: 'prayer.stepCategorySubtitle',
   },
   location: {
-    title: 'Where should this prayer live?',
-    subtitle: 'Keep it between you and God, or carry it together with others.',
+    titleKey: 'prayer.stepLocationTitle',
+    subtitleKey: 'prayer.stepLocationSubtitle',
   },
   visibility: {
-    title: 'Who should see this prayer?',
-    subtitle: 'Only members of the group can ever see group prayers.',
+    titleKey: 'prayer.stepVisibilityTitle',
+    subtitleKey: 'prayer.stepVisibilitySubtitle',
   },
   schedule: {
-    title: 'When would you like to pray?',
-    subtitle: 'We’ve chosen a gentle default. Change it only if you want to.',
+    titleKey: 'prayer.stepScheduleTitle',
+    subtitleKey: 'prayer.stepScheduleSubtitle',
   },
   review: {
-    title: 'Review your prayer',
-    subtitle: 'Everything look right? Tap Save prayer below, or Edit anything first.',
+    titleKey: 'prayer.stepReviewTitle',
+    subtitleKey: 'prayer.stepReviewSubtitle',
   },
 };
 
@@ -110,6 +112,7 @@ export default function CreatePrayerScreen() {
     source?: string;
   }>();
   const { user, profile } = useAuth();
+  const { t, locale } = useI18n();
   const { showToast } = useToast();
   const insets = useSafeAreaInsets();
   const isEditing = Boolean(id);
@@ -185,7 +188,7 @@ export default function CreatePrayerScreen() {
     fetchPrayerDetail(id).then(({ data, error: fetchError }) => {
       setInitialLoading(false);
       if (fetchError || !data) {
-        setError(fetchError ?? 'Could not load prayer.');
+        setError(fetchError ?? t('prayer.loadFailed'));
         return;
       }
 
@@ -293,17 +296,17 @@ export default function CreatePrayerScreen() {
     switch (target) {
       case 'prayer':
         if (!title.trim() || !prayerPoint.trim() || !body.trim()) {
-          return 'Please add a title, a prayer point, and your prayer.';
+          return t('prayer.needFields');
         }
         return null;
       case 'location':
         if (shareMode === 'group' && !selectedGroupId) {
-          return 'Choose a group, or create one to share with.';
+          return t('prayer.needGroup');
         }
         return null;
       case 'schedule':
         if (!isValidSchedule(scheduleType, weekdays)) {
-          return 'Choose at least one day of the week.';
+          return t('prayer.needWeekday');
         }
         return null;
       default:
@@ -375,17 +378,17 @@ export default function CreatePrayerScreen() {
         : body.trim() || prayerPoint.trim() || title.trim();
 
     if (!prompt) {
-      setError('Write a few words about what is on your heart first.');
+      setError(t('prayer.needHeart'));
       return;
     }
 
     Keyboard.dismiss();
     setAiLoading(true);
-    const { data, error: aiError } = await generatePrayerWithAi(prompt, profile?.bible_translation_id);
+    const { data, error: aiError } = await generatePrayerWithAi(prompt, profile?.bible_translation_id, locale);
     setAiLoading(false);
 
     if (aiError || !data) {
-      setError(aiError ?? 'Could not generate a prayer. Please try again.');
+      setError(aiError ?? t('prayer.aiFailed'));
       return;
     }
 
@@ -397,7 +400,7 @@ export default function CreatePrayerScreen() {
     setScriptureNote(null);
 
     if (!title.trim() || !prayerPoint.trim()) {
-      setError('Add a title and prayer point first so AI can suggest a fitting verse.');
+      setError(t('prayer.needTitleForVerse'));
       return;
     }
 
@@ -410,7 +413,7 @@ export default function CreatePrayerScreen() {
     setVerseLoading(false);
 
     if (verseError || !data) {
-      setError(verseError ?? 'Could not generate verse.');
+      setError(verseError ?? t('prayer.verseFailed'));
       return;
     }
 
@@ -425,7 +428,7 @@ export default function CreatePrayerScreen() {
     setScriptureNote(null);
 
     if (!scriptureRef.trim()) {
-      setError('Enter a Scripture reference first (e.g. Philippians 4:6-7).');
+      setError(t('prayer.needReference'));
       return;
     }
 
@@ -437,7 +440,7 @@ export default function CreatePrayerScreen() {
     setVerseLoading(false);
 
     if (fetchError || !data) {
-      setError(fetchError ?? 'Could not look up that verse.');
+      setError(fetchError ?? t('prayer.lookupFailed'));
       setScriptureText('');
       return;
     }
@@ -470,7 +473,7 @@ export default function CreatePrayerScreen() {
     }
 
     if (!user?.id || !profile) {
-      setError('You must be signed in.');
+      setError(t('prayer.mustSignIn'));
       return;
     }
 
@@ -486,9 +489,7 @@ export default function CreatePrayerScreen() {
     if (reminders.some((item) => item.enabled) && Platform.OS !== 'web') {
       const granted = await ensureNotificationPermissions();
       if (!granted) {
-        setError(
-          'Please allow notifications so PrayerCare can remind you, or remove the reminder to save without one.',
-        );
+        setError(t('prayer.allowNotifications'));
         return;
       }
     }
@@ -521,7 +522,7 @@ export default function CreatePrayerScreen() {
         return;
       }
 
-      showToast({ message: 'Your changes are saved.', tone: 'success' });
+      showToast({ message: t('prayer.changesSaved'), tone: 'success' });
       if (router.canGoBack()) {
         router.back();
       } else {
@@ -552,7 +553,7 @@ export default function CreatePrayerScreen() {
     setLoading(false);
 
     if (result.error || !result.data) {
-      setError(result.error ?? 'Failed to save prayer.');
+      setError(result.error ?? t('prayer.saveFailed'));
       return;
     }
 
@@ -560,12 +561,18 @@ export default function CreatePrayerScreen() {
     setSavedPrayerId(result.data.id);
   }
 
-  const categoryLabel = categories.find((category) => category.id === categoryId)?.label ?? null;
+  const selectedCategory = categories.find((category) => category.id === categoryId) ?? null;
+  const categoryLabel = selectedCategory
+    ? translateCategorySlug(selectedCategory.slug, selectedCategory.label)
+    : null;
   const repeatValue = describeRepeat(scheduleType, weekdays);
   const repeatHint =
     scheduleType === 'once'
-      ? 'On your Today list for today only.'
-      : REPEAT_CHOICES.find((choice) => choice.type === scheduleType)?.hint;
+      ? t('prayer.onceTodayHint')
+      : (() => {
+          const choice = REPEAT_CHOICES.find((item) => item.type === scheduleType);
+          return choice ? t(choice.hintKey) : undefined;
+        })();
   const sortedReminders = [...reminders].sort((a, b) => a.time.localeCompare(b.time));
   const activeReminders = sortedReminders.filter((item) => item.enabled);
   const pausedCount = sortedReminders.length - activeReminders.length;
@@ -580,31 +587,32 @@ export default function CreatePrayerScreen() {
     shareMode === 'group'
       ? `Shared with ${selectedGroup?.name ?? 'your group'}. Members will see it on their Today list.`
       : showsOnTodayNow
-        ? 'It’s on your Today list and saved in your Journey.'
-        : `It will appear on your Today list on ${repeatValue}, and it’s saved in your Journey.`;
+        ? t('prayer.savedTodayJourney')
+        : t('prayer.savedOnSchedule', { schedule: repeatValue });
   const savedReminder =
     activeReminders.length > 0 ? `We’ll gently remind you at ${reminderValue}.` : null;
 
+  const stepKeys = STEP_KEYS[step];
   const copy =
     step === 'prayer' && isEditing
-      ? { title: 'Edit your prayer', subtitle: 'Change anything, then step through to save.' }
+      ? { title: t('prayer.editTitle'), subtitle: t('prayer.editSubtitle') }
       : step === 'review' && isEditing
         ? {
-            title: 'Review your changes',
-            subtitle: 'Everything look right? Tap Save changes below, or Edit anything first.',
+            title: t('prayer.reviewChangesTitle'),
+            subtitle: t('prayer.reviewChangesSubtitle'),
           }
-        : STEP_COPY[step];
+        : { title: t(stepKeys.titleKey), subtitle: t(stepKeys.subtitleKey) };
 
   const primaryLabel =
     step === 'review'
       ? isEditing
-        ? 'Save changes'
-        : 'Save prayer'
+        ? t('prayer.saveChanges')
+        : t('prayer.savePrayer')
       : returnToReview
-        ? 'Back to review'
+        ? t('prayer.backToReview')
         : step === 'category' && !categoryId
-          ? 'Skip for now'
-          : 'Next';
+          ? t('common.skip')
+          : t('common.next');
 
   const footerBottom =
     keyboardOverlap > 0 ? keyboardOverlap + theme.spacing.sm : Math.max(insets.bottom, theme.spacing.md);
@@ -627,7 +635,7 @@ export default function CreatePrayerScreen() {
                     disabled={aiLoading}
                     hitSlop={8}>
                     <AppText accent style={styles.aiBannerAction}>
-                      {aiLoading ? 'Writing a fresh draft…' : 'Try another draft'}
+                      {aiLoading ? t('prayer.writingDraft') : t('prayer.tryAnother')}
                     </AppText>
                   </Pressable>
                 ) : null}
@@ -638,20 +646,20 @@ export default function CreatePrayerScreen() {
               label="Title"
               value={title}
               onChangeText={setTitle}
-              placeholder="e.g. Mum's recovery"
+              placeholder={t('prayer.titlePlaceholder')}
               returnKeyType="next"
             />
             <Input
               label="Prayer point"
               value={prayerPoint}
               onChangeText={setPrayerPoint}
-              placeholder="In one sentence, what are you asking God for?"
+              placeholder={t('prayer.pointPlaceholder')}
             />
             <TextArea
               label="Your prayer"
               value={body}
               onChangeText={setBody}
-              placeholder="Write your prayer in your own words..."
+              placeholder={t('prayer.bodyPlaceholder')}
               style={styles.prayerArea}
             />
 
@@ -668,7 +676,7 @@ export default function CreatePrayerScreen() {
                 )}
                 <View style={styles.aiAssistText}>
                   <AppText style={styles.aiAssistTitle}>
-                    {aiLoading ? 'Preparing a prayer grounded in Scripture…' : 'Help me put it into words'}
+                    {aiLoading ? t('prayer.preparingAi') : t('prayer.helpWithWords')}
                   </AppText>
                   {!aiLoading ? (
                     <AppText variant="bodySmall" muted>
@@ -708,8 +716,8 @@ export default function CreatePrayerScreen() {
         return (
           <View style={styles.stepBody}>
             <OptionCard
-              label="Keep personal"
-              description="Just between you and God. Only you can see it."
+              label={t('prayer.keepPersonal')}
+              description={t('prayer.keepPersonalDesc')}
               selected={shareMode === 'personal'}
               onPress={() => {
                 setShareMode('personal');
@@ -719,8 +727,8 @@ export default function CreatePrayerScreen() {
               }}
             />
             <OptionCard
-              label="Share with a group"
-              description="Pray together. Members see it on their Today list."
+              label={t('prayer.shareGroup')}
+              description={t('prayer.shareGroupDesc')}
               selected={shareMode === 'group'}
               onPress={() => {
                 setShareMode('group');
@@ -759,8 +767,8 @@ export default function CreatePrayerScreen() {
         return (
           <View style={styles.stepBody}>
             <SelectField
-              placeholder="Choose who sees it"
-              sheetTitle="Who should see this prayer?"
+              placeholder={t('prayer.chooseWhoSees')}
+              sheetTitle={t('prayer.stepVisibilityTitle')}
               options={groupVisibilityOptions(selectedGroup?.name)}
               value={toGroupVisibility(creatorKeepsPersonal)}
               onChange={(next) => setCreatorKeepsPersonal(next === 'group_and_me')}
@@ -818,7 +826,7 @@ export default function CreatePrayerScreen() {
             <View style={styles.summaryCard}>
               <ReviewRow
                 label="Category"
-                value={categoryLabel ?? 'No specific category'}
+                value={categoryLabel ?? t('prayer.noCategory')}
                 onEdit={() => editFromReview('category')}
               />
               <ReviewRow
@@ -827,7 +835,7 @@ export default function CreatePrayerScreen() {
                 onEdit={isEditing ? undefined : () => editFromReview('location')}
                 note={
                   isEditing && shareMode === 'personal'
-                    ? 'To share with a group, use Share on the prayer page.'
+                    ? t('prayer.shareFromDetail')
                     : undefined
                 }
               />
@@ -901,12 +909,12 @@ export default function CreatePrayerScreen() {
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, theme.spacing.md) }]}>
           <View style={styles.footerRow}>
             <Button
-              title="View prayer"
+              title={t('prayer.viewPrayer')}
               variant="secondary"
               onPress={viewSavedPrayer}
               style={styles.primaryButton}
             />
-            <Button title="Done" onPress={finishToToday} style={styles.primaryButton} />
+            <Button title={t('prayer.done')} onPress={finishToToday} style={styles.primaryButton} />
           </View>
         </View>
       </View>
@@ -923,7 +931,7 @@ export default function CreatePrayerScreen() {
       <View style={styles.topBar}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={isEditing ? 'Close editor' : 'Close new prayer'}
+          accessibilityLabel={isEditing ? t('prayer.closeEditor') : t('prayer.closeNew')}
           onPress={requestClose}
           hitSlop={12}
           style={({ pressed }) => [styles.closeButton, pressed && styles.closePressed]}>
@@ -959,7 +967,7 @@ export default function CreatePrayerScreen() {
         <View style={styles.footerRow}>
           {stepIndex > 0 || returnToReview ? (
             <Button
-              title="Back"
+              title={t('prayer.back')}
               variant="secondary"
               onPress={goBack}
               disabled={loading}
@@ -978,11 +986,11 @@ export default function CreatePrayerScreen() {
 
       <ConfirmDialog
         visible={confirmDiscard}
-        title={isEditing ? 'Discard your changes?' : 'Discard this prayer?'}
+        title={isEditing ? t('prayer.discardEditTitle') : t('prayer.discardNewTitle')}
         message={
           isEditing
-            ? 'Your edits have not been saved yet.'
-            : 'What you have written so far will not be saved.'
+            ? t('prayer.discardEditBody')
+            : t('prayer.discardNewBody')
         }
         confirmLabel="Discard"
         cancelLabel="Keep editing"
@@ -1028,6 +1036,7 @@ function ScriptureSection({
   onLookUp,
   onClear,
 }: ScriptureSectionProps) {
+  const { t } = useI18n();
   const hasVerse = Boolean(reference.trim() || text.trim());
 
   if (!open && !hasVerse) {
@@ -1037,10 +1046,10 @@ function ScriptureSection({
         onPress={onOpen}
         style={({ pressed }) => [styles.addVerse, pressed && styles.pressed]}>
         <AppText accent style={styles.addVerseText}>
-          ＋ Add a verse to stand on
+          {t('prayer.addVerse')}
         </AppText>
         <AppText variant="bodySmall" muted>
-          Optional
+          {t('prayer.optional')}
         </AppText>
       </Pressable>
     );
@@ -1092,25 +1101,25 @@ function ScriptureSection({
         label="Reference"
         value={reference}
         onChangeText={onChangeReference}
-        placeholder="e.g. Philippians 4:6-7"
+        placeholder={t('prayer.versePlaceholder')}
       />
       <TextArea
         label="Verse text"
         value={text}
         onChangeText={onChangeText}
-        placeholder="Loaded from the Bible source, or type your own..."
+        placeholder={t('prayer.verseTextPlaceholder')}
         style={styles.shortArea}
       />
       <View style={styles.verseButtons}>
         <Button
-          title="Suggest a verse"
+          title={t('prayer.suggestVerse')}
           variant="secondary"
           loading={loading}
           onPress={onSuggest}
           style={styles.verseButton}
         />
         <Button
-          title="Look up"
+          title={t('prayer.lookUp')}
           variant="secondary"
           loading={loading}
           onPress={onLookUp}
@@ -1119,9 +1128,9 @@ function ScriptureSection({
       </View>
       <View style={styles.verseButtons}>
         {hasVerse ? (
-          <Button title="Remove verse" variant="ghost" onPress={onClear} style={styles.verseButton} />
+          <Button title={t('prayer.removeVerse')} variant="ghost" onPress={onClear} style={styles.verseButton} />
         ) : null}
-        <Button title="Done" variant="ghost" onPress={onDone} style={styles.verseButton} />
+        <Button title={t('prayer.done')} variant="ghost" onPress={onDone} style={styles.verseButton} />
       </View>
     </Animated.View>
   );

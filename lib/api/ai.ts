@@ -42,8 +42,9 @@ export async function generateWithAi(request: AiGenerateRequest): Promise<AiResp
 export async function generatePrayerWithAi(
   heart: string,
   translationId?: string,
+  locale?: string,
 ): Promise<{ data: GeneratedPrayer | null; error: string | null }> {
-  const result = await generateWithAi({ type: 'prayer', heart, translationId });
+  const result = await generateWithAi({ type: 'prayer', heart, translationId, locale });
   return { data: result.data as GeneratedPrayer | null, error: result.error };
 }
 
@@ -51,12 +52,14 @@ export async function generateVerseWithAi(
   title: string,
   prayerPoint: string,
   translationId?: string,
+  locale?: string,
 ): Promise<{ data: GeneratedVerse | null; error: string | null }> {
   const result = await generateWithAi({
     type: 'verse',
     title,
     prayerPoint,
     translationId,
+    locale,
   });
   return { data: result.data as GeneratedVerse | null, error: result.error };
 }

@@ -28,6 +28,7 @@ import { Screen } from '@/components/ui/Screen';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import {
   fetchHistoryActivityDates,
   fetchHistoryForDate,
@@ -40,32 +41,31 @@ import type { PrayerWithRelations } from '@/types/prayer';
 
 type ViewMode = 'timeline' | 'calendar';
 
-const VIEW_SEGMENTS: { value: ViewMode; label: string }[] = [
-  { value: 'timeline', label: 'Timeline' },
-  { value: 'calendar', label: 'Calendar' },
-];
-
-const EMPTY_COPY: Record<Exclude<JourneyFilter, 'all'>, { title: string; body: string }> = {
-  active: {
-    title: 'Nothing on your heart right now',
-    body: 'When you start a new prayer, it will appear here while you carry it.',
-  },
-  answered: {
-    title: 'No answered prayers yet',
-    body: 'When God answers, mark the prayer as answered and it will be remembered here.',
-  },
-  praise: {
-    title: 'No praise right now',
-    body: 'Answered prayers appear here while they are in your praise season.',
-  },
-  hidden: {
-    title: 'Nothing set aside',
-    body: 'Prayers you hide will rest here until you bring them back.',
-  },
-};
-
 export default function JourneyScreen() {
   const { profile } = useAuth();
+  const { t, locale } = useI18n();
+  const viewSegments: { value: ViewMode; label: string }[] = [
+    { value: 'timeline', label: t('journey.timeline') },
+    { value: 'calendar', label: t('journey.calendar') },
+  ];
+  const emptyCopy: Record<Exclude<JourneyFilter, 'all'>, { title: string; body: string }> = {
+    active: {
+      title: t('journey.emptyActiveTitle'),
+      body: t('journey.emptyActiveBody'),
+    },
+    answered: {
+      title: t('journey.emptyAnsweredTitle'),
+      body: t('journey.emptyAnsweredBody'),
+    },
+    praise: {
+      title: t('journey.emptyPraiseTitle'),
+      body: t('journey.emptyPraiseBody'),
+    },
+    hidden: {
+      title: t('journey.emptyHiddenTitle'),
+      body: t('journey.emptyHiddenBody'),
+    },
+  };
   const [viewMode, setViewMode] = useState<ViewMode>('timeline');
   const [prayers, setPrayers] = useState<PrayerWithRelations[]>([]);
   const [filter, setFilter] = useState<JourneyFilter>('all');
@@ -155,8 +155,8 @@ export default function JourneyScreen() {
   }, [prayers]);
 
   const sections = useMemo(
-    () => groupByMonth(prayers.filter((p) => matchesJourneyFilter(p, filter))),
-    [prayers, filter],
+    () => groupByMonth(prayers.filter((p) => matchesJourneyFilter(p, filter)), locale),
+    [prayers, filter, locale],
   );
 
   function refreshAll() {
@@ -168,11 +168,9 @@ export default function JourneyScreen() {
 
   const header = (
     <View style={styles.header}>
-      <AppText variant="greeting">Your journey</AppText>
+      <AppText variant="greeting">{t('journey.title')}</AppText>
       <AppText muted>
-        {viewMode === 'timeline'
-          ? 'Every prayer tells a story of faithfulness.'
-          : 'Look back on any day — prayers, praise, and care remembered.'}
+        {viewMode === 'timeline' ? t('journey.subtitleTimeline') : t('journey.subtitleCalendar')}
       </AppText>
 
       <JourneySummary
@@ -183,14 +181,10 @@ export default function JourneyScreen() {
       />
 
       <View style={styles.segmented}>
-        <SegmentedControl segments={VIEW_SEGMENTS} value={viewMode} onChange={setViewMode} />
+        <SegmentedControl segments={viewSegments} value={viewMode} onChange={setViewMode} />
       </View>
 
-      {error ? (
-        <AppText style={styles.error}>
-          We couldn't load your journey. Pull to refresh, or try again in a moment.
-        </AppText>
-      ) : null}
+      {error ? <AppText style={styles.error}>{t('journey.loadError')}</AppText> : null}
     </View>
   );
 
@@ -249,8 +243,13 @@ export default function JourneyScreen() {
               <View style={styles.toolbar}>
                 <AppText variant="bodySmall" muted>
                   {filter === 'all'
-                    ? `${prayers.length} ${prayers.length === 1 ? 'prayer' : 'prayers'} so far`
-                    : `${counts[filter]} of ${prayers.length}`}
+                    ? t(prayers.length === 1 ? 'journey.prayerSoFar' : 'journey.prayersSoFar', {
+                        count: prayers.length,
+                      })
+                    : t('journey.filterCount', {
+                        filtered: counts[filter],
+                        total: prayers.length,
+                      })}
                 </AppText>
                 <JourneyFilterButton value={filter} counts={counts} onChange={setFilter} />
               </View>
@@ -274,16 +273,16 @@ export default function JourneyScreen() {
           !loading && !error ? (
             filter === 'all' ? (
               <EmptyState
-                title="Your journey begins with one prayer"
-                body="Bring what's on your heart. Each prayer, and each answer, will be remembered here."
-                actionLabel="Start a prayer"
+                title={t('journey.emptyAllTitle')}
+                body={t('journey.emptyAllBody')}
+                actionLabel={t('journey.emptyAllAction')}
                 onAction={() => router.push('/(tabs)/pray')}
               />
             ) : (
               <EmptyState
-                title={EMPTY_COPY[filter].title}
-                body={EMPTY_COPY[filter].body}
-                actionLabel="Show all prayers"
+                title={emptyCopy[filter].title}
+                body={emptyCopy[filter].body}
+                actionLabel={t('journey.showAll')}
                 onAction={() => setFilter('all')}
               />
             )

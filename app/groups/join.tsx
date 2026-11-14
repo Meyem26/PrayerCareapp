@@ -7,13 +7,13 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
+import { useI18n } from '@/contexts/I18nContext';
 import { acceptGroupInviteByToken, joinGroupByCode } from '@/lib/api/groups';
 
 export default function JoinGroupScreen() {
+  const { t } = useI18n();
   const params = useLocalSearchParams<{ code?: string; token?: string }>();
-  const [code, setCode] = useState(
-    typeof params.code === 'string' ? params.code : '',
-  );
+  const [code, setCode] = useState(typeof params.code === 'string' ? params.code : '');
   const [loading, setLoading] = useState(false);
   const [autoJoining, setAutoJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,10 +38,7 @@ export default function JoinGroupScreen() {
         if (cancelled) return;
         setAutoJoining(false);
         if (joinError || !data) {
-          setError(
-            joinError ??
-              'Could not accept this invite link. You can still join with a code below.',
-          );
+          setError(joinError ?? t('groups.linkFailed'));
           return;
         }
         router.replace({ pathname: '/groups/[id]', params: { id: data.id } });
@@ -52,7 +49,7 @@ export default function JoinGroupScreen() {
       if (cancelled) return;
       setAutoJoining(false);
       if (joinError || !data) {
-        setError(joinError ?? 'Could not join with this link. Check the code and try again.');
+        setError(joinError ?? t('groups.linkCodeFailed'));
         return;
       }
       router.replace({ pathname: '/groups/[id]', params: { id: data.id } });
@@ -62,13 +59,13 @@ export default function JoinGroupScreen() {
     return () => {
       cancelled = true;
     };
-  }, [params.code, params.token]);
+  }, [params.code, params.token, t]);
 
   async function handleJoin() {
     setError(null);
 
     if (!code.trim()) {
-      setError('Please enter an invite code.');
+      setError(t('groups.needCode'));
       return;
     }
 
@@ -77,7 +74,7 @@ export default function JoinGroupScreen() {
     setLoading(false);
 
     if (joinError || !data) {
-      setError(joinError ?? 'Could not join group.');
+      setError(joinError ?? t('groups.joinFailed'));
       return;
     }
 
@@ -87,24 +84,21 @@ export default function JoinGroupScreen() {
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <AppText muted>
-          Enter the invite code shared by your group leader, or open an invite link from your
-          email. Groups are private — no one can browse or discover them.
-        </AppText>
+        <AppText muted>{t('groups.joinHint')}</AppText>
 
-        {autoJoining ? <AppText muted>Joining from your invite link…</AppText> : null}
+        {autoJoining ? <AppText muted>{t('groups.joiningLink')}</AppText> : null}
 
         {!autoJoining ? (
           <>
             <Input
-              label="Invite code"
+              label={t('groups.inviteCode')}
               value={code}
               onChangeText={setCode}
               autoCapitalize="none"
-              placeholder="e.g. a1b2c3"
+              placeholder={t('groups.inviteCodePlaceholder')}
             />
             {error ? <AppText style={styles.error}>{error}</AppText> : null}
-            <Button title="Join Group" loading={loading} onPress={handleJoin} />
+            <Button title={t('groups.joinAction')} loading={loading} onPress={handleJoin} />
           </>
         ) : null}
       </ScrollView>

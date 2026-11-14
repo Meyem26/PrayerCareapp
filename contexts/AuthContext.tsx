@@ -45,6 +45,7 @@ type AuthContextValue = {
     email: string,
     password: string,
     displayName: string,
+    locale?: string,
   ) => Promise<{
     error: string | null;
     session: Session | null;
@@ -143,7 +144,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return { error: error?.message ?? null };
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string, displayName: string) => {
+  const signUp = useCallback(
+    async (email: string, password: string, displayName: string, locale = 'en') => {
     const emailRedirectTo =
       Platform.OS === 'web' && typeof window !== 'undefined'
         ? `${window.location.origin}/`
@@ -153,7 +155,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
       email,
       password,
       options: {
-        data: { display_name: displayName.trim() },
+        data: {
+          display_name: displayName.trim(),
+          locale,
+        },
         emailRedirectTo,
       },
     });

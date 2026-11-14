@@ -14,10 +14,12 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
+import { useI18n } from '@/contexts/I18nContext';
 import { fetchSermonNotes } from '@/lib/api/sermon';
 import type { SermonNote } from '@/types/sermon';
 
 export default function SermonNotesScreen() {
+  const { t } = useI18n();
   const [notes, setNotes] = useState<SermonNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -64,17 +66,11 @@ export default function SermonNotesScreen() {
         }
         ListHeaderComponent={
           <View style={styles.header}>
-            <AppText variant="greeting">Sermon notes</AppText>
-            <AppText muted>
-              Revisit what God spoke — verses fetched from Scripture, your meditation preserved.
-            </AppText>
-            {error ? (
-              <AppText style={styles.error}>
-                We couldn't load sermon notes. Pull to refresh, or try again in a moment.
-              </AppText>
-            ) : null}
+            <AppText variant="greeting">{t('sermon.listTitle')}</AppText>
+            <AppText muted>{t('sermon.listSubtitle')}</AppText>
+            {error ? <AppText style={styles.error}>{t('sermon.loadError')}</AppText> : null}
             <Button
-              title="New sermon note"
+              title={t('sermon.newNote')}
               onPress={() => router.push('/sermon/create')}
               style={styles.createButton}
             />
@@ -89,9 +85,9 @@ export default function SermonNotesScreen() {
         ListEmptyComponent={
           !loading && !error ? (
             <EmptyState
-              title="No sermon notes yet"
-              body="Capture a message from church or quiet time. Lookup verses from a public-domain translation and keep your meditation with them."
-              actionLabel="New sermon note"
+              title={t('sermon.emptyTitle')}
+              body={t('sermon.emptyBody')}
+              actionLabel={t('sermon.newNote')}
               onAction={() => router.push('/sermon/create')}
             />
           ) : null

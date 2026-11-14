@@ -1,4 +1,6 @@
 import { SelectField, type SelectOption } from '@/components/ui/SelectField';
+import { useI18n } from '@/contexts/I18nContext';
+import { translateCategorySlug } from '@/lib/i18n';
 import type { PrayerCategory } from '@/types/prayer';
 
 const NO_CATEGORY = '__none__';
@@ -11,17 +13,21 @@ type CategoryPickerProps = {
 };
 
 export function CategoryPicker({ categories, value, onChange, label }: CategoryPickerProps) {
+  const { t } = useI18n();
   const options: SelectOption<string>[] = [
-    ...categories.map((category) => ({ value: category.id, label: category.label })),
-    { value: NO_CATEGORY, label: 'No specific category' },
+    ...categories.map((category) => ({
+      value: category.id,
+      label: translateCategorySlug(category.slug, category.label),
+    })),
+    { value: NO_CATEGORY, label: t('prayer.noCategory') },
   ];
 
   return (
     <SelectField
       label={label}
-      placeholder="Choose a category"
-      sheetTitle="What is this prayer about?"
-      sheetSubtitle="Categories help you find and reflect on prayers later."
+      placeholder={t('prayer.chooseCategory')}
+      sheetTitle={t('prayer.stepCategoryTitle')}
+      sheetSubtitle={t('prayer.categorySheetSubtitle')}
       options={options}
       value={value}
       onChange={(next) => onChange(next === NO_CATEGORY ? null : next)}

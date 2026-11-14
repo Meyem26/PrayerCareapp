@@ -1,14 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, View } from 'react-native';
 
+import { LanguagePicker } from '@/components/i18n/LanguagePicker';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { OptionCard } from '@/components/ui/OptionCard';
 import { Screen } from '@/components/ui/Screen';
-import { AUTO_FETCH_BIBLE_TRANSLATIONS, DEFAULT_BIBLE_TRANSLATION_ID, isAutoFetchTranslation } from '@/constants/bible-translations';
+import {
+  DEFAULT_BIBLE_TRANSLATION_ID,
+  getAutoFetchTranslationsForLocale,
+  isAutoFetchTranslation,
+  resolveBibleTranslationForLocaleChange,
+} from '@/constants/bible-translations';
+import { LANGUAGE_OPTIONS, normalizeAppLocale, type AppLocale } from '@/constants/languages';
 import { PRAISE_VISIBILITY_OPTIONS } from '@/constants/praise-visibility';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import {
   fetchNotificationPreferences,
   updateNotificationPreferences,
@@ -32,6 +40,8 @@ function formatReminderTime(time: string): string {
 
 export default function SettingsScreen() {
   const { profile, updateProfile, user } = useAuth();
+  const { t } = useI18n();
+  const [locale, setLocale] = useState<AppLocale>(normalizeAppLocale(profile?.locale));
   const [timezone, setTimezone] = useState(profile?.timezone ?? getDeviceTimezone());
   const [bibleTranslationId, setBibleTranslationId] = useState(
     profile?.bible_translation_id ?? DEFAULT_BIBLE_TRANSLATION_ID,
@@ -46,7 +56,13 @@ export default function SettingsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const bibleOptions = useMemo(
+    () => getAutoFetchTranslationsForLocale(locale),
+    [locale],
+  );
+
   useEffect(() => {
+    if (profile?.locale) setLocale(normalizeAppLocale(profile.locale));
     if (profile?.timezone) setTimezone(profile.timezone);
     if (profile?.bible_translation_id) {
       setBibleTranslationId(
@@ -69,15 +85,29 @@ export default function SettingsScreen() {
     });
   }, []);
 
+  function handleLocaleChange(next: AppLocale) {
+    setLocale(next);
+    const resolved = resolveBibleTranslationForLocaleChange(bibleTranslationId, next);
+    if (resolved.changed) {
+      setBibleTranslationId(resolved.translationId);
+      const languageName =
+        LANGUAGE_OPTIONS.find((item) => item.code === next)?.nativeName ?? next;
+      setMessage(t('language.bibleUpdated', { language: languageName }));
+    }
+  }
+
   async function handleSave() {
     setMessage(null);
     setError(null);
     setLoading(true);
 
+    const resolvedBible = resolveBibleTranslationForLocaleChange(bibleTranslationId, locale);
+
     const [profileResult, notifResult] = await Promise.all([
       updateProfile({
+        locale,
         timezone,
-        bible_translation_id: bibleTranslationId,
+        bible_translation_id: resolvedBible.translationId,
         praise_visibility_days: praiseVisibilityDays,
       }),
       updateNotificationPreferences({
@@ -96,7 +126,11 @@ export default function SettingsScreen() {
       return;
     }
 
-    setMessage('Settings saved.');
+    if (resolvedBible.changed) {
+      setBibleTranslationId(resolvedBible.translationId);
+    }
+
+    setMessage(t('settings.saved'));
 
     const wantsPush =
       dailyReminder || careDueAlerts || groupInviteAlerts || weeklyEncouragement;
@@ -114,23 +148,30 @@ export default function SettingsScreen() {
     <Screen>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
-          <AppText variant="label">Timezone</AppText>
+          <AppText variant="label">{t('language.label')}</AppText>
+          <AppText variant="bodySmall" muted>
+            {t('language.settingsHint')}
+          </AppText>
+          <LanguagePicker value={locale} onChange={handleLocaleChange} />
+        </View>
+
+        <View style={styles.section}>
+          <AppText variant="label">{t('settings.timezone')}</AppText>
           <OptionCard
             label={formatTimezoneLabel(timezone)}
-            description="Tap to use your device timezone."
+            description={t('settings.timezoneHint')}
             selected
             onPress={() => setTimezone(getDeviceTimezone())}
           />
         </View>
 
         <View style={styles.section}>
-          <AppText variant="label">Bible translation (auto-fetch)</AppText>
+          <AppText variant="label">{t('settings.bibleTranslation')}</AppText>
           <AppText variant="bodySmall" muted>
-            Used when sermon notes or other features look up verses. Public domain — no API key
-            required.
+            {t('settings.bibleHint')}
           </AppText>
           <View style={styles.options}>
-            {AUTO_FETCH_BIBLE_TRANSLATIONS.map((translation) => (
+            {bibleOptions.map((translation) => (
               <OptionCard
                 key={translation.id}
                 label={translation.label}
@@ -143,9 +184,9 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <AppText variant="label">Praise visibility</AppText>
+          <AppText variant="label">{t('settings.praiseVisibility')}</AppText>
           <AppText variant="bodySmall" muted>
-            How long answered prayers stay in Praise before moving to History.
+            {t('settings.praiseHint')}
           </AppText>
           <View style={styles.options}>
             {PRAISE_VISIBILITY_OPTIONS.map((option) => (
@@ -161,18 +202,16 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <AppText variant="label">Notifications</AppText>
+          <AppText variant="label">{t('settings.notifications')}</AppText>
           <AppText variant="bodySmall" muted>
-            Per-prayer reminder times (set when you create or edit a prayer) send real phone
-            notifications even when PrayerCare is closed. The daily reminder below is an optional
-            nudge to open your Today list.
+            {t('settings.notificationsHint')}
           </AppText>
 
           <View style={styles.switchRow}>
             <View style={styles.switchText}>
-              <AppText>Daily prayer reminder</AppText>
+              <AppText>{t('settings.dailyReminder')}</AppText>
               <AppText variant="bodySmall" muted>
-                A gentle nudge to open Today
+                {t('settings.dailyReminderHint')}
               </AppText>
             </View>
             <Switch
@@ -196,15 +235,15 @@ export default function SettingsScreen() {
             </View>
           ) : (
             <AppText variant="bodySmall" muted>
-              Reminder time: {formatReminderTime(reminderTime)}
+              {t('settings.reminderTime', { time: formatReminderTime(reminderTime) })}
             </AppText>
           )}
 
           <View style={styles.switchRow}>
             <View style={styles.switchText}>
-              <AppText>Care action reminders</AppText>
+              <AppText>{t('settings.careReminders')}</AppText>
               <AppText variant="bodySmall" muted>
-                When someone is assigned to care
+                {t('settings.careRemindersHint')}
               </AppText>
             </View>
             <Switch
@@ -217,7 +256,7 @@ export default function SettingsScreen() {
 
           <View style={styles.switchRow}>
             <View style={styles.switchText}>
-              <AppText>Group invites</AppText>
+              <AppText>{t('settings.groupInvites')}</AppText>
             </View>
             <Switch
               value={groupInviteAlerts}
@@ -229,9 +268,9 @@ export default function SettingsScreen() {
 
           <View style={styles.switchRow}>
             <View style={styles.switchText}>
-              <AppText>Weekly encouragement</AppText>
+              <AppText>{t('settings.weeklyEncouragement')}</AppText>
               <AppText variant="bodySmall" muted>
-                A short summary of your prayer week
+                {t('settings.weeklyEncouragementHint')}
               </AppText>
             </View>
             <Switch
@@ -246,7 +285,7 @@ export default function SettingsScreen() {
         {error ? <AppText style={styles.error}>{error}</AppText> : null}
         {message ? <AppText style={styles.success}>{message}</AppText> : null}
 
-        <Button title="Save Settings" loading={loading} onPress={handleSave} />
+        <Button title={t('settings.save')} loading={loading} onPress={handleSave} />
       </ScrollView>
     </Screen>
   );

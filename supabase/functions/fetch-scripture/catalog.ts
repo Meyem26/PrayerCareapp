@@ -7,9 +7,11 @@ export type ScriptureFetchResult = {
 
 export type TranslationConfig = {
   id: string;
-  provider: 'bible-api-com' | 'api-bible';
+  provider: 'bible-api-com' | 'api-bible' | 'bible-data';
   providerTranslationId: string;
   autoFetch: boolean;
+  /** For bible-data provider: language folder (e.g. fr). */
+  language?: string;
 };
 
 export interface ScriptureProvider {
@@ -21,10 +23,17 @@ export const TRANSLATION_CATALOG: TranslationConfig[] = [
   { id: 'WEB', provider: 'bible-api-com', providerTranslationId: 'web', autoFetch: true },
   { id: 'KJV', provider: 'bible-api-com', providerTranslationId: 'kjv', autoFetch: true },
   { id: 'ASV', provider: 'bible-api-com', providerTranslationId: 'asv', autoFetch: true },
+  { id: 'RV1909', provider: 'bible-api-com', providerTranslationId: 'rv1909', autoFetch: true },
+  {
+    id: 'LSG1910',
+    provider: 'bible-data',
+    providerTranslationId: 'lsg',
+    autoFetch: true,
+    language: 'fr',
+  },
   { id: 'NIV', provider: 'api-bible', providerTranslationId: '9879dbb37efb29-04', autoFetch: false },
   { id: 'ESV', provider: 'api-bible', providerTranslationId: '214377fb1782388-01', autoFetch: false },
   { id: 'CSB', provider: 'api-bible', providerTranslationId: '6614b0b05011c8b8-01', autoFetch: false },
-  { id: 'LSG', provider: 'api-bible', providerTranslationId: 'a761ca71e0b3ddcf-01', autoFetch: false },
 ];
 
 export const DEFAULT_TRANSLATION_ID = 'WEB';

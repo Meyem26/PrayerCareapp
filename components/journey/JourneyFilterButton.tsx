@@ -5,6 +5,7 @@ import { JOURNEY_FILTERS, type JourneyFilter } from '@/components/journey/journe
 import { AppText } from '@/components/ui/AppText';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { theme } from '@/constants/theme';
+import { useI18n } from '@/contexts/I18nContext';
 
 type JourneyFilterButtonProps = {
   value: JourneyFilter;
@@ -13,17 +14,19 @@ type JourneyFilterButtonProps = {
 };
 
 export function JourneyFilterButton({ value, counts, onChange }: JourneyFilterButtonProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const selected = JOURNEY_FILTERS.find((item) => item.value === value) ?? JOURNEY_FILTERS[0];
   const isFiltered = value !== 'all';
+  const selectedLabel = t(selected.labelKey);
 
   return (
     <>
       <View style={styles.pillRow}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Filter: ${selected.label}`}
-          accessibilityHint="Choose which prayers to show"
+          accessibilityLabel={`${t('journey.filter')}: ${selectedLabel}`}
+          accessibilityHint={t('journey.filterSubtitle')}
           onPress={() => setOpen(true)}
           style={({ pressed }) => [
             styles.pill,
@@ -32,13 +35,13 @@ export function JourneyFilterButton({ value, counts, onChange }: JourneyFilterBu
           ]}>
           <AppText style={[styles.icon, isFiltered && styles.textActive]}>☰</AppText>
           <AppText variant="bodySmall" style={[styles.pillText, isFiltered && styles.textActive]}>
-            {isFiltered ? selected.label : 'Filter'}
+            {isFiltered ? selectedLabel : t('journey.filter')}
           </AppText>
         </Pressable>
         {isFiltered ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Clear filter"
+            accessibilityLabel={t('journey.showAll')}
             hitSlop={8}
             onPress={() => onChange('all')}
             style={styles.clear}>
@@ -50,8 +53,8 @@ export function JourneyFilterButton({ value, counts, onChange }: JourneyFilterBu
       <BottomSheet
         visible={open}
         onClose={() => setOpen(false)}
-        title="Show"
-        subtitle="Choose which part of your journey to look back on.">
+        title={t('journey.filterTitle')}
+        subtitle={t('journey.filterSubtitle')}>
         {JOURNEY_FILTERS.map((item) => {
           const isSelected = item.value === value;
           return (
@@ -70,10 +73,10 @@ export function JourneyFilterButton({ value, counts, onChange }: JourneyFilterBu
               ]}>
               <View style={styles.rowText}>
                 <AppText style={isSelected ? styles.rowLabelSelected : undefined}>
-                  {item.label}
+                  {t(item.labelKey)}
                 </AppText>
                 <AppText variant="bodySmall" muted>
-                  {item.description}
+                  {t(item.descriptionKey)}
                 </AppText>
               </View>
               <AppText variant="bodySmall" muted style={styles.count}>

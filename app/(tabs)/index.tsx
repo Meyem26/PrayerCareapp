@@ -11,6 +11,7 @@ import { PrayerListSkeleton } from '@/components/ui/Skeleton';
 import { BETA_MODE } from '@/constants/beta';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { fetchTodayPrayers } from '@/lib/api/prayers';
 import type { Prayer } from '@/types/prayer';
 
@@ -19,18 +20,9 @@ const TODAY_VERSE = {
   reference: '1 Thessalonians 5:17',
 } as const;
 
-function prayerCountLabel(count: number): string {
-  if (count === 0) {
-    return 'A quiet day — rest, or begin with one prayer.';
-  }
-  if (count === 1) {
-    return 'You have 1 prayer to lift up today.';
-  }
-  return `You have ${count} prayers to lift up today.`;
-}
-
 export default function TodayScreen() {
   const { profile } = useAuth();
+  const { t } = useI18n();
   const [prayers, setPrayers] = useState<Prayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -53,8 +45,14 @@ export default function TodayScreen() {
     }, [loadPrayers]),
   );
 
-  const firstName = profile?.display_name?.split(' ')[0] ?? 'Friend';
+  const firstName = profile?.display_name?.split(' ')[0];
   const count = prayers.length;
+
+  function prayerCountLabel(n: number): string {
+    if (n === 0) return t('today.quietDay');
+    if (n === 1) return t('today.onePrayer');
+    return t('today.manyPrayers', { count: n });
+  }
 
   if (loading && prayers.length === 0 && !error) {
     return (
@@ -82,7 +80,9 @@ export default function TodayScreen() {
         }
         ListHeaderComponent={
           <View style={styles.header}>
-            <AppText variant="greeting">Welcome back, {firstName}.</AppText>
+            <AppText variant="greeting">
+              {firstName ? t('today.welcomeBack', { name: firstName }) : t('today.welcomeFriend')}
+            </AppText>
             <View style={styles.verseBlock}>
               <AppText style={styles.verseText}>"{TODAY_VERSE.text}"</AppText>
               <AppText muted style={styles.verseRef}>
@@ -90,9 +90,7 @@ export default function TodayScreen() {
               </AppText>
             </View>
             {error ? (
-              <AppText style={styles.error}>
-                We couldn't load today's prayers. Pull to refresh, or try again in a moment.
-              </AppText>
+              <AppText style={styles.error}>{t('today.loadError')}</AppText>
             ) : (
               <AppText muted style={styles.subtitle}>
                 {prayerCountLabel(count)}
@@ -100,7 +98,7 @@ export default function TodayScreen() {
             )}
             {count > 0 ? (
               <Button
-                title="Add another prayer"
+                title={t('today.addAnother')}
                 variant="primary"
                 style={styles.startButton}
                 onPress={() => router.push('/(tabs)/pray')}
@@ -117,9 +115,9 @@ export default function TodayScreen() {
         ListEmptyComponent={
           !loading && !error ? (
             <EmptyState
-              title="No prayers scheduled today"
-              body="When life is full, PrayerCare remembers for you. Add a prayer with a schedule and it will appear here on the right days."
-              actionLabel="Start a prayer"
+              title={t('today.emptyTitle')}
+              body={t('today.emptyBody')}
+              actionLabel={t('today.startPrayer')}
               onAction={() => router.push('/(tabs)/pray')}
             />
           ) : null

@@ -1,66 +1,98 @@
+import { t } from '@/lib/i18n';
 import type { ScheduleType } from '@/types/prayer';
 
 export type ScheduleOption = {
   type: ScheduleType;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
 };
 
 export const SCHEDULE_OPTIONS: ScheduleOption[] = [
   {
     type: 'once',
-    label: 'Once',
-    description: 'Pray about this today only',
+    labelKey: 'schedule.once',
+    descriptionKey: 'schedule.onceDesc',
   },
   {
     type: 'daily',
-    label: 'Daily',
-    description: 'Every day until you change it',
+    labelKey: 'schedule.daily',
+    descriptionKey: 'schedule.dailyDesc',
   },
   {
     type: 'weekly',
-    label: 'Weekly',
-    description: 'Same day each week',
+    labelKey: 'schedule.weekly',
+    descriptionKey: 'schedule.weeklyDesc',
   },
   {
     type: 'specific_weekdays',
-    label: 'Specific days',
-    description: 'Choose days of the week',
+    labelKey: 'schedule.specificDays',
+    descriptionKey: 'schedule.specificDaysDesc',
   },
   {
     type: 'until_answered',
-    label: 'Until answered',
-    description: 'Every day until marked answered',
+    labelKey: 'schedule.untilAnswered',
+    descriptionKey: 'schedule.untilAnsweredDesc',
   },
 ];
 
+export const WEEKDAY_KEYS = [
+  'schedule.weekdaySun',
+  'schedule.weekdayMon',
+  'schedule.weekdayTue',
+  'schedule.weekdayWed',
+  'schedule.weekdayThu',
+  'schedule.weekdayFri',
+  'schedule.weekdaySat',
+] as const;
+
+/** @deprecated Prefer getWeekdayLabel — kept for callers that need a short English fallback. */
 export const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 
+export function getWeekdayLabel(dayIndex: number): string {
+  const key = WEEKDAY_KEYS[dayIndex];
+  return key ? t(key) : String(dayIndex);
+}
+
 export function getScheduleLabel(type: ScheduleType): string {
-  return SCHEDULE_OPTIONS.find((o) => o.type === type)?.label ?? type;
+  const option = SCHEDULE_OPTIONS.find((o) => o.type === type);
+  return option ? t(option.labelKey) : type;
+}
+
+export function getScheduleDescription(type: ScheduleType): string {
+  const option = SCHEDULE_OPTIONS.find((o) => o.type === type);
+  return option ? t(option.descriptionKey) : '';
 }
 
 /** Conversational wording for the create flow ("Every day", "Mon, Wed, Fri"). */
-export const REPEAT_CHOICES: { type: Exclude<ScheduleType, 'once'>; label: string; hint: string }[] = [
-  { type: 'daily', label: 'Every day', hint: 'Back on Today every day until you change it.' },
+export const REPEAT_CHOICES: {
+  type: Exclude<ScheduleType, 'once'>;
+  labelKey: string;
+  hintKey: string;
+}[] = [
+  { type: 'daily', labelKey: 'schedule.everyDay', hintKey: 'schedule.everyDayHint' },
   {
     type: 'until_answered',
-    label: 'Until answered',
-    hint: 'Every day, until you mark it answered.',
+    labelKey: 'schedule.untilAnswered',
+    hintKey: 'schedule.untilAnsweredHint',
   },
-  { type: 'specific_weekdays', label: 'Certain days', hint: 'Only on the days you pick.' },
-  { type: 'weekly', label: 'Once a week', hint: 'On this same day each week.' },
+  {
+    type: 'specific_weekdays',
+    labelKey: 'schedule.certainDays',
+    hintKey: 'schedule.certainDaysHint',
+  },
+  { type: 'weekly', labelKey: 'schedule.onceAWeek', hintKey: 'schedule.onceAWeekHint' },
 ];
 
 export function describeRepeat(type: ScheduleType, weekdays: number[]): string {
-  if (type === 'once') return 'Just today';
+  if (type === 'once') return t('schedule.justToday');
   if (type === 'specific_weekdays') {
-    if (weekdays.length === 0) return 'Certain days';
-    if (weekdays.length === 7) return 'Every day';
+    if (weekdays.length === 0) return t('schedule.certainDays');
+    if (weekdays.length === 7) return t('schedule.everyDay');
     return [...weekdays]
       .sort()
-      .map((day) => WEEKDAY_LABELS[day])
+      .map((day) => getWeekdayLabel(day))
       .join(', ');
   }
-  return REPEAT_CHOICES.find((choice) => choice.type === type)?.label ?? getScheduleLabel(type);
+  const choice = REPEAT_CHOICES.find((item) => item.type === type);
+  return choice ? t(choice.labelKey) : getScheduleLabel(type);
 }

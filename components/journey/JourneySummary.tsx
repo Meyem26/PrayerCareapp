@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { theme } from '@/constants/theme';
+import { useI18n } from '@/contexts/I18nContext';
 
 type JourneySummaryProps = {
   daysThisMonth: number | null;
@@ -22,26 +23,34 @@ function Stat({ value, label, gold }: { value: string; label: string; gold?: boo
 }
 
 export function JourneySummary({ daysThisMonth, carrying, answered, streak }: JourneySummaryProps) {
+  const { t } = useI18n();
   const days = daysThisMonth ?? 0;
 
   return (
     <View
       style={styles.card}
       accessible
-      accessibilityLabel={`${days} days of prayer this month. ${carrying} prayers you are carrying. ${answered} answered prayers.`}>
+      accessibilityLabel={`${days} ${days === 1 ? t('journey.dayOfPrayer') : t('journey.daysOfPrayer')}. ${carrying} ${carrying === 1 ? t('journey.prayerCarried') : t('journey.prayersCarried')}. ${answered} ${answered === 1 ? t('journey.prayerAnswered') : t('journey.prayersAnswered')}.`}>
       <View style={styles.stats}>
         <Stat
           value={daysThisMonth === null ? '–' : String(days)}
-          label={days === 1 ? 'day of prayer\nthis month' : 'days of prayer\nthis month'}
+          label={days === 1 ? t('journey.dayOfPrayer') : t('journey.daysOfPrayer')}
         />
         <View style={styles.divider} />
-        <Stat value={String(carrying)} label={carrying === 1 ? 'prayer\ncarried' : 'prayers\ncarried'} />
+        <Stat
+          value={String(carrying)}
+          label={carrying === 1 ? t('journey.prayerCarried') : t('journey.prayersCarried')}
+        />
         <View style={styles.divider} />
-        <Stat value={String(answered)} label={answered === 1 ? 'prayer\nanswered' : 'prayers\nanswered'} gold />
+        <Stat
+          value={String(answered)}
+          label={answered === 1 ? t('journey.prayerAnswered') : t('journey.prayersAnswered')}
+          gold
+        />
       </View>
       {streak && streak > 1 ? (
         <AppText variant="bodySmall" style={styles.streak}>
-          {streak} days in a row — keep walking with Him.
+          {t('journey.streak', { count: streak })}
         </AppText>
       ) : null}
     </View>

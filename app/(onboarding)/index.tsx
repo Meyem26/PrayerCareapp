@@ -6,13 +6,20 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { OptionCard } from '@/components/ui/OptionCard';
 import { LoadingScreen, Screen } from '@/components/ui/Screen';
-import { AUTO_FETCH_BIBLE_TRANSLATIONS, DEFAULT_BIBLE_TRANSLATION_ID, isAutoFetchTranslation } from '@/constants/bible-translations';
+import {
+  DEFAULT_BIBLE_TRANSLATION_ID,
+  getAutoFetchTranslationsForLocale,
+  isAutoFetchTranslation,
+  resolveBibleTranslationForLocaleChange,
+} from '@/constants/bible-translations';
+import { normalizeAppLocale } from '@/constants/languages';
 import {
   DEFAULT_PRAISE_VISIBILITY_DAYS,
   PRAISE_VISIBILITY_OPTIONS,
 } from '@/constants/praise-visibility';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { formatTimezoneLabel, getDeviceTimezone } from '@/lib/utils/timezone';
 
 const STEPS = ['welcome', 'timezone', 'bible', 'praise'] as const;
@@ -20,9 +27,14 @@ type Step = (typeof STEPS)[number];
 
 export default function OnboardingScreen() {
   const { profile, isProfileLoading, needsOnboarding, updateProfile } = useAuth();
+  const { t } = useI18n();
+  const locale = normalizeAppLocale(profile?.locale);
+  const bibleOptions = getAutoFetchTranslationsForLocale(locale);
   const [step, setStep] = useState<Step>('welcome');
   const [timezone, setTimezone] = useState(getDeviceTimezone());
-  const [bibleTranslationId, setBibleTranslationId] = useState(DEFAULT_BIBLE_TRANSLATION_ID);
+  const [bibleTranslationId, setBibleTranslationId] = useState(
+    resolveBibleTranslationForLocaleChange(DEFAULT_BIBLE_TRANSLATION_ID, locale).translationId,
+  );
   const [praiseVisibilityDays, setPraiseVisibilityDays] = useState(DEFAULT_PRAISE_VISIBILITY_DAYS);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,14 +42,19 @@ export default function OnboardingScreen() {
   useEffect(() => {
     if (profile?.timezone) setTimezone(profile.timezone);
     if (profile?.bible_translation_id) {
+      const preferred = isAutoFetchTranslation(profile.bible_translation_id)
+        ? profile.bible_translation_id
+        : DEFAULT_BIBLE_TRANSLATION_ID;
       setBibleTranslationId(
-        isAutoFetchTranslation(profile.bible_translation_id)
-          ? profile.bible_translation_id
-          : DEFAULT_BIBLE_TRANSLATION_ID,
+        resolveBibleTranslationForLocaleChange(preferred, locale).translationId,
+      );
+    } else {
+      setBibleTranslationId(
+        resolveBibleTranslationForLocaleChange(DEFAULT_BIBLE_TRANSLATION_ID, locale).translationId,
       );
     }
     if (profile?.praise_visibility_days) setPraiseVisibilityDays(profile.praise_visibility_days);
-  }, [profile]);
+  }, [profile, locale]);
 
   if (isProfileLoading) {
     return <LoadingScreen />;
@@ -101,14 +118,13 @@ export default function OnboardingScreen() {
         {step === 'welcome' ? (
           <View style={styles.step}>
             <AppText variant="label" accent>
-              Welcome to PrayerCare
+              {t('brand.name')}
             </AppText>
             <AppText variant="greeting" style={styles.title}>
-              Peace be with you, {firstName}.
+              {t('onboarding.welcomeTitle', { name: firstName })}
             </AppText>
             <AppText muted style={styles.lead}>
-              Let&apos;s take a moment to personalize your prayer journey — timezone, Scripture
-              translation, and how long you&apos;d like praise to stay visible.
+              {t('onboarding.welcomeBody')}
             </AppText>
           </View>
         ) : null}
@@ -116,14 +132,14 @@ export default function OnboardingScreen() {
         {step === 'timezone' ? (
           <View style={styles.step}>
             <AppText variant="greeting" style={styles.title}>
-              Your timezone
+              {t('onboarding.timezoneTitle')}
             </AppText>
             <AppText muted style={styles.lead}>
-              This helps your daily prayer list and reminders appear at the right time.
+              {t('onboarding.timezoneBody')}
             </AppText>
             <OptionCard
               label={formatTimezoneLabel(timezone)}
-              description="Detected from your device — you can change this later in Settings."
+              description={t('settings.timezoneHint')}
               selected
               onPress={() => setTimezone(getDeviceTimezone())}
             />
@@ -133,14 +149,13 @@ export default function OnboardingScreen() {
         {step === 'bible' ? (
           <View style={styles.step}>
             <AppText variant="greeting" style={styles.title}>
-              Bible translation
+              {t('onboarding.bibleTitle')}
             </AppText>
             <AppText muted style={styles.lead}>
-              For automatic verse lookup we use free public-domain translations. You can always
-              paste any translation manually when writing prayers.
+              {t('onboarding.bibleBody')}
             </AppText>
             <View style={styles.options}>
-              {AUTO_FETCH_BIBLE_TRANSLATIONS.map((translation) => (
+              {bibleOptions.map((translation) => (
                 <OptionCard
                   key={translation.id}
                   label={translation.label}
@@ -156,11 +171,10 @@ export default function OnboardingScreen() {
         {step === 'praise' ? (
           <View style={styles.step}>
             <AppText variant="greeting" style={styles.title}>
-              Praise visibility
+              {t('onboarding.praiseTitle')}
             </AppText>
             <AppText muted style={styles.lead}>
-              When a prayer is answered, how long should it stay in your Praise section before
-              moving to permanent History?
+              {t('onboarding.praiseBody')}
             </AppText>
             <View style={styles.options}>
               {PRAISE_VISIBILITY_OPTIONS.map((option) => (
@@ -180,10 +194,10 @@ export default function OnboardingScreen() {
 
         <View style={styles.actions}>
           {stepIndex > 0 ? (
-            <Button title="Back" variant="ghost" onPress={handleBack} disabled={loading} />
+            <Button title={t('common.back')} variant="ghost" onPress={handleBack} disabled={loading} />
           ) : null}
           <Button
-            title={step === 'praise' ? 'Begin My Journey' : 'Continue'}
+            title={step === 'praise' ? t('onboarding.finish') : t('common.continue')}
             loading={loading}
             onPress={handleNext}
           />

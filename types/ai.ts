@@ -24,6 +24,8 @@ export type GeneratePrayerRequest = {
   type: 'prayer';
   heart: string;
   translationId?: string;
+  /** App UI language: en | fr | es. AI output must match. */
+  locale?: string;
 };
 
 export type GenerateVerseRequest = {
@@ -31,6 +33,7 @@ export type GenerateVerseRequest = {
   title: string;
   prayerPoint: string;
   translationId?: string;
+  locale?: string;
 };
 
 export type AiGenerateRequest = GeneratePrayerRequest | GenerateVerseRequest;

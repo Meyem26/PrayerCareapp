@@ -9,6 +9,7 @@ import { Screen } from '@/components/ui/Screen';
 import { TextArea } from '@/components/ui/TextArea';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { fetchScriptureFromApi } from '@/lib/api/bible';
 import { createSermonNote } from '@/lib/api/sermon';
 import { getTodayDateString } from '@/lib/utils/date';
@@ -30,6 +31,7 @@ type VersePreview = {
 
 export default function CreateSermonNoteScreen() {
   const { profile } = useAuth();
+  const { t } = useI18n();
   const [title, setTitle] = useState('');
   const [speaker, setSpeaker] = useState('');
   const [church, setChurch] = useState('');
@@ -46,12 +48,12 @@ export default function CreateSermonNoteScreen() {
 
     const references = parseReferences(referencesRaw);
     if (references.length === 0) {
-      setError('Add at least one reference, e.g. 1 Cor 11:1 or John 3:16.');
+      setError(t('sermon.needReference'));
       return;
     }
 
     if (!profile) {
-      setError('You must be signed in.');
+      setError(t('prayer.mustSignIn'));
       return;
     }
 
@@ -65,7 +67,7 @@ export default function CreateSermonNoteScreen() {
       );
 
       if (fetchError || !data) {
-        previews.push({ reference, error: fetchError ?? 'Could not fetch verse.' });
+        previews.push({ reference, error: fetchError ?? t('sermon.fetchFailed') });
         continue;
       }
 
@@ -84,12 +86,12 @@ export default function CreateSermonNoteScreen() {
     setError(null);
 
     if (!title.trim()) {
-      setError('Please add a sermon title.');
+      setError(t('sermon.needTitle'));
       return;
     }
 
     if (!profile) {
-      setError('You must be signed in.');
+      setError(t('prayer.mustSignIn'));
       return;
     }
 
@@ -124,30 +126,42 @@ export default function CreateSermonNoteScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <View style={styles.section}>
-            <AppText variant="greeting">Capture the Word</AppText>
-            <AppText muted>
-              Add references and your notes — verses are fetched automatically (free public-domain
-              translations).
-            </AppText>
+            <AppText variant="greeting">{t('sermon.captureTitle')}</AppText>
+            <AppText muted>{t('sermon.captureSubtitle')}</AppText>
           </View>
 
-          <Input label="Sermon title" value={title} onChangeText={setTitle} placeholder="What was preached?" />
-          <Input label="Speaker" value={speaker} onChangeText={setSpeaker} placeholder="Optional" />
-          <Input label="Church" value={church} onChangeText={setChurch} placeholder="Optional" />
+          <Input
+            label={t('sermon.titleLabel')}
+            value={title}
+            onChangeText={setTitle}
+            placeholder={t('sermon.titlePlaceholder')}
+          />
+          <Input
+            label={t('sermon.speaker')}
+            value={speaker}
+            onChangeText={setSpeaker}
+            placeholder={t('sermon.optional')}
+          />
+          <Input
+            label={t('sermon.church')}
+            value={church}
+            onChangeText={setChurch}
+            placeholder={t('sermon.optional')}
+          />
 
           <TextArea
-            label="Bible references"
+            label={t('sermon.references')}
             value={referencesRaw}
             onChangeText={(value) => {
               setReferencesRaw(value);
               setVersePreviews([]);
             }}
-            placeholder={'One per line, e.g.\n1 Cor 11:1\nJohn 3:16'}
+            placeholder={t('sermon.referencesPlaceholder')}
             style={styles.referencesArea}
           />
 
           <Button
-            title="Fetch verses"
+            title={t('sermon.fetchVerses')}
             variant="secondary"
             loading={fetchingVerses}
             onPress={handleFetchVerses}
@@ -155,7 +169,7 @@ export default function CreateSermonNoteScreen() {
 
           {versePreviews.length > 0 ? (
             <View style={styles.previewBlock}>
-              <AppText variant="title">Preview</AppText>
+              <AppText variant="title">{t('sermon.preview')}</AppText>
               {versePreviews.map((preview) => (
                 <View key={preview.reference} style={styles.previewItem}>
                   <AppText style={styles.previewReference}>{preview.reference}</AppText>
@@ -177,16 +191,16 @@ export default function CreateSermonNoteScreen() {
           ) : null}
 
           <TextArea
-            label="Personal meditation"
+            label={t('sermon.meditation')}
             value={meditation}
             onChangeText={setMeditation}
-            placeholder="What is God speaking to you through this message?"
+            placeholder={t('sermon.meditationPlaceholder')}
             style={styles.meditationArea}
           />
 
           {error ? <AppText style={styles.error}>{error}</AppText> : null}
 
-          <Button title="Save sermon note" loading={loading} onPress={handleSave} />
+          <Button title={t('sermon.save')} loading={loading} onPress={handleSave} />
         </ScrollView>
     </Screen>
   );

@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { LoadingScreen, Screen } from '@/components/ui/Screen';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { theme } from '@/constants/theme';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
 export default function LoginScreen() {
   const { signIn, session, isLoading, isEmailVerified, needsOnboarding } = useAuth();
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -36,12 +38,12 @@ export default function LoginScreen() {
     setError(null);
 
     if (!email.trim() || !password) {
-      setError('Please enter your email and password.');
+      setError(t('auth.completeAllFields'));
       return;
     }
 
     if (!isSupabaseConfigured) {
-      setError('Supabase is not configured yet. Add your keys to .env.');
+      setError(t('auth.supabaseMissing'));
       return;
     }
 
@@ -83,22 +85,20 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}>
           <View style={styles.hero}>
             <AppText variant="label" accent>
-              PrayerCare
+              {t('brand.name')}
             </AppText>
             <AppText variant="greeting" style={styles.greeting}>
-              Welcome back.
+              {t('auth.welcomeBack')}
             </AppText>
-            <AppText muted>
-              Sign in to continue your prayer journey.
-            </AppText>
+            <AppText muted>{t('auth.signInSubtitle')}</AppText>
             <AppText variant="bodySmall" muted style={styles.hintNote}>
-              First time here? Tap Create an account below — PrayerCare is free to use.
+              {t('auth.needAccount')} {t('auth.createOne')}
             </AppText>
           </View>
 
           <View style={styles.form}>
             <Input
-              label="Email"
+              label={t('auth.email')}
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
@@ -107,7 +107,7 @@ export default function LoginScreen() {
               onChangeText={setEmail}
             />
             <Input
-              label="Password"
+              label={t('auth.password')}
               secureTextEntry
               autoComplete="password"
               textContentType="password"
@@ -115,19 +115,19 @@ export default function LoginScreen() {
               onChangeText={setPassword}
             />
             {error ? <AppText style={styles.error}>{error}</AppText> : null}
-            <Button title="Sign In" loading={loading} onPress={handleLogin} />
+            <Button title={t('auth.signIn')} loading={loading} onPress={handleLogin} />
           </View>
 
           <View style={styles.links}>
             <Link href="/(auth)/forgot-password" asChild>
               <Pressable>
-                <AppText accent>Forgot password?</AppText>
+                <AppText accent>{t('auth.forgotPassword')}</AppText>
               </Pressable>
             </Link>
             <Link href="/(auth)/sign-up" asChild>
               <Pressable>
                 <AppText muted>
-                  New here? <AppText accent>Create an account</AppText>
+                  {t('auth.needAccount')} <AppText accent>{t('auth.createOne')}</AppText>
                 </AppText>
               </Pressable>
             </Link>

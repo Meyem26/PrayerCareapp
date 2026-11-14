@@ -1,19 +1,28 @@
+import { t } from '@/lib/i18n';
 import type { PrayerWithRelations } from '@/types/prayer';
 
 export type JourneyFilter = 'all' | 'active' | 'answered' | 'praise' | 'hidden';
 
 export type JourneyMoment = 'praise' | 'answered' | 'hidden' | 'archived' | 'active';
 
-export const JOURNEY_FILTERS: { value: JourneyFilter; label: string; description: string }[] = [
-  { value: 'all', label: 'All prayers', description: 'Your whole journey' },
-  { value: 'active', label: 'Still praying', description: 'Prayers you are carrying now' },
-  { value: 'answered', label: 'Answered', description: 'Every prayer God has answered' },
+export const JOURNEY_FILTERS: {
+  value: JourneyFilter;
+  labelKey: string;
+  descriptionKey: string;
+}[] = [
+  { value: 'all', labelKey: 'journey.filterAll', descriptionKey: 'journey.filterAllDesc' },
+  { value: 'active', labelKey: 'journey.filterActive', descriptionKey: 'journey.filterActiveDesc' },
+  {
+    value: 'answered',
+    labelKey: 'journey.filterAnswered',
+    descriptionKey: 'journey.filterAnsweredDesc',
+  },
   {
     value: 'praise',
-    label: 'Praise',
-    description: 'Recently answered, still in your praise season',
+    labelKey: 'journey.filterPraise',
+    descriptionKey: 'journey.filterPraiseDesc',
   },
-  { value: 'hidden', label: 'Hidden', description: 'Prayers you have set aside' },
+  { value: 'hidden', labelKey: 'journey.filterHidden', descriptionKey: 'journey.filterHiddenDesc' },
 ];
 
 function todayIso(): string {
@@ -52,9 +61,9 @@ export function daysBetween(fromIso: string, toIso: string): number {
   return Math.max(0, Math.round(diff / 86_400_000));
 }
 
-export function formatShortDate(date: Date): string {
+export function formatShortDate(date: Date, locale?: string): string {
   const sameYear = date.getFullYear() === new Date().getFullYear();
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
     ...(sameYear ? {} : { year: 'numeric' }),
@@ -67,7 +76,7 @@ export type JourneySection = {
   data: PrayerWithRelations[];
 };
 
-export function groupByMonth(prayers: PrayerWithRelations[]): JourneySection[] {
+export function groupByMonth(prayers: PrayerWithRelations[], locale?: string): JourneySection[] {
   const sorted = [...prayers].sort(
     (a, b) => getMomentDate(b).getTime() - getMomentDate(a).getTime(),
   );
@@ -85,8 +94,8 @@ export function groupByMonth(prayers: PrayerWithRelations[]): JourneySection[] {
       section = {
         key,
         title: isThisMonth
-          ? 'This month'
-          : date.toLocaleDateString(undefined, {
+          ? t('journey.thisMonth')
+          : date.toLocaleDateString(locale, {
               month: 'long',
               ...(date.getFullYear() === now.getFullYear() ? {} : { year: 'numeric' }),
             }),

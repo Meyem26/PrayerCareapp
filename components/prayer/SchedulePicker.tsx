@@ -4,8 +4,14 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { AppText } from '@/components/ui/AppText';
 import { SettingRow } from '@/components/ui/SettingRow';
-import { describeRepeat, REPEAT_CHOICES, WEEKDAY_LABELS } from '@/constants/schedule';
+import {
+  describeRepeat,
+  getWeekdayLabel,
+  REPEAT_CHOICES,
+  WEEKDAY_KEYS,
+} from '@/constants/schedule';
 import { theme } from '@/constants/theme';
+import { useI18n } from '@/contexts/I18nContext';
 import type { ScheduleType } from '@/types/prayer';
 
 type SchedulePickerProps = {
@@ -23,6 +29,7 @@ export function SchedulePicker({
   onChangeWeekdays,
   last,
 }: SchedulePickerProps) {
+  const { t } = useI18n();
   const needsDays = value === 'specific_weekdays' && weekdays.length === 0;
   const [expanded, setExpanded] = useState(needsDays);
   const lastRepeat = useRef<Exclude<ScheduleType, 'once'>>(value === 'once' ? 'daily' : value);
@@ -46,10 +53,10 @@ export function SchedulePicker({
 
   return (
     <SettingRow
-      label="Repeat"
+      label={t('schedule.repeat')}
       value={describeRepeat(value, weekdays)}
-      placeholder="Choose when"
-      actionLabel={expanded ? 'Done' : 'Change'}
+      placeholder={t('schedule.chooseWhen')}
+      actionLabel={expanded ? t('common.done') : t('schedule.change')}
       onPress={() => {
         if (expanded && needsDays) return;
         setExpanded((open) => !open);
@@ -57,15 +64,15 @@ export function SchedulePicker({
       last={last}>
       {expanded ? (
         <Animated.View entering={FadeIn.duration(200)} style={styles.panel}>
-          <AppText style={styles.question}>Does this prayer need to repeat?</AppText>
+          <AppText style={styles.question}>{t('schedule.needsRepeat')}</AppText>
           <View style={styles.pills}>
             <Pill
-              label="No, just today"
+              label={t('schedule.noJustToday')}
               selected={!repeats}
               onPress={() => onChangeSchedule('once')}
             />
             <Pill
-              label="Yes, repeat"
+              label={t('schedule.yesRepeat')}
               selected={repeats}
               onPress={() => {
                 if (!repeats) onChangeSchedule(lastRepeat.current);
@@ -76,13 +83,13 @@ export function SchedulePicker({
           {repeats ? (
             <Animated.View entering={FadeIn.duration(200)} style={styles.section}>
               <AppText variant="label" style={styles.sectionLabel}>
-                How often?
+                {t('schedule.howOften')}
               </AppText>
               <View style={styles.pills}>
                 {REPEAT_CHOICES.map((choice) => (
                   <Pill
                     key={choice.type}
-                    label={choice.label}
+                    label={t(choice.labelKey)}
                     selected={value === choice.type}
                     onPress={() => onChangeSchedule(choice.type)}
                   />
@@ -90,21 +97,22 @@ export function SchedulePicker({
               </View>
               {selectedChoice ? (
                 <AppText variant="bodySmall" muted>
-                  {selectedChoice.hint}
+                  {t(selectedChoice.hintKey)}
                 </AppText>
               ) : null}
 
               {value === 'specific_weekdays' ? (
                 <Animated.View entering={FadeIn.duration(200)} style={styles.section}>
                   <AppText variant="label" style={styles.sectionLabel}>
-                    Which days?
+                    {t('schedule.whichDays')}
                   </AppText>
                   <View style={styles.weekdays}>
-                    {WEEKDAY_LABELS.map((dayLabel, index) => {
+                    {WEEKDAY_KEYS.map((dayKey, index) => {
+                      const dayLabel = getWeekdayLabel(index);
                       const selected = weekdays.includes(index);
                       return (
                         <Pressable
-                          key={dayLabel}
+                          key={dayKey}
                           accessibilityRole="checkbox"
                           accessibilityState={{ checked: selected }}
                           accessibilityLabel={dayLabel}
@@ -121,7 +129,7 @@ export function SchedulePicker({
                   </View>
                   {needsDays ? (
                     <AppText variant="bodySmall" style={styles.hint}>
-                      Pick at least one day.
+                      {t('schedule.pickOneDay')}
                     </AppText>
                   ) : null}
                 </Animated.View>
@@ -129,7 +137,7 @@ export function SchedulePicker({
             </Animated.View>
           ) : (
             <AppText variant="bodySmall" muted>
-              It will be on your Today list just for today.
+              {t('schedule.todayOnlyHint')}
             </AppText>
           )}
         </Animated.View>

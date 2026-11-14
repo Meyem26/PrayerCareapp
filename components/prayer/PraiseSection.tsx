@@ -5,6 +5,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { TextArea } from '@/components/ui/TextArea';
 import { theme } from '@/constants/theme';
+import { useI18n } from '@/contexts/I18nContext';
 import { fetchPraiseReport, savePraiseReport } from '@/lib/api/care';
 import { formatTimelineDate } from '@/lib/utils/date';
 import type { PraiseReport } from '@/types/care';
@@ -16,6 +17,7 @@ type PraiseSectionProps = {
 };
 
 export function PraiseSection({ prayerId, praiseVisibleUntil, onUpdated }: PraiseSectionProps) {
+  const { t } = useI18n();
   const [report, setReport] = useState<PraiseReport | null>(null);
   const [body, setBody] = useState('');
   const [editing, setEditing] = useState(false);
@@ -58,18 +60,18 @@ export function PraiseSection({ prayerId, praiseVisibleUntil, onUpdated }: Prais
   if (loading) {
     return (
       <View style={styles.block}>
-        <AppText muted>Loading praise...</AppText>
+        <AppText muted>{t('praise.loading')}</AppText>
       </View>
     );
   }
 
   return (
     <View style={[styles.block, styles.praiseBlock]}>
-      <AppText variant="title">Praise report</AppText>
+      <AppText variant="title">{t('praise.title')}</AppText>
       <AppText variant="bodySmall" muted>
         {inPraiseWindow
-          ? `Visible in Praise until ${praiseVisibleUntil}. Then it moves to your journey history.`
-          : 'This answered prayer has moved to history.'}
+          ? t('praise.visibleUntil', { date: praiseVisibleUntil })
+          : t('praise.movedToHistory')}
       </AppText>
 
       {report && !editing ? (
@@ -79,25 +81,32 @@ export function PraiseSection({ prayerId, praiseVisibleUntil, onUpdated }: Prais
             {formatTimelineDate(report.updated_at)}
           </AppText>
           {inPraiseWindow ? (
-            <Button title="Edit praise" variant="secondary" onPress={() => setEditing(true)} />
+            <Button title={t('praise.edit')} variant="secondary" onPress={() => setEditing(true)} />
           ) : null}
         </View>
       ) : inPraiseWindow ? (
         <View style={styles.form}>
           <TextArea
-            label="How did God answer?"
+            label={t('praise.howAnswered')}
             value={body}
             onChangeText={setBody}
-            placeholder="Share what happened — your testimony encourages others..."
+            placeholder={t('praise.placeholder')}
             style={styles.textArea}
           />
           {error ? <AppText style={styles.error}>{error}</AppText> : null}
           <View style={styles.formActions}>
             {report ? (
-              <Button title="Cancel" variant="ghost" onPress={() => { setEditing(false); setBody(report.body); }} />
+              <Button
+                title={t('common.cancel')}
+                variant="ghost"
+                onPress={() => {
+                  setEditing(false);
+                  setBody(report.body);
+                }}
+              />
             ) : null}
             <Button
-              title={report ? 'Save praise' : 'Write praise report'}
+              title={report ? t('praise.save') : t('praise.write')}
               loading={saving}
               onPress={handleSave}
             />
@@ -105,11 +114,11 @@ export function PraiseSection({ prayerId, praiseVisibleUntil, onUpdated }: Prais
         </View>
       ) : report ? (
         <AppText muted style={styles.historyNote}>
-          Praise report saved — now part of your prayer history.
+          {t('praise.savedHistory')}
         </AppText>
       ) : (
         <AppText muted style={styles.historyNote}>
-          No praise report was written for this prayer.
+          {t('praise.noneWritten')}
         </AppText>
       )}
     </View>
@@ -119,22 +128,19 @@ export function PraiseSection({ prayerId, praiseVisibleUntil, onUpdated }: Prais
 const styles = StyleSheet.create({
   block: {
     gap: theme.spacing.sm,
+  },
+  praiseBlock: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
     borderColor: theme.colors.border,
     padding: theme.spacing.lg,
   },
-  praiseBlock: {
-    backgroundColor: theme.colors.goldLight,
-    borderColor: theme.colors.gold,
-  },
   report: {
     gap: theme.spacing.sm,
   },
   reportBody: {
-    fontSize: 17,
-    lineHeight: 26,
+    lineHeight: 24,
   },
   form: {
     gap: theme.spacing.sm,

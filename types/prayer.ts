@@ -80,7 +80,7 @@ export type PrayerTimelineEvent = {
 
 export type PrayerWithRelations = Prayer & {
   prayer_schedules: PrayerSchedule | PrayerSchedule[] | null;
-  prayer_categories: { label: string } | null;
+  prayer_categories: { label: string; slug?: string | null } | null;
   scripture_snapshots: ScriptureSnapshot[] | null;
   prayer_reminders?: import('@/types/reminder').PrayerReminder[] | null;
 };

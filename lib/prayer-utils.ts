@@ -1,3 +1,4 @@
+import { translateCategorySlug } from '@/lib/i18n';
 import type { PrayerSchedule, PrayerWithRelations, ScheduleType } from '@/types/prayer';
 
 export function getScheduleFromPrayer(
@@ -16,7 +17,9 @@ export function getScriptureFromPrayer(prayer: PrayerWithRelations) {
 }
 
 export function getCategoryLabel(prayer: PrayerWithRelations): string | null {
-  return prayer.prayer_categories?.label ?? null;
+  const category = prayer.prayer_categories;
+  if (!category) return null;
+  return translateCategorySlug(category.slug, category.label) || category.label;
 }
 
 export function isValidSchedule(type: ScheduleType, weekdays: number[]): boolean {
