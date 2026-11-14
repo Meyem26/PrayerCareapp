@@ -409,6 +409,7 @@ export default function CreatePrayerScreen() {
       title.trim(),
       prayerPoint.trim(),
       profile?.bible_translation_id,
+      locale,
     );
     setVerseLoading(false);
 
