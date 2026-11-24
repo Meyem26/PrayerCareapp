@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PrayerCare — Product Page Header (Quiet Confidence)
+  Inspired by Apple creative_assets-product_page_header_template-static.pxd
+
+  Canvas: 3840 × 1646
+  Art Safe Area (Apple): x=1097, y=493, w=1646, h=661
+  Critical type + logo must remain inside that rectangle.
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="3840" height="1646" viewBox="0 0 3840 1646"
+     role="img" aria-label="PrayerCare — You promised to pray. Don't forget.">
+  <defs>
+    <radialGradient id="centerLift" cx="50%" cy="50%" r="45%">
+      <stop offset="0%" stop-color="#2D3E56" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#121C2A" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="goldWash" cx="85%" cy="10%" r="50%">
+      <stop offset="0%" stop-color="#B08E4A" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#B08E4A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Full-bleed auxiliary art -->
+  <rect width="3840" height="1646" fill="#121C2A"/>
+  <rect width="3840" height="1646" fill="url(#centerLift)"/>
+  <rect width="3840" height="1646" fill="url(#goldWash)"/>
+
+  <!-- Art Safe Area guide (hidden; set opacity to 0.35 while editing) -->
+  <rect id="art-safe-area" x="1097" y="493" width="1646" height="661"
+        fill="none" stroke="#B08E4A" stroke-width="2" stroke-dasharray="10 8" opacity="0"/>
+
+  <!-- Brand lockup centered in Art Safe Area -->
+  <g id="safe-content">
+    <image xlink:href="../../../assets/images/brand-mark.png"
+           x="1248" y="575" width="108" height="108"
+           preserveAspectRatio="xMidYMid meet"/>
+
+    <text x="1392" y="680"
+          font-family="Georgia, 'Times New Roman', serif"
+          font-size="168" font-weight="700" fill="#FAF9F7"
+          letter-spacing="12">PRAYERCARE</text>
+
+    <line x1="1392" y1="720" x2="1572" y2="720"
+          stroke="#B08E4A" stroke-width="4" stroke-linecap="round"/>
+
+    <text x="1920" y="800" text-anchor="middle"
+          font-family="Georgia, 'Times New Roman', serif"
+          font-size="54" font-weight="700" fill="#F7F4EE">You promised to pray.</text>
+    <text x="1920" y="872" text-anchor="middle"
+          font-family="Georgia, 'Times New Roman', serif"
+          font-size="54" font-weight="700" fill="#C4A86E">Don't forget.</text>
+
+    <text x="1920" y="1110" text-anchor="middle"
+          font-family="Segoe UI, Helvetica Neue, Arial, sans-serif"
+          font-size="30" fill="#A8B0BA">A quieter way to keep your word.</text>
+  </g>
+</svg>

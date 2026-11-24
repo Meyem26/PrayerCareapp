@@ -443,11 +443,68 @@ body.menu-open {
 }
 
 .hero-subtitle {
-  margin: 0 0 1.85rem;
+  margin: 0 0 0.85rem;
   max-width: 32rem;
   font-size: 1.125rem;
   color: var(--muted);
   line-height: 1.7;
+}
+
+.hero-availability {
+  margin: 0 0 1.35rem;
+  max-width: 32rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--forest-deep);
+  line-height: 1.55;
+}
+
+.store-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin: 0 0 1.35rem;
+}
+
+.store-badge {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+  transition: transform 0.25s var(--ease), opacity 0.25s var(--ease);
+}
+
+.store-badge:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+}
+
+.store-badge img {
+  display: block;
+  height: 48px;
+  width: auto;
+}
+
+/* Google Play badge includes transparent padding — scale to match Apple optically */
+.store-badge--play img {
+  height: 72px;
+  margin: -12px -8px;
+}
+
+.store-badges--cta {
+  justify-content: center;
+  margin: 0 0 1.5rem;
+}
+
+@media (max-width: 520px) {
+  .store-badge img {
+    height: 44px;
+  }
+
+  .store-badge--play img {
+    height: 66px;
+    margin: -11px -6px;
+  }
 }
 
 .hero-actions {
@@ -455,47 +512,6 @@ body.menu-open {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.85rem;
-}
-
-.store-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.55rem 1rem 0.55rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid rgba(47, 70, 57, 0.18);
-  background: var(--white);
-  color: var(--forest);
-  font-size: 0.95rem;
-  font-weight: 600;
-  text-decoration: none;
-  box-shadow: 0 6px 18px rgba(47, 70, 57, 0.08);
-  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
-}
-
-.store-link:hover {
-  transform: translateY(-1px);
-  color: var(--forest-deep);
-  box-shadow: 0 10px 24px rgba(47, 70, 57, 0.14);
-}
-
-.store-link-icon {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #f4f6f5;
-}
-
-.store-link-icon svg {
-  display: block;
-}
-
-.store-link--on-dark {
-  background: rgba(247, 244, 238, 0.96);
-  border-color: transparent;
-  color: var(--forest-deep);
 }
 
 .hero-visual {

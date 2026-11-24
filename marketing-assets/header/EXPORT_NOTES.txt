@@ -1,0 +1,26 @@
+PrayerCare — App Store Product Page Header
+==========================================
+
+SOURCE TEMPLATE
+  Apple: creative_assets-product_page_header_template-static.pxd
+  Local reference: marketing-assets/header/template-ref/
+
+DESTINATION
+  App Store Connect → Product Page Information → Header and Search Results → Header
+  Exact size: 3840 × 1646 px | PNG | RGB | no alpha
+
+APPLE ART SAFE AREA (critical content)
+  x: 1097  y: 493  width: 1646  height: 661
+  Logo + PRAYERCARE + hook stay inside this zone.
+  Atmosphere may extend full-bleed outside it.
+
+FINAL
+  prayercare-main-header-3840x1646.png
+  prayercare-header-FINAL-quiet-confidence.png
+  prayercare-main-header-3840x1646.svg
+
+COPY
+  PRAYERCARE  (dominant)
+  You promised to pray.
+  Don't forget.
+  A quieter way to keep your word.
